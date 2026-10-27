@@ -78,7 +78,6 @@ let homeHost = null;
 let homeView = null;
 let bannerEl = null;
 let fabEl = null;
-let floatFabEl = null;
 let islandEl = null;
 
 let current = null;
@@ -165,21 +164,8 @@ export function createPhone(onOpenChange) {
         onclick: () => toggle(),
     }, icon('phone'), h('span', { class: 'mp-fab__badge is-hide' }));
     refs.fabBadge = fabEl.lastChild;
-    floatFabEl = h('button', {
-        type: 'button', class: 'mp-fab mp-fab--float', title: '悬浮窗打开',
-        'aria-label': '用悬浮窗打开小手机',
-        onclick: () => {
-            try {
-                globalThis.localStorage?.setItem('mirage_mobile_float', '1');
-                document.documentElement.classList.add('mp-mobile-float');
-            } catch { /* ignore */ }
-            openPhone();
-            applyLayout();
-        },
-    }, icon('maximize'));
     document.body.appendChild(rootEl);
     const fabHost = document.documentElement;
-    fabHost.appendChild(floatFabEl);
     fabHost.appendChild(fabEl);
     setTimeout(syncFabPosition, 0);
     try {
@@ -292,15 +278,25 @@ function syncFabPosition() {
     const size = narrow ? 56 : 58;
     fabEl.style.setProperty('top', Math.round(viewport - gap - size) + 'px', 'important');
     fabEl.style.setProperty('bottom', 'auto', 'important');
-    if (floatFabEl) {
-        floatFabEl.style.setProperty('top', Math.round(viewport - gap - size - (narrow ? 8 : 14)) + 'px', 'important');
-        floatFabEl.style.setProperty('bottom', 'auto', 'important');
-    }
 }
 
 function onResize() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => { applyLayout(); syncFabPosition(); }, 120);
+}
+
+function paintFloat(scale, pos) {
+    if (!shellEl) return;
+    const w = 384 * scale;
+    const h = 812 * scale;
+    const left = Math.round((window.innerWidth - w) / 2 + (pos?.x || 0));
+    const top = Math.round((window.innerHeight - h) / 2 + (pos?.y || 0));
+    shellEl.style.setProperty('left', '0px', 'important');
+    shellEl.style.setProperty('top', '0px', 'important');
+    shellEl.style.setProperty('right', 'auto', 'important');
+    shellEl.style.setProperty('bottom', 'auto', 'important');
+    shellEl.style.setProperty('transform-origin', 'top left', 'important');
+    shellEl.style.setProperty('transform', 'translate3d(' + left + 'px, ' + top + 'px, 0) scale(' + scale + ')', 'important');
 }
 
 function applyLayout() {
@@ -332,12 +328,7 @@ function applyLayout() {
             settings.pos = pos;
             shellEl.style.setProperty('--mp-x', pos.x + 'px');
             shellEl.style.setProperty('--mp-y', pos.y + 'px');
-            shellEl.style.setProperty('left', Math.round((window.innerWidth - w) / 2 + pos.x) + 'px', 'important');
-            shellEl.style.setProperty('top', Math.round((window.innerHeight - h) / 2 + pos.y) + 'px', 'important');
-            shellEl.style.setProperty('right', 'auto', 'important');
-            shellEl.style.setProperty('bottom', 'auto', 'important');
-            shellEl.style.setProperty('transform', 'scale(' + scale + ')', 'important');
-            shellEl.style.setProperty('transform-origin', 'top left', 'important');
+            paintFloat(scale, pos);
         } else {
             shellEl.style.setProperty('--mp-x', '0px');
             shellEl.style.setProperty('--mp-y', '0px');
@@ -424,10 +415,7 @@ function bindDrag(device) {
         const scale = Number(getComputedStyle(shellEl).getPropertyValue('--mp-scale')) || 0.82;
         const clamped = clampPos(x, y, scale);
         settings.pos = clamped;
-        const w = 384 * scale;
-        const h = 812 * scale;
-        shellEl.style.setProperty('left', Math.round((window.innerWidth - w) / 2 + clamped.x) + 'px', 'important');
-        shellEl.style.setProperty('top', Math.round((window.innerHeight - h) / 2 + clamped.y) + 'px', 'important');
+        paintFloat(scale, clamped);
     };
 
     const stopInertia = () => { if (frame) cancelAnimationFrame(frame); frame = 0; };
@@ -456,6 +444,7 @@ function bindDrag(device) {
                 const [a, b] = [...points.values()];
                 pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y), scale: Number(getSettings().scale) || 0.82 };
                 drag = null;
+                shellEl.classList.add('is-dragging');
                 stopInertia();
                 return;
             }
@@ -467,6 +456,7 @@ function bindDrag(device) {
         if (event.clientY - rect.top > 60 && !edge) return;
         const settings = getSettings();
         drag = { id: event.pointerId, x: event.clientX, y: event.clientY, bx: Number(settings.pos?.x) || 0, by: Number(settings.pos?.y) || 0, t: performance.now(), vx: 0, vy: 0 };
+        shellEl.classList.add('is-dragging');
         device.setPointerCapture?.(event.pointerId);
     });
 
@@ -502,10 +492,11 @@ function bindDrag(device) {
     const finish = event => {
         if (event?.pointerType === 'touch' && device.__mpPoints) {
             device.__mpPoints.delete(event.pointerId);
-            if (device.__mpPoints.size < 2) pinch = null;
+            if (device.__mpPoints.size < 2) { pinch = null; shellEl.classList.remove('is-dragging'); }
         }
         if (!drag || (event && event.pointerId !== drag.id)) return;
         drag = null;
+        shellEl.classList.remove('is-dragging');
         if (last) inertia();
         saveNow('settings');
     };
@@ -565,7 +556,6 @@ export function openPhone(app = 'home', params = {}) {
     setFab(true);
     syncFabPosition();
     if (!clockTimer) clockTimer = setInterval(tick, 15000);
-    floatFabEl?.classList.add('is-hidden');
     if (app !== 'home') {
         openApp(app, params);
     } else {
@@ -592,7 +582,6 @@ export function closePhone() {
     hideOtherFloaters(false);
     setFab(false);
     syncFabPosition();
-    floatFabEl?.classList.remove('is-hidden');
     clearInterval(clockTimer);
     clockTimer = 0;
     onOpenChanged(false);
