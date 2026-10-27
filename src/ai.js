@@ -226,7 +226,7 @@ export async function extractCast() {
     if (current.group) throw new Error('群聊卡暂时不支持提取人物，先在酒馆里选一张单人卡');
     const user = userName();
     const card = findCharacter(current.name) || current;
-    const story = storyContext(48, 420);
+    const story = storyContext(48, 840);
     const raw = await generateText({
         system: castSystemPrompt({ user }),
         prompt: castUserPrompt({ card, story, user }),

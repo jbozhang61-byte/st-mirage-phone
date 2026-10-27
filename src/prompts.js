@@ -324,7 +324,7 @@ export function castUserPrompt({ card, story = [], user = '我' }) {
     const parts = [];
     if (story.length) {
         parts.push('当前聊天的最近内容（以此为准）：');
-        parts.push(story.map(line => (line.isUser ? user : line.name) + '：' + trim(line.text, 320)).join('\n'));
+        parts.push(story.map(line => (line.isUser ? user : line.name) + '：' + trim(line.text, 840)).join('\n'));
     }
     if (card) {
         parts.push('\n角色卡资料（仅作背景参考，不要用卡里没出现过的人替换聊天里的人）：');
