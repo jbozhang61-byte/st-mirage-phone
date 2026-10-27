@@ -209,21 +209,7 @@ export function createPhone(onOpenChange) {
 
     bindDrag(device);
 
-    const zoomBar = h('div', { class: 'mp-zoom' },
-        h('button', { type: 'button', 'aria-label': '缩小', text: '−', onclick: () => {
-            const settings = getSettings();
-            settings.scale = Math.max(0.5, (Number(settings.scale) || 0.82) - 0.07);
-            saveNow('settings');
-            scheduleLayout();
-        } }),
-        h('button', { type: 'button', 'aria-label': '放大', text: '+', onclick: () => {
-            const settings = getSettings();
-            settings.scale = Math.min(1.12, (Number(settings.scale) || 0.82) + 0.07);
-            saveNow('settings');
-            applyLayout();
-        } }),
-    );
-    shellEl.appendChild(zoomBar);
+
     // 手机端：从左边缘往右滑 = 返回
     let edgeStart = null;
     screenEl.addEventListener('pointerdown', event => {
@@ -397,70 +383,123 @@ function toggleFloatMode() {
 }
 
 function bindDrag(device) {
-    let dragging = false;
-    let moved = false;
-    let startX = 0;
-    let startY = 0;
-    let baseX = 0;
-    let baseY = 0;
+    let drag = null;
+    let pinch = null;
+    let frame = 0;
+    let last = null;
 
-    const onDown = event => {
+    const clampPos = (x, y, scale) => {
+        const rect = device.getBoundingClientRect();
+        const w = rect.width;
+        const h = rect.height;
+        const margin = 18;
+        const maxX = Math.max(0, (window.innerWidth - w) / 2);
+        const maxY = Math.max(0, (window.innerHeight - h) / 2);
+        return {
+            x: Math.max(-maxX + margin, Math.min(maxX - margin, x)),
+            y: Math.max(-maxY + margin, Math.min(maxY - margin, y)),
+        };
+    };
+
+    const applyPos = (x, y) => {
+        const settings = getSettings();
         const floating = document.documentElement.classList.contains('mp-mobile-float');
-        if ((isNarrow() && !floating) || event.button !== 0) return;
+        if (!floating) return;
+        const scale = Number(getComputedStyle(shellEl).getPropertyValue('--mp-scale')) || 0.82;
+        const clamped = clampPos(x, y, scale);
+        settings.pos = clamped;
+        const w = 384 * scale;
+        const h = 812 * scale;
+        shellEl.style.setProperty('left', Math.round((window.innerWidth - w) / 2 + clamped.x) + 'px', 'important');
+        shellEl.style.setProperty('top', Math.round((window.innerHeight - h) / 2 + clamped.y) + 'px', 'important');
+    };
+
+    const stopInertia = () => { if (frame) cancelAnimationFrame(frame); frame = 0; };
+
+    const inertia = () => {
+        if (!last) return;
+        let { vx, vy, x, y } = last;
+        last = null;
+        const tick = () => {
+            vx *= 0.93;
+            vy *= 0.93;
+            x += vx;
+            y += vy;
+            applyPos(x, y);
+            if (Math.abs(vx) > 0.2 || Math.abs(vy) > 0.2) frame = requestAnimationFrame(tick);
+            else { frame = 0; saveNow('settings'); }
+        };
+        frame = requestAnimationFrame(tick);
+    };
+
+    device.addEventListener('pointerdown', event => {
+        if (event.pointerType === 'touch') {
+            const points = device.__mpPoints || (device.__mpPoints = new Map());
+            points.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            if (points.size === 2) {
+                const [a, b] = [...points.values()];
+                pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y), scale: Number(getSettings().scale) || 0.82 };
+                drag = null;
+                stopInertia();
+                return;
+            }
+        }
+        if (event.button !== 0) return;
         if (event.target.closest('button, input, textarea, .mp-island')) return;
         const rect = device.getBoundingClientRect();
-        if (event.clientY - rect.top > 62) return;
-        dragging = true;
-        moved = false;
-        startX = event.clientX;
-        startY = event.clientY;
+        const edge = event.clientX < rect.left + 20 || event.clientX > rect.right - 20 || event.clientY > rect.bottom - 24;
+        if (event.clientY - rect.top > 60 && !edge) return;
         const settings = getSettings();
-        baseX = settings.pos?.x || 0;
-        baseY = settings.pos?.y || 0;
-        shellEl.classList.add('is-dragging');
+        drag = { id: event.pointerId, x: event.clientX, y: event.clientY, bx: Number(settings.pos?.x) || 0, by: Number(settings.pos?.y) || 0, t: performance.now(), vx: 0, vy: 0 };
         device.setPointerCapture?.(event.pointerId);
-        event.preventDefault();
-    };
+    });
 
-    const onMove = event => {
-        if (!dragging) return;
-        if (!moved && Math.abs(event.clientX - startX) < 6 && Math.abs(event.clientY - startY) < 6) return;
-        moved = true;
-        const settings = getSettings();
-        settings.pos = { x: baseX + (event.clientX - startX), y: baseY + (event.clientY - startY) };
-        shellEl.style.setProperty('--mp-x', settings.pos.x + 'px');
-        shellEl.style.setProperty('--mp-y', settings.pos.y + 'px');
-        if (document.documentElement.classList.contains('mp-mobile-float')) {
-            const scale = Number(getComputedStyle(shellEl).getPropertyValue('--mp-scale')) || 0.82;
-            const w = 384 * scale;
-            const h = 812 * scale;
-            shellEl.style.setProperty('left', Math.round((window.innerWidth - w) / 2 + settings.pos.x) + 'px', 'important');
-            shellEl.style.setProperty('top', Math.round((window.innerHeight - h) / 2 + settings.pos.y) + 'px', 'important');
+    window.addEventListener('pointermove', event => {
+        if (pinch && device.__mpPoints?.has(event.pointerId)) {
+            device.__mpPoints.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            const points = [...device.__mpPoints.values()];
+            if (points.length >= 2) {
+                const dist = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+                if (pinch.dist > 8) {
+                    getSettings().scale = Math.max(0.5, Math.min(1.12, pinch.scale * (dist / pinch.dist)));
+                    scheduleLayout();
+                }
+                event.preventDefault();
+            }
+            return;
         }
+        if (!drag || event.pointerId !== drag.id) return;
+        const dx = event.clientX - drag.x;
+        const dy = event.clientY - drag.y;
+        if (Math.abs(dx) + Math.abs(dy) < 2) return;
+        const now = performance.now();
+        const dt = Math.max(1, now - drag.t);
+        drag.vx = dx / dt * 16;
+        drag.vy = dy / dt * 16;
+        drag.t = now;
+        const settings = getSettings();
+        applyPos(drag.bx + dx, drag.by + dy);
+        last = { vx: drag.vx, vy: drag.vy, x: Number(settings.pos?.x) || 0, y: Number(settings.pos?.y) || 0 };
         event.preventDefault();
-    };
+    }, { passive: false });
 
-    const onUp = () => {
-        if (!dragging) return;
-        dragging = false;
-        shellEl.classList.remove('is-dragging');
-        clampIntoView();
+    const finish = event => {
+        if (event?.pointerType === 'touch' && device.__mpPoints) {
+            device.__mpPoints.delete(event.pointerId);
+            if (device.__mpPoints.size < 2) pinch = null;
+        }
+        if (!drag || (event && event.pointerId !== drag.id)) return;
+        drag = null;
+        if (last) inertia();
         saveNow('settings');
     };
+    window.addEventListener('pointerup', finish);
+    window.addEventListener('pointercancel', finish);
 
-    device.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove, { passive: false });
-    window.addEventListener('pointerup', onUp, { passive: true });
     const handle = h('button', { type: 'button', class: 'mp-resize', 'aria-label': '缩放' });
     device.appendChild(handle);
     let resize = null;
-    const setScale = value => {
-        getSettings().scale = Math.max(0.5, Math.min(1.65, value));
-        scheduleLayout();
-    };
     handle.addEventListener('pointerdown', event => {
-        const floating = document.documentElement.classList.contains('mp-mobile-float');
-        if (isNarrow() && !floating) return;
         event.preventDefault();
         event.stopPropagation();
         resize = { x: event.clientX, y: event.clientY, scale: getSettings().scale || 1 };
@@ -468,15 +507,16 @@ function bindDrag(device) {
     });
     window.addEventListener('pointermove', event => {
         if (!resize) return;
-        setScale(resize.scale + (event.clientX - resize.x) / 260 - (event.clientY - resize.y) / 420);
-    });
+        getSettings().scale = Math.max(0.5, Math.min(1.12, resize.scale + (event.clientX - resize.x) / 220 - (event.clientY - resize.y) / 360));
+        scheduleLayout();
+        event.preventDefault();
+    }, { passive: false });
     window.addEventListener('pointerup', () => {
         if (!resize) return;
         resize = null;
         saveNow('settings');
     });
 
-    // 双击不再切换全屏，避免连点导致手机乱跳
     shellEl.addEventListener('click', event => {
         if (event.target === shellEl && shellEl.classList.contains('is-full')) toggleFull();
     });

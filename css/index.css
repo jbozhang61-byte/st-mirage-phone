@@ -1791,3 +1791,7 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-appgrid.is-editing .mp-appicon { touch-action: none; }
 .mp-appgrid.is-editing .mp-appicon__glyph { animation: mp-jiggle .55s ease-in-out infinite alternate; }
 @keyframes mp-jiggle { from { transform: rotate(-1.2deg); } to { transform: rotate(1.2deg); } }
+
+.mp-device { touch-action: pan-y; }
+.mp-status { touch-action: none; }
+.mp-resize { touch-action: none; }
