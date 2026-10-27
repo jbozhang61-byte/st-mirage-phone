@@ -109,6 +109,85 @@ export function storyContext(limit = 8, each = 360) {
         }));
 }
 
+/**
+ * 优先从记忆里取：酒馆的记忆扩展、摘要、长期记忆、向量存储留下的文字。
+ * 没有记忆扩展时返回空数组，让调用方退回聊天记录。
+ */
+export function memoryContext(limit = 12) {
+    const c = ctx();
+    const out = [];
+    const seen = new Set();
+    const push = (text, tag) => {
+        const clean = String(text || '').replace(/\s+/g, ' ').trim();
+        if (clean.length < 16 || seen.has(clean)) return;
+        seen.add(clean);
+        out.push({ text: clean.slice(0, 1200), tag });
+    };
+    const walk = (value, path, depth) => {
+        if (!value || depth > 3 || out.length > 80) return;
+        if (typeof value === 'string') {
+            if (value.length >= 24 && /memory|summary|记忆|摘要|长期|vector|vectorized|remember/i.test(path)) push(value, 'memory');
+            return;
+        }
+        if (Array.isArray(value)) {
+            for (const item of value) walk(item, path, depth + 1);
+            return;
+        }
+        if (typeof value === 'object') {
+            for (const [key, item] of Object.entries(value)) walk(item, path + '.' + key, depth + 1);
+        }
+    };
+    try { walk(c?.chatMetadata, 'chatMetadata', 0); } catch { /* ignore */ }
+    try {
+        for (const msg of Array.isArray(c?.chat) ? c.chat : []) {
+            const name = String(msg?.name || '');
+            if (msg?.is_system || /summary|摘要|记忆|总结/i.test(name) || /summary/i.test(String(msg?.extra?.type || ''))) {
+                push(msg?.mes, 'summary');
+            }
+        }
+    } catch { /* ignore */ }
+    return out.slice(-limit);
+}
+
+/**
+ * 从聊天里挑重要的，而不是只取最后几条。
+ * 摘要/系统消息、长消息、带事件词和引号的消息权重更高，同时保留最近几条。
+ */
+export function importantStoryContext(limit = 48, each = 840) {
+    const c = ctx();
+    const chat = Array.isArray(c?.chat) ? c.chat : [];
+    const messages = chat
+        .map((msg, index) => ({ msg, index }))
+        .filter(item => item.msg && !item.msg.is_system && String(item.msg.mes || '').trim());
+    if (!messages.length) return [];
+    const words = ['记得', '答应', '秘密', '发现', '决定', '离开', '回来', '以前', '后来', '因为', '所以', '约定', '照片', '钥匙', '名字', '真相', '害怕', '喜欢', '爱', '死'];
+    const scored = messages.map(item => {
+        const text = String(item.msg.mes || '');
+        let score = 0;
+        if (text.length > 120) score += 2;
+        if (text.length > 400) score += 1;
+        if (/[「」“”"']/.test(text)) score += 1;
+        for (const word of words) if (text.includes(word)) score += 1;
+        score += (item.index / Math.max(1, messages.length)) * 2;
+        return { ...item, score };
+    });
+    const keep = new Set();
+    const last = scored.slice(-8);
+    for (const item of last) keep.add(item.index);
+    for (const item of [...scored].sort((a, b) => b.score - a.score)) {
+        if (keep.size >= limit) break;
+        keep.add(item.index);
+    }
+    return scored
+        .filter(item => keep.has(item.index))
+        .sort((a, b) => a.index - b.index)
+        .map(item => ({
+            name: item.msg.is_user ? userName() : String(item.msg.name || '对方'),
+            isUser: !!item.msg.is_user,
+            text: String(item.msg.mes || '').replace(/\s+/g, ' ').trim().slice(0, each),
+        }));
+}
+
 /** 把一段文字作为角色消息写进酒馆当前聊天。 */
 export function appendStoryMessage(text, { name = '' } = {}) {
     try {

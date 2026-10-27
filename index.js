@@ -2,7 +2,7 @@
  * 幻镜手机 · Mirage Phone
  * SillyTavern 第三方扩展入口：挂载手机、接事件、注入手机状态、生成扩展设置面板。
  */
-import { ctx, subscribe, toast, characterAvatar, chatId, currentCharacter } from './src/st.js';
+import { ctx, subscribe, toast, characterAvatar, chatId, currentCharacter, memoryContext, importantStoryContext } from './src/st.js';
 import {
     initStore, getSettings, getData, onChange, saveNow, flushSave, findThread,
 } from './src/store.js';
@@ -97,8 +97,9 @@ function ensureCity() {
         const card = currentCharacter();
         if (!data?.meta) return;
         if (data.meta.cityManual) return;
-        const chat = Array.isArray(ctx()?.chat) ? ctx().chat.slice(-6).map(m => String(m?.mes || '')) : [];
-        const sample = [card?.scenario, card?.description, ...chat].join('\n');
+        const memory = memoryContext(6).map(item => item.text);
+        const story = importantStoryContext(10, 420).map(item => item.text);
+        const sample = [card?.scenario, card?.description, ...memory, ...story].join('\n');
         const match = sample.match(/([\u4e00-\u9fa5]{2,4})(?:市|城|镇|村|区|县)/);
         if (match?.[1] && match[1] !== data.meta.city) {
             data.meta.city = match[1];

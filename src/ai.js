@@ -2,7 +2,7 @@
  * AI 编排：手机里的回复、朋友圈、评论、主动来信、正文注入。
  * 全部走酒馆当前连接，用 generateRaw 在后台生成，不写进正文。
  */
-import { generateText, storyContext, userName, findCharacter, setPhonePrompt, currentCharacter } from './st.js';
+import { generateText, storyContext, importantStoryContext, memoryContext, userName, findCharacter, setPhonePrompt, currentCharacter } from './st.js';
 import {
     getSettings, getData, findThread, appendMessages, ensureThread, addMoment, addNote, saveNow,
     getCast, setCast, findPerson, setFeed,
@@ -226,10 +226,11 @@ export async function extractCast() {
     if (current.group) throw new Error('群聊卡暂时不支持提取人物，先在酒馆里选一张单人卡');
     const user = userName();
     const card = findCharacter(current.name) || current;
-    const story = storyContext(48, 840);
+    const memory = memoryContext(12);
+    const story = importantStoryContext(48, 840);
     const raw = await generateText({
         system: castSystemPrompt({ user }),
-        prompt: castUserPrompt({ card, story, user }),
+        prompt: castUserPrompt({ card, story, memory, user }),
         length: 1500,
         json: true,
     });
