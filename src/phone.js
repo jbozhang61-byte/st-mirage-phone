@@ -320,7 +320,6 @@ function bindFabDrag() {
         const rect = fabEl.getBoundingClientRect();
         fabDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false };
         fabEl.setPointerCapture?.(event.pointerId);
-        event.preventDefault();
     });
     fabEl.addEventListener('pointermove', event => {
         if (!fabDrag || event.pointerId !== fabDrag.id) return;
