@@ -112,7 +112,7 @@ https://github.com/jbozhang61-byte/st-mirage-phone
 git clone https://github.com/jbozhang61-byte/st-mirage-phone.git
 ```
 
-> 仓库目前是私有的。别人要安装，需要先在 GitHub 上获得这个仓库的访问权限；公开后即可直接用上面的地址安装。
+> 仓库是公开的，直接填地址安装即可。
 
 ### 手动
 ```text
