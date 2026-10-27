@@ -652,7 +652,17 @@ function openApp(id, params = {}) {
     el.appendChild(h('div', { class: 'mp-app__bg', 'data-wall': 'blur' }));
     viewEl.appendChild(el);
     const navApi = makeNav();
-    const view = def.mount(el, { nav: navApi, params }) || {};
+    let view;
+    try {
+        view = def.mount(el, { nav: navApi, params }) || {};
+    } catch (error) {
+        console.error('[幻镜手机] App 打开失败', id, error);
+        el.remove();
+        screenEl.classList.add('is-home');
+        refreshHome();
+        rawToast('这个 App 出错了，已返回桌面');
+        return;
+    }
     const hasOwnBack = !!el.querySelector('[aria-label="返回"], .mp-nav__btn, .mp-as__back, .mp-br__icon, .mp-tt__back, .mp-xhs__back, .mp-bl__back, .mp-back');
     if (id !== 'home' && !hasOwnBack) {
         el.appendChild(h('button', { class: 'mp-backchip', type: 'button', 'aria-label': '返回', onclick: () => goBack() }, icon('back')));

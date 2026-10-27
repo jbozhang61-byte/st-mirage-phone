@@ -120,5 +120,5 @@ export function mountTikTok(host, { nav }) {
     }
 
     loadFeed('tiktok', render, value => { loading = value; });
-    return { refresh: () => render(items) };
+    return { refresh: () => render(items), destroy: () => window.removeEventListener('mp-image', applyImages) };
 }

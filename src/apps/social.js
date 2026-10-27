@@ -267,5 +267,5 @@ function mount(host, nav, appId) {
         render(config.fallback(feedContext()));
         generateSocial(appId).then(render).catch(error => toast(friendlyError(error), 3000));
     }
-    return { refresh: () => render(items) };
+    return { refresh: () => render(items), destroy: () => window.removeEventListener('mp-image', applyImages) };
 }

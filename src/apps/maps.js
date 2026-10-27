@@ -195,20 +195,25 @@ export function mountMaps(host, { nav }) {
             return { x: 280 + Math.cos(lat) * Math.sin(lon) * 244, y: 280 - Math.sin(lat) * 244, z };
         };
 
-        const onDown = event => {
-            drag = { x: event.clientX, base: rot };
-            globe.setPointerCapture?.(event.pointerId);
-            globe.classList.add('dragging');
-        };
         const onMove = event => {
             if (!drag) return;
             rot = drag.base + (event.clientX - drag.x) * 0.55;
             apply();
         };
-        const onUp = () => { drag = null; globe.classList.remove('dragging'); };
+        const onUp = () => {
+            drag = null;
+            globe.classList.remove('dragging');
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+        };
+        const onDown = event => {
+            drag = { x: event.clientX, base: rot };
+            globe.setPointerCapture?.(event.pointerId);
+            globe.classList.add('dragging');
+            window.addEventListener('pointermove', onMove, { passive: true });
+            window.addEventListener('pointerup', onUp, { passive: true });
+        };
         globe.addEventListener('pointerdown', onDown);
-        window.addEventListener('pointermove', onMove, { passive: true });
-        window.addEventListener('pointerup', onUp, { passive: true });
         queueMicrotask(apply);
         wrap.appendChild(globe);
         wrap.appendChild(h('div', { class: 'mp-map__hint', text: '左右拖动地球 · 点一个点看路线' }));

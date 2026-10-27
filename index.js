@@ -40,6 +40,7 @@ let proactiveTimer = 0;
 let proactiveRounds = 0;
 let lastChatId = '';
 let chatSyncTimer = 0;
+let chatSyncToken = 0;
 let injectTimer = 0;
 
 /* --------------------------------- 启动 --------------------------------- */
@@ -82,12 +83,14 @@ function syncChatState() {
 
 function scheduleChatSync() {
     clearTimeout(chatSyncTimer);
+    const token = ++chatSyncToken;
     const startedAt = chatId();
     chatSyncTimer = setTimeout(() => {
+        if (token !== chatSyncToken) return;
         syncChatState();
         lastChatId = chatId();
         // 酒馆切换聊天时 chatMetadata 可能晚一拍，再补一次
-        if (lastChatId !== startedAt) setTimeout(syncChatState, 500);
+        if (lastChatId !== startedAt) setTimeout(() => { if (token === chatSyncToken) syncChatState(); }, 500);
     }, 180);
 }
 
