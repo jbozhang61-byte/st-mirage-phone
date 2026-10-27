@@ -181,13 +181,17 @@ export function createPhone(onOpenChange) {
     document.body.appendChild(floatFabEl);
     document.body.appendChild(fabEl);
     try {
-        if (isNarrow() && globalThis.localStorage?.getItem('mirage_mobile_float') === null) {
-            globalThis.localStorage.setItem('mirage_mobile_float', '1');
+        if (isNarrow()) {
+            globalThis.localStorage?.setItem('mirage_mobile_float', '1');
+            document.documentElement.classList.add('mp-mobile-float');
             const settings = getSettings();
-            settings.scale = Math.min(Number(settings.scale) || 0.86, 0.86);
-            saveNow('settings');
+            if (!settings.scale || settings.scale > 0.9) {
+                settings.scale = 0.82;
+                saveNow('settings');
+            }
+        } else if (globalThis.localStorage?.getItem('mirage_mobile_float') === '1') {
+            document.documentElement.classList.add('mp-mobile-float');
         }
-        if (globalThis.localStorage?.getItem('mirage_mobile_float') === '1') document.documentElement.classList.add('mp-mobile-float');
     } catch { /* ignore */ }
     setLayer(portalLayer);
     applyThemeVars(rootEl, getSettings());
@@ -202,6 +206,22 @@ export function createPhone(onOpenChange) {
     themeMedia?.addEventListener?.('change', applyThemeVars.bind(null, rootEl, getSettings()));
 
     bindDrag(device);
+
+    const zoomBar = h('div', { class: 'mp-zoom' },
+        h('button', { type: 'button', 'aria-label': '缩小', text: '−', onclick: () => {
+            const settings = getSettings();
+            settings.scale = Math.max(0.5, (Number(settings.scale) || 0.82) - 0.07);
+            saveNow('settings');
+            applyLayout();
+        } }),
+        h('button', { type: 'button', 'aria-label': '放大', text: '+', onclick: () => {
+            const settings = getSettings();
+            settings.scale = Math.min(1.12, (Number(settings.scale) || 0.82) + 0.07);
+            saveNow('settings');
+            applyLayout();
+        } }),
+    );
+    shellEl.appendChild(zoomBar);
     // 手机端：从左边缘往右滑 = 返回
     let edgeStart = null;
     screenEl.addEventListener('pointerdown', event => {
@@ -391,6 +411,14 @@ function bindDrag(device) {
         settings.pos = { x: baseX + (event.clientX - startX), y: baseY + (event.clientY - startY) };
         shellEl.style.setProperty('--mp-x', settings.pos.x + 'px');
         shellEl.style.setProperty('--mp-y', settings.pos.y + 'px');
+        if (document.documentElement.classList.contains('mp-mobile-float')) {
+            const scale = Number(getComputedStyle(shellEl).getPropertyValue('--mp-scale')) || 0.82;
+            const w = 384 * scale;
+            const h = 812 * scale;
+            shellEl.style.setProperty('left', Math.round((window.innerWidth - w) / 2 + settings.pos.x) + 'px', 'important');
+            shellEl.style.setProperty('top', Math.round((window.innerHeight - h) / 2 + settings.pos.y) + 'px', 'important');
+        }
+        event.preventDefault();
     };
 
     const onUp = () => {
@@ -402,7 +430,7 @@ function bindDrag(device) {
     };
 
     device.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointermove', onMove, { passive: false });
     window.addEventListener('pointerup', onUp, { passive: true });
     const handle = h('button', { type: 'button', class: 'mp-resize', 'aria-label': '缩放' });
     device.appendChild(handle);
