@@ -1716,3 +1716,31 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
     .mp-resize { display: block !important; touch-action: none; }
     html.mp-mobile-float .mp-fab.is-open { bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
 }
+
+@media (max-width: 760px) {
+    html.mp-mobile-float .mp-shell {
+        top: calc(50% + var(--mp-y, 0px)) !important;
+        left: calc(50% + var(--mp-x, 0px)) !important;
+        transform: translate(-50%, -50%) scale(var(--mp-scale, .86)) !important;
+        transform-origin: center center !important;
+    }
+    html.mp-mobile-float .mp-device {
+        max-height: calc(100dvh - 16px) !important;
+    }
+}
+
+@media (max-width: 760px) {
+    html.mp-mobile-float .mp-shell {
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(calc(-50% + var(--mp-x, 0px)), calc(-50% + var(--mp-y, 0px))) scale(var(--mp-scale, .86)) !important;
+        transform-origin: center center !important;
+    }
+}
+
+.mp-soc-page { padding-top: 46px; }
+.mp-vid-page { padding-top: 46px; }
+.mp-soc-page__bar, .mp-vid-page__bar { position: relative; z-index: 2; }
+@media (max-width: 760px) {
+    .mp-soc-page, .mp-vid-page { padding-top: calc(42px + env(safe-area-inset-top, 0px)); }
+}

@@ -132,6 +132,30 @@ const report = await evaluate(`(() => {
 })()`);
 
 console.log('REPORT ' + JSON.stringify(report));
+const tiebaTest = await evaluate(`(async () => {
+    window.MiragePhone?.openApp?.('tieba');
+    await new Promise(r => setTimeout(r, 900));
+    return {
+        has: !!document.querySelector('.mp-tb'),
+        posts: document.querySelectorAll('.mp-tb__post').length,
+        error: document.getElementById('boot-error')?.textContent || '',
+        app: document.querySelector('.mp-app')?.getAttribute('data-app') || ''
+    };
+})()
+})()`);
+console.log('TIEBA ' + JSON.stringify(tiebaTest));
+const tiebaDetail = await evaluate(`(async () => {
+    document.querySelector('.mp-tb__post')?.click();
+    await new Promise(r => setTimeout(r, 1200));
+    return {
+        page: !!document.querySelector('.mp-soc-page'),
+        title: document.querySelector('.mp-soc-page__title')?.textContent || '',
+        comments: document.querySelectorAll('.mp-cm').length,
+        text: (document.querySelector('.mp-soc-page__text')?.textContent || '').slice(0, 60),
+        error: document.getElementById('boot-error')?.textContent || ''
+    };
+})()`);
+console.log('TIEBADETAIL ' + JSON.stringify(tiebaDetail));
 const proactiveTest = await evaluate(`(() => {
     const boxes = document.querySelectorAll('#mp_st_panel input[type="checkbox"]');
     const box = boxes[2];

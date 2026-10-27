@@ -186,3 +186,4 @@ if (query.get('dragtest') === '1') setTimeout(async () => {
     const err = document.querySelector('#mp-boot-error')?.textContent || '';
     document.body.dataset.dragtest = err || 'done';
 }, 1200);
+if (query.get('tiebadetail') === '1') setTimeout(() => document.querySelector('.mp-tb__post')?.click(), 1800);

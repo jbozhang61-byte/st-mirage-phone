@@ -277,24 +277,37 @@ function applyLayout() {
     const narrow = isNarrow();
     const floating = document.documentElement.classList.contains('mp-mobile-float');
     if (narrow) {
-        const scale = floating ? Math.max(0.55, Math.min(1.12, Number(settings.scale) || 0.86)) : 1;
+        const fit = Math.min((window.innerWidth - 20) / 384, (window.innerHeight - 20) / 812);
+        const scale = floating ? Math.max(0.5, Math.min(1.12, fit, Number(settings.scale) || 0.86)) : 1;
         shellEl.style.setProperty('--mp-scale', String(scale));
         if (floating) {
             const w = 384 * scale;
             const h = 812 * scale;
             const maxX = Math.max(0, (window.innerWidth - w) / 2);
-            const maxY = Math.max(0, window.innerHeight - h - 10);
+            const maxY = Math.max(0, (window.innerHeight - h) / 2);
             const rawX = Number(settings.pos?.x) || 0;
             const rawY = Number(settings.pos?.y) || 0;
-            const pos = { x: Math.abs(rawX) > maxX ? 0 : rawX, y: rawY < 0 || rawY > maxY ? 0 : rawY };
+            const pos = { x: Math.abs(rawX) > maxX ? 0 : rawX, y: Math.abs(rawY) > maxY ? 0 : rawY };
             settings.pos = pos;
             shellEl.style.setProperty('--mp-x', pos.x + 'px');
             shellEl.style.setProperty('--mp-y', pos.y + 'px');
+            shellEl.style.setProperty('left', Math.round((window.innerWidth - w) / 2 + pos.x) + 'px', 'important');
+            shellEl.style.setProperty('top', Math.round((window.innerHeight - h) / 2 + pos.y) + 'px', 'important');
+            shellEl.style.setProperty('right', 'auto', 'important');
+            shellEl.style.setProperty('bottom', 'auto', 'important');
+            shellEl.style.setProperty('transform', 'scale(' + scale + ')', 'important');
+            shellEl.style.setProperty('transform-origin', 'top left', 'important');
         } else {
             shellEl.style.setProperty('--mp-x', '0px');
             shellEl.style.setProperty('--mp-y', '0px');
+            for (const prop of ['left', 'top', 'right', 'bottom', 'transform', 'transform-origin']) {
+                shellEl.style.removeProperty(prop);
+            }
         }
         return;
+    }
+    for (const prop of ['left', 'top', 'right', 'bottom', 'transform', 'transform-origin']) {
+        shellEl.style.removeProperty(prop);
     }
     const h = Math.max(560, window.innerHeight - 36);
     const fit = Math.min(1, h / 832);
