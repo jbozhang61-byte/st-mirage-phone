@@ -308,6 +308,7 @@ export function mountMaps(host, { nav }) {
         data.maps.visited = [...new Set([...(data.maps.visited || []), target.name])].slice(-20);
         data.maps.last = target.name;
         data.meta.city = target.name;
+        data.meta.cityManual = true;
         saveNow('data');
 
         const s = sheet({

@@ -100,6 +100,7 @@ export function mountWeather(host, { nav }) {
                     const value = input.value.trim() || '此间';
                     const data = getData();
                     data.meta.city = value;
+                    data.meta.cityManual = true;
                     saveNow('data');
                     s.close();
                     render();

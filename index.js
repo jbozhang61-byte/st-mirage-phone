@@ -96,11 +96,11 @@ function ensureCity() {
         const data = getData();
         const card = currentCharacter();
         if (!data?.meta) return;
-        if (data.meta.city && data.meta.city !== '此间') return;
+        if (data.meta.cityManual) return;
         const chat = Array.isArray(ctx()?.chat) ? ctx().chat.slice(-6).map(m => String(m?.mes || '')) : [];
         const sample = [card?.scenario, card?.description, ...chat].join('\n');
         const match = sample.match(/([\u4e00-\u9fa5]{2,4})(?:市|城|镇|村|区|县)/);
-        if (match?.[1]) {
+        if (match?.[1] && match[1] !== data.meta.city) {
             data.meta.city = match[1];
             saveNow('data');
         }
