@@ -1460,3 +1460,19 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-as__card { margin-bottom: 10px; }
 .mp-as__card-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 8px; font-size: 12px; font-weight: 700; color: #6e6e73; }
 .mp-as__card-head span:last-child { font-size: 10px; font-weight: 500; color: #9a9aa2; }
+
+.mp-as__icon { background: #2a2b36; }
+.mp-as__icon.g-x { background: #0f1419; }
+.mp-as__icon.g-ins { background: linear-gradient(150deg, #f9ce34, #ee2a7b 48%, #6228d7); }
+.mp-as__icon.g-reddit { background: linear-gradient(150deg, #ff8717, #ff4500); }
+.mp-as__icon.g-zhihu { background: linear-gradient(150deg, #4d94ff, #0066ff); }
+.mp-as__icon.g-quora { background: linear-gradient(150deg, #d9584f, #b92b27); }
+.mp-as__icon.g-yt { background: linear-gradient(150deg, #ff4d4d, #cc0000); }
+.mp-as__icon.g-dc { background: linear-gradient(150deg, #7983f5, #5865f2); }
+.mp-as__icon.g-tg { background: linear-gradient(150deg, #54b9e8, #229ed9); }
+.mp-as__icon.g-sp { background: linear-gradient(150deg, #1ed760, #0f7a3a); }
+.mp-as__icon.g-gm { background: linear-gradient(150deg, #fbbc04, #ea4335); }
+.mp-as__icon.g-stk { background: linear-gradient(150deg, #1f8f6f, #08251c); }
+.mp-as__icon.g-me { background: linear-gradient(150deg, #8a9bb8, #3a465c); }
+.mp-as__icon.g-float { background: linear-gradient(150deg, #7d8aa5, #3d485c); }
+.mp-as__icon .mp-ic { width: 26px; height: 26px; }
