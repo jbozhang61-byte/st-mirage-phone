@@ -1744,3 +1744,17 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 @media (max-width: 760px) {
     .mp-soc-page, .mp-vid-page { padding-top: calc(42px + env(safe-area-inset-top, 0px)); }
 }
+
+@media (max-width: 760px) {
+    html.mp-mobile-float .mp-device {
+        width: 384px !important;
+        height: 812px !important;
+        max-height: none !important;
+        aspect-ratio: 384 / 812 !important;
+        border-radius: 42px !important;
+    }
+    html.mp-mobile-float .mp-shell {
+        width: 384px !important;
+        height: 812px !important;
+    }
+}
