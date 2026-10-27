@@ -1848,3 +1848,6 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
     .mp-shell.mp-keyboard .mp-device { height: 100% !important; }
     .mp-shell.mp-keyboard .mp-screen { height: 100% !important; }
 }
+
+.mp-fab { touch-action: none; }
+.mp-fab.is-dragging { transition: none !important; transform: scale(1.05) !important; opacity: .85; }

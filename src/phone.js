@@ -84,6 +84,9 @@ let current = null;
 let open = false;
 let typingThreads = new Set();
 let clockTimer = 0;
+let fabDraggedAt = 0;
+let fabDrag = null;
+let fabSaved = null;
 let resizeTimer = 0;
 let bannerTimer = 0;
 let themeMedia = null;
@@ -161,13 +164,17 @@ export function createPhone(onOpenChange) {
         class: 'mp-fab',
         type: 'button',
         'aria-label': '打开小手机',
-        onclick: () => toggle(),
+        onclick: () => {
+            if (Date.now() - fabDraggedAt < 350) return;
+            toggle();
+        },
     }, icon('phone'), h('span', { class: 'mp-fab__badge is-hide' }));
     refs.fabBadge = fabEl.lastChild;
     document.body.appendChild(rootEl);
     const fabHost = document.documentElement;
     fabHost.appendChild(fabEl);
     setTimeout(syncFabPosition, 0);
+    bindFabDrag();
     try {
         if (isNarrow()) {
             globalThis.localStorage?.setItem('mirage_mobile_float', '0');
@@ -276,15 +283,66 @@ function scheduleLayout() {
     });
 }
 
-function syncFabPosition() {
+function applyFabPos(x, y) {
     if (!fabEl) return;
     const vv = window.visualViewport;
-    const viewport = (vv?.offsetTop || 0) + (vv?.height || window.innerHeight);
-    const narrow = isNarrow();
-    const gap = narrow ? 96 : 22;
-    const size = narrow ? 56 : 58;
-    fabEl.style.setProperty('top', Math.round(viewport - gap - size) + 'px', 'important');
+    const vw = (vv?.offsetLeft || 0) + (vv?.width || window.innerWidth);
+    const vh = (vv?.offsetTop || 0) + (vv?.height || window.innerHeight);
+    const size = isNarrow() ? 56 : 58;
+    const left = Math.max(8, Math.min(vw - size - 8, Math.round(x)));
+    const top = Math.max(8, Math.min(vh - size - 8, Math.round(y)));
+    fabEl.style.setProperty('left', left + 'px', 'important');
+    fabEl.style.setProperty('top', top + 'px', 'important');
+    fabEl.style.setProperty('right', 'auto', 'important');
     fabEl.style.setProperty('bottom', 'auto', 'important');
+    fabSaved = { x: left, y: top };
+}
+
+function syncFabPosition() {
+    if (!fabEl) return;
+    let saved = null;
+    try { saved = JSON.parse(globalThis.localStorage?.getItem('mirage_fab_pos') || 'null'); } catch { /* ignore */ }
+    const vv = window.visualViewport;
+    const vw = (vv?.offsetLeft || 0) + (vv?.width || window.innerWidth);
+    const vh = (vv?.offsetTop || 0) + (vv?.height || window.innerHeight);
+    const narrow = isNarrow();
+    const size = narrow ? 56 : 58;
+    const gap = narrow ? 96 : 22;
+    const x = saved?.x ?? (vw - size - (narrow ? 14 : 22));
+    const y = saved?.y ?? (vh - size - gap);
+    applyFabPos(x, y);
+}
+
+function bindFabDrag() {
+    if (!fabEl) return;
+    fabEl.addEventListener('pointerdown', event => {
+        if (event.button !== 0) return;
+        const rect = fabEl.getBoundingClientRect();
+        fabDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top, moved: false };
+        fabEl.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+    });
+    fabEl.addEventListener('pointermove', event => {
+        if (!fabDrag || event.pointerId !== fabDrag.id) return;
+        const dx = event.clientX - fabDrag.x;
+        const dy = event.clientY - fabDrag.y;
+        if (!fabDrag.moved && Math.abs(dx) + Math.abs(dy) < 5) return;
+        fabDrag.moved = true;
+        fabEl.classList.add('is-dragging');
+        applyFabPos(fabDrag.left + dx, fabDrag.top + dy);
+        event.preventDefault();
+    });
+    const end = () => {
+        if (!fabDrag) return;
+        if (fabDrag.moved) {
+            fabDraggedAt = Date.now();
+            try { globalThis.localStorage?.setItem('mirage_fab_pos', JSON.stringify(fabSaved)); } catch { /* ignore */ }
+        }
+        fabEl.classList.remove('is-dragging');
+        fabDrag = null;
+    };
+    fabEl.addEventListener('pointerup', end);
+    fabEl.addEventListener('pointercancel', end);
 }
 
 function onResize() {
