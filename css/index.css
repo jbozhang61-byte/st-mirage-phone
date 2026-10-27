@@ -1476,3 +1476,39 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-as__icon.g-me { background: linear-gradient(150deg, #8a9bb8, #3a465c); }
 .mp-as__icon.g-float { background: linear-gradient(150deg, #7d8aa5, #3d485c); }
 .mp-as__icon .mp-ic { width: 26px; height: 26px; }
+
+.mp-appicon__glyph { position: relative; overflow: hidden; border-radius: 24% !important; box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -14px 22px rgba(0,0,0,.15), 0 10px 20px -12px rgba(0,0,0,.55) !important; }
+.mp-appicon__glyph::after { content: ''; position: absolute; inset: 0; background: linear-gradient(155deg, rgba(255,255,255,.22), rgba(255,255,255,0) 46%, rgba(0,0,0,.12)); pointer-events: none; }
+.mp-appicon__glyph .mp-ic { position: relative; z-index: 1; filter: drop-shadow(0 1px 2px rgba(0,0,0,.18)); }
+.mp-appicon__glyph .mp-appicon__badge { z-index: 3; }
+.mp-appicon__glyph.g-chat { background: linear-gradient(160deg, #6cb6ff, #2f7cf0 58%, #1c5bc4); }
+.mp-appicon__glyph.g-moments { background: linear-gradient(160deg, #ffb45e, #ff7a3c 58%, #e0571f); }
+.mp-appicon__glyph.g-contacts { background: linear-gradient(160deg, #62d7ad, #2fae82 58%, #1d8463); }
+.mp-appicon__glyph.g-photos { background: linear-gradient(160deg, #b79bff, #8266e8 58%, #5c43b8); }
+.mp-appicon__glyph.g-notes { background: linear-gradient(160deg, #ffd66b, #f0b429 58%, #c98a10); }
+.mp-appicon__glyph.g-wallet { background: linear-gradient(160deg, #ffc978, #f0a24a 58%, #c47425); }
+.mp-appicon__glyph.g-weather { background: linear-gradient(160deg, #74c8ff, #2f9cf0 58%, #1a6fc4); }
+.mp-appicon__glyph.g-settings { background: linear-gradient(160deg, #9aa3b8, #6f7890 58%, #4d556a); }
+.mp-appicon__glyph.g-store { background: linear-gradient(160deg, #6fb4ff, #3b82f6 58%, #1f5fce); }
+.mp-appicon__glyph.g-plot { background: linear-gradient(160deg, #b39dff, #7d5cf0 58%, #5338bd); }
+.mp-appicon__glyph.g-spark { background: linear-gradient(160deg, #ff9dbb, #ff5c8a 58%, #d12b62); }
+.mp-appicon__glyph.g-maps { background: linear-gradient(160deg, #52c9b0, #1e9b83 58%, #0d6b5c); }
+.mp-appicon__glyph.g-browser { background: linear-gradient(160deg, #6cc0ff, #3d8ef0 58%, #1e5fbe); }
+.mp-appicon__glyph.g-x { background: linear-gradient(160deg, #2a2c33, #0c0d10 58%, #000); }
+.mp-appicon__glyph.g-ins { background: linear-gradient(150deg, #ffd45e, #ff4f8b 45%, #a13bd8 78%, #5b2bd0); }
+.mp-appicon__glyph.g-reddit { background: linear-gradient(160deg, #ff9d4d, #ff5700 58%, #cc3a00); }
+.mp-appicon__glyph.g-zhihu { background: linear-gradient(160deg, #5fa8ff, #0b74f0 58%, #044fbf); }
+.mp-appicon__glyph.g-quora { background: linear-gradient(160deg, #e0675e, #b92b27 58%, #8a1916); }
+.mp-appicon__glyph.g-yt { background: linear-gradient(160deg, #ff5b5b, #e60000 58%, #a80000); }
+.mp-appicon__glyph.g-dc { background: linear-gradient(160deg, #8b95ff, #5865f2 58%, #3c46c9); }
+.mp-appicon__glyph.g-tg { background: linear-gradient(160deg, #6fd2ff, #2aabee 58%, #1680b8); }
+.mp-appicon__glyph.g-sp { background: linear-gradient(160deg, #4be385, #1db954 58%, #0f7a38); }
+.mp-appicon__glyph.g-gm { background: linear-gradient(160deg, #ff8a7a, #ea4335 58%, #b8251a); }
+.mp-appicon__glyph.g-stk { background: linear-gradient(160deg, #3fc39a, #127a5e 58%, #07503c); }
+.mp-appicon__glyph.g-weibo { background: linear-gradient(160deg, #ffb04d, #ff7a00 58%, #cc5500); }
+.mp-appicon__glyph.g-xhs { background: linear-gradient(160deg, #ff6a7d, #ff2442 58%, #c40d28); }
+.mp-appicon__glyph.g-bili { background: linear-gradient(160deg, #ffa1c0, #fb7299 58%, #d94b73); }
+.mp-appicon__glyph.g-tiktok { background: linear-gradient(160deg, #2b2d33, #0b0c0f 58%, #000); }
+.mp-appicon__glyph.g-me { background: linear-gradient(160deg, #a9b8d0, #6e7f99 58%, #46536b); }
+.mp-appicon__glyph.g-float { background: linear-gradient(160deg, #8f9db4, #59657d 58%, #39434f); }
+.mp-appicon__glyph.g-tiktok .mp-ic { color: #fff; }

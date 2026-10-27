@@ -122,7 +122,27 @@ const ICONS = {
     chart: '<path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 4-5 3 3 5-7"/>',
     maximize: '<path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="m4 4 6 6"/><path d="m20 20-6-6"/>',
     dice: '<rect x="4" y="4" width="16" height="16" rx="4.2"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"/>',
+
+// 重新绘制的品牌图标：更接近真实 App 的辨识度
+const ICON_REDESIGN = {
+    reddit: '<circle cx="12" cy="13.2" r="6.8"/><path d="M12 6.4 13.2 3.4l2.8 1"/><circle cx="16.2" cy="4.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.3" cy="12.2" r="1.15" fill="currentColor" stroke="none"/><circle cx="14.7" cy="12.2" r="1.15" fill="currentColor" stroke="none"/><path d="M9.2 15.4c1.6 1.4 4 1.4 5.6 0"/><path d="M5.4 11.6c-.9-.2-1.5.5-1.2 1.3.2.7.8 1.1 1.5 1M18.6 11.6c.9-.2 1.5.5 1.2 1.3-.2.7-.8 1.1-1.5 1"/>',
+    discord: '<path d="M7.2 8.1c2.9-1.3 6.7-1.3 9.6 0l1.6 6.8c-1.1.8-2.4 1.3-3.8 1.5l-.9-1.7a8.2 8.2 0 0 1-3.4 0l-.9 1.7c-1.4-.2-2.7-.7-3.8-1.5Z"/><circle cx="9.6" cy="12.2" r="1" fill="currentColor" stroke="none"/><circle cx="14.4" cy="12.2" r="1" fill="currentColor" stroke="none"/><path d="M9.8 15.1c1.4.6 3 .6 4.4 0"/>',
+    telegram: '<path d="M21.2 4.1 3.4 11.3l4.9 1.7 1.2 5.6 2.9-3.1 3.8 2.9Z" fill="currentColor" stroke="none"/><path d="m8.3 13 8.4-6.1-6.5 7.1" stroke="#fff" stroke-width="1.1" opacity=".65"/>',
+    spotify: '<circle cx="12" cy="12" r="8.4"/><path d="M7.4 9.2c3.1-.9 6.6-.5 9.2 1M8.1 12.3c2.5-.7 5.2-.4 7.4.9M8.8 15.3c1.9-.5 3.9-.3 5.7.6"/>',
+    zhihu: '<text x="12" y="17" text-anchor="middle" font-size="15" font-family="\'Noto Serif SC\',\'Songti SC\',serif" font-weight="700" fill="currentColor" stroke="none">知</text>',
+    quora: '<circle cx="12" cy="11.2" r="7.3"/><path d="M10.3 17.9 15.4 23"/><path d="M9.9 8.6a2.4 2.4 0 0 1 4.4 1.5c0 1.6-1.7 2-1.7 3.1" stroke-width="1.5"/><circle cx="12.6" cy="16.2" r=".9" fill="currentColor" stroke="none"/>',
+    weibo: '<path d="M2.8 12.4c2.2-4 6-6.2 9.8-5.8 2.4.3 3.8 1.8 2.9 3.8-.8 1.8-3 3.4-5.6 3.8-2.3.4-4.2-.2-4.7-1.4-.3-.8.1-1.8.8-2.7"/>,<circle cx="9.4" cy="12.6" r="1.2" fill="currentColor" stroke="none"/><path d="M16.8 5.4c2.2.4 3.8 2 4.2 4.2M16.2 8.4c1.1.2 1.9 1 2.1 2.1"/>',
+    xhs: '<rect x="3.6" y="4.6" width="16.8" height="14.8" rx="4"/><path d="M7.6 16.2V9.4c0-.6.7-1 1.2-.6l2.1 1.8c.3.3.8.3 1.1 0l2.2-1.8c.5-.4 1.2 0 1.2.6v6.8"/><path d="M7 7.2h10"/>',
+    bili: '<rect x="3.2" y="6.6" width="17.6" height="11.6" rx="3.2"/><path d="m7.8 6.4 2.6-2.6M16.2 6.4 13.6 3.8"/><path d="M10.2 10.2v4.4l4.2-2.2Z" fill="currentColor" stroke="none"/>',
+    tiktok: '<path d="M14.2 4.2v9.6a3.1 3.1 0 1 1-2.4-3" stroke-width="2"/><path d="M14.2 4.2c.4 2.2 1.9 3.6 4 3.8" stroke-width="2"/>',
+    gmail: '<rect x="3.2" y="5.4" width="17.6" height="13.2" rx="2.8"/><path d="m4 7 8 5.8L20 7"/><path d="M4 17.4V8l8 5.8L20 8v9.4" opacity=".55"/>',
+    youtube: '<rect x="2.8" y="5.8" width="18.4" height="12.4" rx="3.8"/><path d="M10.2 9.2v5.6l4.8-2.8Z" fill="currentColor" stroke="none"/>',
+    stocks: '<path d="M4 19V5"/><path d="M4 19h16"/><path d="m6.8 15.2 3.6-4.4 3 2.6 4.8-6"/><circle cx="6.8" cy="15.2" r=".9" fill="currentColor" stroke="none"/><circle cx="10.4" cy="10.8" r=".9" fill="currentColor" stroke="none"/><circle cx="13.4" cy="13.4" r=".9" fill="currentColor" stroke="none"/><circle cx="18.2" cy="7.4" r=".9" fill="currentColor" stroke="none"/>',
+    browser: '<circle cx="12" cy="12" r="8.4"/><ellipse cx="12" cy="12" rx="3.5" ry="8.4"/><path d="M3.8 9.4h16.4M3.8 14.6h16.4"/><path d="M12 3.6c2.4 2.4 2.4 14.4 0 16.8" opacity=".5"/>',
+    maps: '<path d="M9 4.4 4.2 6.2v13.4l4.8-1.8 6 1.8 4.8-1.8V4.4l-4.8 1.8Z"/><path d="M9 4.4v13.4M15 6.2v13.4"/><circle cx="12" cy="11.2" r="1.6" fill="currentColor" stroke="none"/>',
+    xlogo: '<path d="M4.4 4.2h3.4l4.3 5.7 5-5.7h2.6l-6.4 7.3 6.6 8.3h-3.4l-4.5-6-5.3 6H3.9l6.8-7.7Z" fill="currentColor" stroke="none"/>',
 };
+Object.assign(ICONS, ICON_REDESIGN);
 
 const SPRITE_ID = 'mp-icon-sprite';
 
