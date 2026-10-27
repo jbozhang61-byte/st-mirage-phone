@@ -692,6 +692,7 @@ export function openPhone(app = 'home', params = {}) {
         openApp(app, params);
     } else {
         clearCurrent();
+        screenEl.classList.remove('is-chatting');
         screenEl.classList.add('is-home');
         refreshHome();
     }
@@ -788,6 +789,7 @@ function openApp(id, params = {}) {
         current.el?.remove();
     }
     screenEl.classList.remove('is-home');
+    screenEl.classList.toggle('is-chatting', id === 'chat' && !!params.threadId);
     const el = h('div', { class: 'mp-app', 'data-app': id });
     el.appendChild(h('div', { class: 'mp-app__bg', 'data-wall': 'blur' }));
     viewEl.appendChild(el);
@@ -813,6 +815,7 @@ function openApp(id, params = {}) {
 }
 
 function goHome() {
+    screenEl?.classList.remove('is-chatting');
     screenEl?.classList.add('is-home');
     screenEl?.classList.add('is-returning');
     setTimeout(() => screenEl?.classList.remove('is-returning'), 460);

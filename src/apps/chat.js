@@ -167,7 +167,6 @@ function mountConversation(host, nav, threadId) {
     function renderMessages() {
         const atBottom = isNearBottom();
         scroll.innerHTML = '';
-        let lastTs = 0;
         let lastName = '';
         let lastName2 = '';
         const all = Array.isArray(thread.msgs) ? thread.msgs : [];
@@ -176,10 +175,6 @@ function mountConversation(host, nav, threadId) {
             scroll.appendChild(h('div', { class: 'mp-time-mark', text: '更早的 ' + (all.length - visible.length) + ' 条消息已收起' }));
         }
         for (const msg of visible) {
-            if (msg.ts - lastTs > 5 * 60 * 1000) {
-                scroll.appendChild(h('div', { class: 'mp-time-mark', text: dayText(msg.ts) + ' ' + timeText(msg.ts) }));
-            }
-            lastTs = msg.ts;
             const showName = thread.members.length > 1 && msg.from === 'them' && msg.sender !== lastName;
             const showAvatar = !(msg.from === lastName2);
             lastName2 = msg.from;
