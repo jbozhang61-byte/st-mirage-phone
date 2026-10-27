@@ -1675,3 +1675,33 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-sp__volume input { flex: 1 1 auto; accent-color: #1ed760; height: 3px; }
 .mp-sp__row.is-playing .mp-sp__rowtitle { color: #1ed760; }
 .mp-sp__row.is-playing .mp-sp__index { color: #1ed760; }
+
+.mp-tb { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: #f5f7fb; color: #1d2129; }
+.mp-tb__bar { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: #fff; border-bottom: 1px solid #edf0f5; }
+.mp-tb__logo { flex: 1 1 auto; font-size: 22px; font-weight: 800; color: #3385ff; letter-spacing: -1px; }
+.mp-tb__forums { display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px; scrollbar-width: none; }
+.mp-tb__forums::-webkit-scrollbar { display: none; }
+.mp-tb__forum { flex: 0 0 auto; border: 1px solid #dfe6f2; background: #fff; color: #4e5969; font: inherit; font-size: 10.5px; padding: 4px 10px; border-radius: 12px; cursor: pointer; }
+.mp-tb__forum.on { background: #3385ff; color: #fff; border-color: transparent; }
+.mp-tb__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 10px 28px; }
+.mp-tb__post { background: #fff; border-radius: 13px; padding: 11px 12px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(30,50,90,.05); cursor: pointer; }
+.mp-tb__forumtag { display: inline-block; font-size: 9px; color: #3385ff; background: #eef4ff; border-radius: 6px; padding: 2px 6px; margin-bottom: 5px; }
+.mp-tb__title { font-size: 13px; font-weight: 700; line-height: 1.45; }
+.mp-tb__excerpt { font-size: 11px; color: #4e5969; line-height: 1.55; margin-top: 4px; }
+.mp-tb__img { height: 130px; border-radius: 9px; background-size: cover; background-position: center; margin-top: 7px; }
+.mp-tb__meta { display: flex; align-items: center; gap: 5px; font-size: 9.5px; color: #86909c; margin-top: 7px; }
+.mp-tb__dot { opacity: .6; }
+
+.mp-appicon__glyph.g-tieba { background: linear-gradient(160deg, #5aa0ff, #3385ff 58%, #1f66d6); }
+.mp-as__icon.g-tieba { background: linear-gradient(150deg, #5aa0ff, #3385ff); }
+
+@media (max-width: 760px) {
+    html.mp-mobile-float .mp-shell {
+        left: calc(50% + var(--mp-x, 0px)) !important;
+        top: calc(8px + var(--mp-y, 0px)) !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: translateX(-50%) scale(var(--mp-scale, .86)) !important;
+        transform-origin: top center !important;
+    }
+}

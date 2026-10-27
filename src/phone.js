@@ -33,6 +33,7 @@ import { mountDiscord, mountTelegram, mountSpotify, mountGmail } from './apps/ex
 import { mountStocks } from './apps/stocks.js';
 import { mountFacebook } from './apps/facebook.js';
 import { mountSignal } from './apps/signal.js';
+import { mountTieba } from './apps/tieba.js';
 
 const APPS = {
     chat: { mount: mountChat },
@@ -66,6 +67,7 @@ const APPS = {
     stocks: { mount: mountStocks },
     facebook: { mount: mountFacebook },
     signal: { mount: mountSignal },
+    tieba: { mount: mountTieba },
 };
 
 let rootEl = null;
@@ -178,8 +180,15 @@ export function createPhone(onOpenChange) {
     document.body.appendChild(rootEl);
     document.body.appendChild(floatFabEl);
     document.body.appendChild(fabEl);
-    if (globalThis.localStorage?.getItem('mirage_mobile_float') === '1') document.documentElement.classList.add('mp-mobile-float');
-    if (globalThis.localStorage?.getItem('mirage_mobile_float') === '1') document.documentElement.classList.add('mp-mobile-float');
+    try {
+        if (isNarrow() && globalThis.localStorage?.getItem('mirage_mobile_float') === null) {
+            globalThis.localStorage.setItem('mirage_mobile_float', '1');
+            const settings = getSettings();
+            settings.scale = Math.min(Number(settings.scale) || 0.86, 0.86);
+            saveNow('settings');
+        }
+        if (globalThis.localStorage?.getItem('mirage_mobile_float') === '1') document.documentElement.classList.add('mp-mobile-float');
+    } catch { /* ignore */ }
     setLayer(portalLayer);
     applyThemeVars(rootEl, getSettings());
 
@@ -266,8 +275,25 @@ function applyLayout() {
     setFab(open);
     const settings = getSettings();
     const narrow = isNarrow();
+    const floating = document.documentElement.classList.contains('mp-mobile-float');
     if (narrow) {
-        shellEl.style.setProperty('--mp-scale', '1');
+        const scale = floating ? Math.max(0.55, Math.min(1.12, Number(settings.scale) || 0.86)) : 1;
+        shellEl.style.setProperty('--mp-scale', String(scale));
+        if (floating) {
+            const w = 384 * scale;
+            const h = 812 * scale;
+            const maxX = Math.max(0, (window.innerWidth - w) / 2);
+            const maxY = Math.max(0, window.innerHeight - h - 10);
+            const rawX = Number(settings.pos?.x) || 0;
+            const rawY = Number(settings.pos?.y) || 0;
+            const pos = { x: Math.abs(rawX) > maxX ? 0 : rawX, y: rawY < 0 || rawY > maxY ? 0 : rawY };
+            settings.pos = pos;
+            shellEl.style.setProperty('--mp-x', pos.x + 'px');
+            shellEl.style.setProperty('--mp-y', pos.y + 'px');
+        } else {
+            shellEl.style.setProperty('--mp-x', '0px');
+            shellEl.style.setProperty('--mp-y', '0px');
+        }
         return;
     }
     const h = Math.max(560, window.innerHeight - 36);
@@ -281,7 +307,7 @@ function applyLayout() {
 }
 
 function clampIntoView() {
-    if (!shellEl || isNarrow() || shellEl.classList.contains('is-full')) return;
+    if (!shellEl || (isNarrow() && !document.documentElement.classList.contains('mp-mobile-float')) || shellEl.classList.contains('is-full')) return;
     const rect = shellEl.getBoundingClientRect();
     const settings = getSettings();
     const pos = { x: settings.pos?.x || 0, y: settings.pos?.y || 0 };
@@ -307,7 +333,12 @@ function toggleFloatMode() {
         const next = !on;
         globalThis.localStorage?.setItem('mirage_mobile_float', next ? '1' : '0');
         document.documentElement.classList.toggle('mp-mobile-float', next);
-        if (next) { getSettings().pos = { x: 0, y: 0 }; saveNow('settings'); }
+        if (next) {
+            const current = getSettings();
+            current.pos = { x: 0, y: 0 };
+            current.scale = Math.min(Number(current.scale) || 0.86, 0.86);
+            saveNow('settings');
+        }
         applyLayout();
         toast(next ? '悬浮窗模式' : '全屏模式');
     } catch { /* ignore */ }
@@ -322,7 +353,8 @@ function bindDrag(device) {
     let baseY = 0;
 
     const onDown = event => {
-        if (isNarrow() || event.button !== 0) return;
+        const floating = document.documentElement.classList.contains('mp-mobile-float');
+        if ((isNarrow() && !floating) || event.button !== 0) return;
         if (event.target.closest('button, input, textarea, .mp-island')) return;
         const rect = device.getBoundingClientRect();
         if (event.clientY - rect.top > 62) return;
@@ -367,7 +399,8 @@ function bindDrag(device) {
         applyLayout();
     };
     handle.addEventListener('pointerdown', event => {
-        if (isNarrow()) return;
+        const floating = document.documentElement.classList.contains('mp-mobile-float');
+        if (isNarrow() && !floating) return;
         event.preventDefault();
         event.stopPropagation();
         resize = { x: event.clientX, y: event.clientY, scale: getSettings().scale || 1 };

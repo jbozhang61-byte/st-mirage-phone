@@ -43,12 +43,12 @@ export const EXTRA = {
     spotify: {
         name: 'Spotify',
         system: ctx => ['你在生成一个歌单。', base(ctx), '只输出 JSON：{"now":{"title":"歌名","artist":"歌手"},"tracks":[{"title":"歌名","artist":"歌手","time":"3:42"}]}'].join('\n'),
-        prompt: () => '生成 6 首歌，歌名和歌手要像这个世界的。',
+        prompt: () => '生成 12 首歌，歌名和歌手要像这个世界的，风格尽量不同。',
         parse: raw => ({
             now: raw?.now?.title ? { title: String(raw.now.title).slice(0, 60), artist: String(raw.now.artist || '').slice(0, 40) } : null,
-            tracks: (Array.isArray(raw?.tracks) ? raw.tracks : []).slice(0, 8).map(track => ({ title: String(track?.title || '').slice(0, 60), artist: String(track?.artist || '').slice(0, 40), time: String(track?.time || '').slice(0, 8) })),
+            tracks: (Array.isArray(raw?.tracks) ? raw.tracks : []).slice(0, 14).map(track => ({ title: String(track?.title || '').slice(0, 60), artist: String(track?.artist || '').slice(0, 40), time: String(track?.time || '').slice(0, 8) })),
         }),
-        fallback: ctx => ({ now: { title: '雪停之后', artist: '旧城电台' }, tracks: ['雪停之后', '门口那盏灯', '凌晨两点的便利店', '旧城', '回程'].map((title, i) => ({ title, artist: ['旧城电台', ctx.people[0] || '夏之', '夜班合唱团', '无名人', ctx.people[1] || '沈知微'][i], time: ['3:42', '4:05', '3:18', '5:12', '2:56'][i] })) }),
+        fallback: ctx => ({ now: { title: '雪停之后', artist: '旧城电台' }, tracks: ['雪停之后', '门口那盏灯', '凌晨两点的便利店', '旧城', '回程', '末班车', '屋檐下的雨', '旧唱片', '北街的风', '你说晚安之后', '天台上的星星', '慢慢走'].map((title, i) => ({ title, artist: ['旧城电台', ctx.people[0] || '夏之', '夜班合唱团', '无名人', ctx.people[1] || '沈知微', '旧城电台', '阿澈', '顾寒', '夜班合唱团', '夏之', '无名人', '旧城电台'][i], time: ['3:42', '4:05', '3:18', '5:12', '2:56', '3:31', '4:22', '3:07', '4:48', '3:55', '2:41', '4:12'][i] })) }),
     },
     gmail: {
         name: 'Gmail',

@@ -1,0 +1,11 @@
+
+.mp-status__float { display: grid !important; width: 22px; height: 22px; border: 0; border-radius: 8px; background: rgba(255,255,255,.12); color: inherit; place-items: center; padding: 0; cursor: pointer; margin-right: 2px; }
+.mp-status__float .mp-ic { width: 12px; height: 12px; }
+
+@media (max-width: 760px) {
+    html.mp-mobile-float .mp-shell { top: max(6px, env(safe-area-inset-top)) !important; }
+    html.mp-mobile-float .mp-device { max-height: calc(100dvh - 18px); }
+    html.mp-mobile-float .mp-resize { display: block !important; right: 4px; bottom: 92px; width: 26px; height: 26px; touch-action: none; }
+    .mp-resize { display: block !important; touch-action: none; }
+    html.mp-mobile-float .mp-fab.is-open { bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important; }
+}
