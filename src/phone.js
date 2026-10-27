@@ -200,6 +200,8 @@ export function createPhone(onOpenChange) {
     viewEl.appendChild(homeHost);
 
     clockTimer = setInterval(tick, 15000);
+    setTimeout(applyLayout, 700);
+    setTimeout(applyLayout, 1800);
     window.addEventListener('resize', onResize, { passive: true });
     document.addEventListener('visibilitychange', onVisibility);
     themeMedia = window.matchMedia?.('(prefers-color-scheme: light)');
@@ -304,6 +306,14 @@ function applyLayout() {
     setFab(open);
     const settings = getSettings();
     const narrow = isNarrow();
+    if (narrow) {
+        document.documentElement.classList.add('mp-mobile-float');
+        if (!settings.mobileScaleInit) {
+            settings.mobileScaleInit = true;
+            settings.scale = Math.min(Number(settings.scale) || 0.82, 0.82);
+            saveNow('settings');
+        }
+    }
     const floating = document.documentElement.classList.contains('mp-mobile-float');
     if (narrow) {
         const fit = Math.min((window.innerWidth - 20) / 384, (window.innerHeight - 20) / 812);
