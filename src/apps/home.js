@@ -187,6 +187,7 @@ export function mountHome(host, { nav }) {
     function bindDrag(el, id) {
         let start = null;
         let active = false;
+        let armed = false;
         let ghost = null;
         let timer = 0;
         let hoverTimer = 0;
@@ -197,27 +198,33 @@ export function mountHome(host, { nav }) {
             clearTimeout(hoverTimer);
             hoverTarget?.classList.remove('is-drop-target');
             hoverTarget = null;
-            el.classList.remove('is-dragging');
+            el.classList.remove('is-dragging', 'is-armed');
             ghost?.remove();
             ghost = null;
+            armed = false;
         };
 
         el.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;
             start = { x: event.clientX, y: event.clientY };
             active = false;
+            armed = false;
             el.setPointerCapture?.(event.pointerId);
+            // 长按 5 秒才进入可拖动状态，避免误触
             timer = setTimeout(() => {
-                if (!active && start) { start = null; openIconMenu(id); }
-            }, 550);
+                if (!start || active) return;
+                armed = true;
+                draggedAt = Date.now();
+                el.classList.add('is-armed');
+                try { navigator.vibrate?.(12); } catch { /* ignore */ }
+            }, 5000);
         });
 
         el.addEventListener('pointermove', event => {
-            if (!start) return;
+            if (!start || !armed) return;
             if (!active && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 8) return;
             if (!active) {
                 active = true;
-                clearTimeout(timer);
                 el.classList.add('is-dragging');
                 const glyph = el.querySelector('.mp-appicon__glyph');
                 if (glyph) {
@@ -267,7 +274,10 @@ export function mountHome(host, { nav }) {
             clearTimeout(hoverTimer);
             hoverTarget?.classList.remove('is-drop-target');
             hoverTarget = null;
-            if (!was) return;
+            if (!was) {
+                if (armed) { draggedAt = Date.now(); openIconMenu(id); }
+                return;
+            }
             draggedAt = Date.now();
             dropAt(id, event.clientX, event.clientY);
         };
