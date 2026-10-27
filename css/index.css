@@ -1795,3 +1795,10 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-device { touch-action: pan-y; }
 .mp-status { touch-action: none; }
 .mp-resize { touch-action: none; }
+
+.mp-edge { position: absolute; z-index: 26; touch-action: none; }
+.mp-edge--left, .mp-edge--right { top: 64px; bottom: 20px; width: 12px; }
+.mp-edge--left { left: 0; }
+.mp-edge--right { right: 0; }
+.mp-edge--bottom { left: 26px; right: 26px; bottom: 0; height: 14px; }
+.mp-edge:hover { background: rgba(255,255,255,.04); }

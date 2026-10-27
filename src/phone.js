@@ -191,6 +191,10 @@ export function createPhone(onOpenChange) {
     setTimeout(applyLayout, 700);
     setTimeout(applyLayout, 1800);
     window.addEventListener('resize', onResize, { passive: true });
+    globalThis.visualViewport?.addEventListener('resize', onResize, { passive: true });
+    globalThis.visualViewport?.addEventListener('scroll', onResize, { passive: true });
+    document.addEventListener('focusin', () => setTimeout(applyLayout, 120), true);
+    document.addEventListener('focusout', () => setTimeout(applyLayout, 120), true);
     document.addEventListener('visibilitychange', onVisibility);
     themeMedia = window.matchMedia?.('(prefers-color-scheme: light)');
     themeMedia?.addEventListener?.('change', applyThemeVars.bind(null, rootEl, getSettings()));
@@ -282,15 +286,26 @@ function syncFabPosition() {
 
 function onResize() {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { applyLayout(); syncFabPosition(); }, 120);
+    resizeTimer = setTimeout(() => { applyLayout(); syncFabPosition(); }, 40);
+}
+
+function viewportMetrics() {
+    const vv = globalThis.visualViewport;
+    return {
+        width: vv?.width || window.innerWidth,
+        height: vv?.height || window.innerHeight,
+        left: vv?.offsetLeft || 0,
+        top: vv?.offsetTop || 0,
+    };
 }
 
 function paintFloat(scale, pos) {
     if (!shellEl) return;
     const w = 384 * scale;
     const h = 812 * scale;
-    const left = Math.round((window.innerWidth - w) / 2 + (pos?.x || 0));
-    const top = Math.round((window.innerHeight - h) / 2 + (pos?.y || 0));
+    const vp = viewportMetrics();
+    const left = Math.round(vp.left + (vp.width - w) / 2 + (pos?.x || 0));
+    const top = Math.round(vp.top + (vp.height - h) / 2 + (pos?.y || 0));
     shellEl.style.setProperty('left', '0px', 'important');
     shellEl.style.setProperty('top', '0px', 'important');
     shellEl.style.setProperty('right', 'auto', 'important');
@@ -314,14 +329,15 @@ function applyLayout() {
     }
     const floating = document.documentElement.classList.contains('mp-mobile-float');
     if (narrow) {
-        const fit = Math.min((window.innerWidth - 20) / 384, (window.innerHeight - 20) / 812);
-        const scale = floating ? Math.max(0.5, Math.min(1.12, fit, Number(settings.scale) || 0.86)) : 1;
+        const vp = viewportMetrics();
+        const fit = Math.min((vp.width - 16) / 384, (vp.height - 16) / 812);
+        const scale = floating ? Math.max(0.38, Math.min(1.12, fit, Number(settings.scale) || 0.86)) : 1;
         shellEl.style.setProperty('--mp-scale', String(scale));
         if (floating) {
             const w = 384 * scale;
             const h = 812 * scale;
-            const maxX = Math.max(0, (window.innerWidth - w) / 2);
-            const maxY = Math.max(0, (window.innerHeight - h) / 2);
+            const maxX = Math.max(0, (vp.width - w) / 2);
+            const maxY = Math.max(0, (vp.height - h) / 2);
             const rawX = Number(settings.pos?.x) || 0;
             const rawY = Number(settings.pos?.y) || 0;
             const pos = { x: Math.abs(rawX) > maxX ? 0 : rawX, y: Math.abs(rawY) > maxY ? 0 : rawY };
@@ -397,11 +413,12 @@ function bindDrag(device) {
 
     const clampPos = (x, y, scale) => {
         const rect = device.getBoundingClientRect();
+        const vp = viewportMetrics();
         const w = rect.width;
         const h = rect.height;
         const margin = 18;
-        const maxX = Math.max(0, (window.innerWidth - w) / 2);
-        const maxY = Math.max(0, (window.innerHeight - h) / 2);
+        const maxX = Math.max(0, (vp.width - w) / 2);
+        const maxY = Math.max(0, (vp.height - h) / 2);
         return {
             x: Math.max(-maxX + margin, Math.min(maxX - margin, x)),
             y: Math.max(-maxY + margin, Math.min(maxY - margin, y)),
@@ -467,7 +484,7 @@ function bindDrag(device) {
             if (points.length >= 2) {
                 const dist = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
                 if (pinch.dist > 8) {
-                    getSettings().scale = Math.max(0.5, Math.min(1.12, pinch.scale * (dist / pinch.dist)));
+                    getSettings().scale = Math.max(0.38, Math.min(1.12, pinch.scale * (dist / pinch.dist)));
                     scheduleLayout();
                 }
                 event.preventDefault();
@@ -506,21 +523,36 @@ function bindDrag(device) {
     const handle = h('button', { type: 'button', class: 'mp-resize', 'aria-label': '缩放' });
     device.appendChild(handle);
     let resize = null;
-    handle.addEventListener('pointerdown', event => {
+    const startResize = (edge, event) => {
         event.preventDefault();
         event.stopPropagation();
-        resize = { x: event.clientX, y: event.clientY, scale: getSettings().scale || 1 };
-        handle.setPointerCapture?.(event.pointerId);
-    });
+        resize = { edge, x: event.clientX, y: event.clientY, scale: getSettings().scale || 1 };
+        shellEl.classList.add('is-dragging');
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+    };
+    handle.addEventListener('pointerdown', event => startResize('corner', event));
+    for (const edge of ['left', 'right', 'bottom']) {
+        const bar = h('div', { class: 'mp-edge mp-edge--' + edge, 'aria-hidden': 'true' });
+        bar.addEventListener('pointerdown', event => startResize(edge, event));
+        device.appendChild(bar);
+    }
     window.addEventListener('pointermove', event => {
         if (!resize) return;
-        getSettings().scale = Math.max(0.5, Math.min(1.12, resize.scale + (event.clientX - resize.x) / 220 - (event.clientY - resize.y) / 360));
+        const dx = event.clientX - resize.x;
+        const dy = event.clientY - resize.y;
+        let delta = 0;
+        if (resize.edge === 'right') delta = dx;
+        else if (resize.edge === 'left') delta = -dx;
+        else if (resize.edge === 'bottom') delta = dy;
+        else delta = (dx + dy) / 1.5;
+        getSettings().scale = Math.max(0.38, Math.min(1.12, resize.scale + delta / 240));
         scheduleLayout();
         event.preventDefault();
     }, { passive: false });
     window.addEventListener('pointerup', () => {
         if (!resize) return;
         resize = null;
+        shellEl.classList.remove('is-dragging');
         saveNow('settings');
     });
 
