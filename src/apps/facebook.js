@@ -1,5 +1,5 @@
 /** Facebook：蓝色信息流，整页详情 + API 评论。 */
-import { h, icon, avatar, timeText, toast } from '../render.js';
+import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getCast, getFeed, setFeed, saveNow } from '../store.js';
 import { userName, storyContext } from '../st.js';
 import { artFor } from '../art.js';
@@ -19,7 +19,8 @@ export function mountFacebook(host, { nav }) {
         h('div', { class: 'mp-fb__bar' },
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
             h('div', { class: 'mp-fb__logo', text: 'facebook' }),
-            h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '刷新', onclick: () => refresh() }, icon('refresh')),
+            h('button', { class: 'mp-fb__topbtn', type: 'button', 'aria-label': '搜索', onclick: () => toast('搜索还没做') }, icon('search')),
+            h('button', { class: 'mp-fb__topbtn', type: 'button', 'aria-label': '消息', onclick: () => toast('Messenger 还没做') }, icon('message')),
         ),
         body,
     );
@@ -47,6 +48,35 @@ export function mountFacebook(host, { nav }) {
     function render() {
         const data = load();
         body.innerHTML = '';
+
+        // 故事栏
+        const cast = getCast();
+        const stories = h('div', { class: 'mp-fb__stories' });
+        stories.appendChild(h('button', { type: 'button', class: 'mp-fb__story', onclick: () => toast('发故事还没做') },
+            h('span', { class: 'mp-fb__storyplus' }, icon('plus')), h('span', { text: '创建故事' })));
+        for (const person of cast.slice(0, 6)) {
+            stories.appendChild(h('button', { type: 'button', class: 'mp-fb__story', onclick: () => toast('看 ' + person.name + ' 的故事') },
+                h('span', { class: 'mp-fb__storyring' }, avatar({ name: person.name, size: 46 })), h('span', { text: person.name })));
+        }
+        body.appendChild(stories);
+
+        // 发一条
+        body.appendChild(h('div', { class: 'mp-fb__composer' },
+            avatar({ name: userName() || '我', size: 36 }),
+            h('button', { type: 'button', class: 'mp-fb__whats', text: '分享你的新鲜事…', onclick: () => compose() }),
+            h('button', { type: 'button', class: 'mp-fb__photobtn', 'aria-label': '照片', onclick: () => toast('照片先欠着') }, icon('image')),
+        ));
+
+        // 在线的人
+        if (cast.length) {
+            const online = h('div', { class: 'mp-fb__online' });
+            online.appendChild(h('span', { class: 'mp-fb__onlinelabel', text: '在线' }));
+            for (const person of cast.slice(0, 8)) {
+                online.appendChild(h('span', { class: 'mp-fb__dot', title: person.name }, avatar({ name: person.name, size: 28 })));
+            }
+            body.appendChild(online);
+        }
+
         for (const post of data.posts) {
             const like = h('button', { type: 'button', class: 'mp-fb__act' + (post.liked ? ' on' : '') }, icon('heart'), h('span', { text: String(post.likes + (post.liked ? 1 : 0)) }));
             like.addEventListener('click', event => {
@@ -69,6 +99,28 @@ export function mountFacebook(host, { nav }) {
                 ),
             ));
         }
+    }
+
+    function compose() {
+        const input = h('textarea', { class: 'mp-input', rows: '4', placeholder: '写点什么…' });
+        const dialog = sheet({
+            title: '发一条动态',
+            content: h('div', { class: 'mp-field-list' }, input),
+            actions: h('button', {
+                class: 'mp-btn primary small', type: 'button', text: '发布',
+                onclick: () => {
+                    const text = input.value.trim();
+                    if (!text) return;
+                    const data = load();
+                    const post = { id: 'fb-' + Date.now(), author: userName() || '我', text, time: '刚刚', likes: 0, comments: 0, image: '' };
+                    data.posts.unshift(post);
+                    setFeed('facebook', data.posts);
+                    dialog.close();
+                    render();
+                    toast('已发布');
+                },
+            }),
+        });
     }
 
     function refresh() {

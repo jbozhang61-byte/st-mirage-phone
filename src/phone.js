@@ -175,10 +175,9 @@ export function createPhone(onOpenChange) {
             applyLayout();
         },
     }, icon('maximize'));
-    rootEl.appendChild(floatFabEl);
-    rootEl.appendChild(fabEl);
-
     document.body.appendChild(rootEl);
+    document.body.appendChild(floatFabEl);
+    document.body.appendChild(fabEl);
     if (globalThis.localStorage?.getItem('mirage_mobile_float') === '1') document.documentElement.classList.add('mp-mobile-float');
     if (globalThis.localStorage?.getItem('mirage_mobile_float') === '1') document.documentElement.classList.add('mp-mobile-float');
     setLayer(portalLayer);

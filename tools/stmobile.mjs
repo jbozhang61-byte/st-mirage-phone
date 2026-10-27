@@ -163,7 +163,7 @@ try {
     const after = await evaluate(`(() => {
         const shell = document.querySelector('.mp-shell');
         const root = document.querySelector('.mp-root');
-        const fab = document.querySelector('.mp-fab');
+        const fab = [...document.querySelectorAll('.mp-fab')].at(-1);
         const screen = document.querySelector('.mp-screen');
         const box = (el) => {
             if (!el) return null;
@@ -174,7 +174,7 @@ try {
         return {
             shellClass: shell?.className,
             rootClass: root?.className,
-            fabClass: fab?.className,
+            fabClass: fab?.className, fabBox: box(fab), fabZ: fab ? getComputedStyle(fab).zIndex : null,
             shellBox: box(shell),
             screenBox: box(screen),
             homeIcons: document.querySelectorAll('.mp-appicon').length,

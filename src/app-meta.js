@@ -45,7 +45,7 @@ export const STORE_APPS = [
     { id: 'quora', name: 'Quora', sub: 'Q&A', label: 'Quora', icon: 'quora', cls: 'g-quora', category: '社区', size: '82 MB', rating: '4.2', color: '#b92b27', accent: '#d9584f', desc: 'A place to share knowledge' },
     { id: 'youtube', name: 'YouTube', sub: 'YT', label: 'YouTube', icon: 'youtube', cls: 'g-yt', category: '视频', size: '210 MB', rating: '4.7', color: '#ff0000', accent: '#ff4d4d', desc: '你感兴趣的视频都在这里' },
     { id: 'discord', name: 'Discord', sub: 'Discord', label: 'Discord', icon: 'discord', cls: 'g-dc', category: '社交', size: '96 MB', rating: '4.4', color: '#5865f2', accent: '#7983f5', desc: '服务器、频道和深夜消息' },
-    { id: 'telegram', name: 'Telegram', sub: 'TG', label: 'Telegram', icon: 'send', cls: 'g-tg', category: '社交', size: '78 MB', rating: '4.6', color: '#229ed9', accent: '#54b9e8', desc: '轻、快、能装下所有对话' },
+    { id: 'telegram', name: 'Telegram', sub: 'TG', label: 'Telegram', icon: 'telegram', cls: 'g-tg', category: '社交', size: '78 MB', rating: '4.6', color: '#229ed9', accent: '#54b9e8', desc: '轻、快、能装下所有对话' },
     { id: 'spotify', name: 'Spotify', sub: 'Spotify', label: 'Spotify', icon: 'music', cls: 'g-sp', category: '音乐', size: '124 MB', rating: '4.7', color: '#1db954', accent: '#1ed760', desc: '这个世界的歌单' },
     { id: 'gmail', name: 'Gmail', sub: 'Mail', label: 'Gmail', icon: 'mail', cls: 'g-gm', category: '工具', size: '88 MB', rating: '4.5', color: '#ea4335', accent: '#fbbc04', desc: '收件箱里总有一封在等你' },
     { id: 'stocks', name: '股市', sub: 'Stocks', label: '股市', icon: 'chart', cls: 'g-stk', category: '工具', size: '48 MB', rating: '4.6', color: '#0e3b2e', accent: '#4fc3a1', desc: '旧城交易所，模拟盘' },
