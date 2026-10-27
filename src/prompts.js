@@ -308,25 +308,31 @@ export function chatUserPrompt({ thread, user, limit = 24 }) {
     return lines.join('\n');
 }
 
-/** 从角色卡里找出这个世界里的人。 */
+/** 从当前聊天里找出这个世界里的人。 */
 export function castSystemPrompt({ user }) {
     return [
-        '你是一个角色卡世界的整理助手，要从角色卡里找出「' + user + '」在这个世界认识的人。',
-        '只要人物本身：主角、重要的配角、家人、同事、朋友、对手，都可以。',
-        '不要编造和卡设定冲突的大事件；不确定的细节写得克制一点。',
-        '如果卡里只写了一个人，就以这个人为核心，补上 2 到 3 个卡里提到或合理存在的关系人。',
+        '你是一个聊天记录整理助手，要从「' + user + '」当前这段聊天里找出真实出现过的人。',
+        '优先：聊天里说过话的人、被明确提到的人；不要只按角色卡设定凭空补人。',
+        '如果聊天记录里只有一两个人，可以补充聊天里暗示存在的家人、同事、店主等，但不要编造大事件。',
+        '人物要属于当前这个世界，不要混进上一段聊天或别的角色卡的人。',
         '只输出 JSON，不要别的内容：',
         '{"people":[{"name":"名字","role":"身份（例如：修表匠 / 旧友 / 弟弟）","relation":"和' + user + '的关系","desc":"一两句人设","style":"说话方式"}]}',
     ].join('\n');
 }
 
-export function castUserPrompt({ card }) {
-    const parts = ['角色卡名：' + (card?.name || '未命名')];
-    if (card?.description) parts.push('简介：' + trim(card.description, 1600));
-    if (card?.personality) parts.push('性格：' + trim(card.personality, 500));
-    if (card?.scenario) parts.push('场景：' + trim(card.scenario, 600));
-    if (card?.mesExample) parts.push('示例对话：' + trim(card.mesExample, 700));
-    parts.push('\n请找出 4 到 8 个这个世界里的人。');
+export function castUserPrompt({ card, story = [], user = '我' }) {
+    const parts = [];
+    if (story.length) {
+        parts.push('当前聊天的最近内容（以此为准）：');
+        parts.push(story.map(line => (line.isUser ? user : line.name) + '：' + trim(line.text, 320)).join('\n'));
+    }
+    if (card) {
+        parts.push('\n角色卡资料（仅作背景参考，不要用卡里没出现过的人替换聊天里的人）：');
+        parts.push('角色卡名：' + (card.name || '未命名'));
+        if (card.description) parts.push('简介：' + trim(card.description, 600));
+        if (card.scenario) parts.push('场景：' + trim(card.scenario, 400));
+    }
+    parts.push('\n请优先从上面的聊天记录里找出 4 到 8 个这个世界里的人。');
     return parts.join('\n');
 }
 
