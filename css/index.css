@@ -1828,3 +1828,23 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-shell.mp-keyboard .mp-chatpage,
 .mp-shell.mp-keyboard .mp-conv { height: 100% !important; }
+
+@media (max-width: 760px) {
+    html:not(.mp-mobile-float) .mp-shell:not(.is-closed) {
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        transform: none !important;
+    }
+    html:not(.mp-mobile-float) .mp-shell:not(.is-closed) .mp-device {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+    }
+    html:not(.mp-mobile-float) .mp-resize,
+    html:not(.mp-mobile-float) .mp-edge { display: none !important; }
+    .mp-status__float { display: none !important; }
+    .mp-shell.mp-keyboard .mp-device { height: 100% !important; }
+    .mp-shell.mp-keyboard .mp-screen { height: 100% !important; }
+}

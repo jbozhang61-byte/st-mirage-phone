@@ -170,13 +170,8 @@ export function createPhone(onOpenChange) {
     setTimeout(syncFabPosition, 0);
     try {
         if (isNarrow()) {
-            globalThis.localStorage?.setItem('mirage_mobile_float', '1');
-            document.documentElement.classList.add('mp-mobile-float');
-            const settings = getSettings();
-            if (!settings.scale || settings.scale > 0.9) {
-                settings.scale = 0.82;
-                saveNow('settings');
-            }
+            globalThis.localStorage?.setItem('mirage_mobile_float', '0');
+            document.documentElement.classList.remove('mp-mobile-float');
         } else if (globalThis.localStorage?.getItem('mirage_mobile_float') === '1') {
             document.documentElement.classList.add('mp-mobile-float');
         }
@@ -327,19 +322,12 @@ function applyLayout() {
     setFab(open);
     const settings = getSettings();
     const narrow = isNarrow();
-    if (narrow) {
-        document.documentElement.classList.add('mp-mobile-float');
-        if (!settings.mobileScaleInit) {
-            settings.mobileScaleInit = true;
-            settings.scale = Math.min(Number(settings.scale) || 0.82, 0.82);
-            saveNow('settings');
-        }
-    }
+    if (narrow) document.documentElement.classList.remove('mp-mobile-float');
     const floating = document.documentElement.classList.contains('mp-mobile-float');
     if (narrow) {
         const vp = viewportMetrics();
         const keyboardOpen = vp.height < window.innerHeight - 120;
-        if (floating && keyboardOpen) {
+        if (keyboardOpen) {
             // 键盘模式：手机变成键盘上方的整块面板，内容重新排版，不缩放、不裁切
             shellEl.classList.add('mp-keyboard');
             document.documentElement.classList.add('mp-keyboard-open');
@@ -569,6 +557,7 @@ function bindDrag(device) {
     device.appendChild(handle);
     let resize = null;
     const startResize = (edge, event) => {
+        if (isNarrow() && !document.documentElement.classList.contains('mp-mobile-float')) return;
         event.preventDefault();
         event.stopPropagation();
         resize = { edge, x: event.clientX, y: event.clientY, scale: getSettings().scale || 1 };
