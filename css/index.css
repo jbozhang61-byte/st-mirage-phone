@@ -1665,3 +1665,13 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-fb__onlinelabel { font-size: 9px; color: #45bd62; font-weight: 700; }
 .mp-fb__dot { position: relative; display: inline-flex; }
 .mp-fb__dot::after { content: ''; position: absolute; right: 0; bottom: 0; width: 8px; height: 8px; border-radius: 50%; background: #31a24c; border: 2px solid #f0f2f5; }
+
+.mp-sp__progress { margin: 6px 0 2px; }
+.mp-sp__bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,.16); overflow: hidden; }
+.mp-sp__fill { display: block; height: 100%; width: 0; border-radius: 2px; background: #1ed760; transition: width .2s linear; }
+.mp-sp__times { display: flex; justify-content: space-between; margin-top: 4px; font-size: 9px; color: var(--mp-text-3); }
+.mp-sp__volume { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; color: var(--mp-text-3); }
+.mp-sp__volume .mp-ic { width: 15px; height: 15px; }
+.mp-sp__volume input { flex: 1 1 auto; accent-color: #1ed760; height: 3px; }
+.mp-sp__row.is-playing .mp-sp__rowtitle { color: #1ed760; }
+.mp-sp__row.is-playing .mp-sp__index { color: #1ed760; }

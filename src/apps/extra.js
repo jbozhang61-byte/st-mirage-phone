@@ -1,5 +1,6 @@
 /** Discord / Telegram / Spotify / Gmail：打开先显示兜底内容，再让模型按世界生成。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
+import { createMusicPlayer } from '../audio.js';
 import { getData, getCast, getFeed } from '../store.js';
 import { generateExtra, friendlyError } from '../ai.js';
 import { EXTRA } from '../extra.js';
@@ -307,25 +308,79 @@ export function mountSpotify(host, { nav }) {
     nav.setChrome?.('dark');
     const { el, body, refresh } = shell('Spotify', 'is-sp', profileSheet);
     host.appendChild(el);
-    const view = loader('spotify', data => {
+    let dataRef = null;
+    const refs = {};
+
+    const player = createMusicPlayer({
+        onTick(state) {
+            if (refs.fill) refs.fill.style.width = Math.round((state.elapsed / state.duration) * 100) + '%';
+            if (refs.cur) refs.cur.textContent = timeText(state.elapsed);
+            if (refs.dur) refs.dur.textContent = timeText(state.duration);
+            if (refs.playIcon) refs.playIcon.innerHTML = '';
+            if (refs.playIcon) refs.playIcon.appendChild(icon(state.playing ? 'pause' : 'play', '', 20));
+            if (refs.rows) {
+                for (const [title, row] of refs.rows) row.classList.toggle('is-playing', state.playing && state.track?.title === title);
+            }
+        },
+    });
+
+    function timeText(seconds) {
+        const value = Math.max(0, Math.round(seconds || 0));
+        return Math.floor(value / 60) + ':' + String(value % 60).padStart(2, '0');
+    }
+
+    function paint(data) {
+        dataRef = data;
         body.innerHTML = '';
-        const now = data.now || (data.tracks || [])[0] || { title: '雪停之后', artist: '旧城电台' };
+        const now = data.now || (data.tracks || [])[0] || { title: '雪停之后', artist: '旧城电台', time: '3:24' };
+        const cover = h('div', { class: 'mp-sp__cover', text: (now.title || '雪').slice(0, 1) });
+        const playIcon = h('span', { class: 'mp-sp__playicon' }, icon('play', '', 20));
+        const playBtn = h('button', { type: 'button', class: 'mp-sp__play', 'aria-label': '播放' }, playIcon);
+        refs.playIcon = playIcon;
+        playBtn.addEventListener('click', () => {
+            player.toggle(now);
+            paint(data);
+        });
+
+        const fill = h('i', { class: 'mp-sp__fill' });
+        refs.fill = fill;
+        refs.cur = h('span', { class: 'mp-sp__elapsed', text: '0:00' });
+        refs.dur = h('span', { class: 'mp-sp__total', text: now.time || '3:24' });
+
         body.appendChild(h('div', { class: 'mp-sp__now' },
-            h('div', { class: 'mp-sp__cover', text: (now.title || '雪').slice(0, 1) }),
+            cover,
             h('div', { class: 'mp-sp__meta' }, h('div', { class: 'mp-sp__track', text: now.title }), h('div', { class: 'mp-sp__artist', text: now.artist })),
-            h('button', { type: 'button', class: 'mp-sp__play' }, icon('play', '', 20)),
+            playBtn,
         ));
+        body.appendChild(h('div', { class: 'mp-sp__progress' },
+            h('div', { class: 'mp-sp__bar' }, fill),
+            h('div', { class: 'mp-sp__times' }, refs.cur, refs.dur),
+        ));
+        body.appendChild(h('div', { class: 'mp-sp__volume' }, icon('volume', '', 15), h('input', {
+            type: 'range', min: '0', max: '100', value: '72',
+            oninput: event => player.setVolume(Number(event.target.value) / 100),
+        })));
+
         body.appendChild(h('div', { class: 'mp-sp__label', text: '本周循环' }));
+        refs.rows = new Map();
         for (const track of data.tracks || []) {
-            body.appendChild(h('div', { class: 'mp-sp__row' },
+            const row = h('div', {
+                class: 'mp-sp__row',
+                onclick: () => { player.play(track); paint(data); },
+            },
                 h('span', { class: 'mp-sp__index', text: '♪' }),
                 h('div', { class: 'mp-sp__rowmain' }, h('div', { class: 'mp-sp__rowtitle', text: track.title }), h('div', { class: 'mp-sp__artist', text: track.artist })),
                 h('span', { class: 'mp-sp__time', text: track.time }),
-            ));
+            );
+            refs.rows.set(track.title, row);
+            body.appendChild(row);
         }
-    });
+        if (!data.tracks?.length) body.appendChild(h('div', { class: 'mp-st-hint', text: '还没有歌，刷新试试。' }));
+    }
+
+    const view = loader('spotify', data => paint(data));
     refresh.addEventListener('click', view.refresh);
-    return { refresh: view.refresh };
+    return { refresh: view.refresh, destroy: () => player.destroy() };
 }
 
 export function mountGmail(host, { nav }) {
