@@ -8,9 +8,9 @@
 
 ## 仓库地址
 
-§§§text
+```text
 https://github.com/jbozhang61-byte/st-mirage-phone
-§§§
+```
 
 酒馆扩展安装页填这个地址，或直接克隆到扩展目录。仓库目前是私有的，需要先获得访问权限。
 
