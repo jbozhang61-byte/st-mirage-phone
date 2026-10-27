@@ -30,6 +30,14 @@
 | --- | --- | --- |
 | ![地图](docs/screenshots/map.png) | ![股市](docs/screenshots/stocks.png) | ![我](docs/screenshots/me.png) |
 
+## 宣传片
+
+12 秒，无声，竖屏。
+
+[![宣传片](docs/promo-poster.png)](docs/promo.mp4)
+
+[▶ 播放 docs/promo.mp4](docs/promo.mp4)
+
 ## 功能
 
 ### 手机
