@@ -397,6 +397,8 @@ export function openPhone(app = 'home', params = {}) {
     }
     open = true;
     globalThis.__mpIslandToast = true;
+    try { document.body.appendChild(rootEl); } catch { /* ignore */ }
+    hideOtherFloaters(true);
     shellEl.classList.remove('is-closed');
     fabEl.classList.add('is-hidden');
     floatFabEl?.classList.add('is-hidden');
@@ -423,6 +425,7 @@ export function closePhone() {
     open = false;
     globalThis.__mpIslandToast = false;
     shellEl.classList.add('is-closed');
+    hideOtherFloaters(false);
     fabEl.classList.remove('is-hidden');
     floatFabEl?.classList.remove('is-hidden');
     onOpenChanged(false);
@@ -431,6 +434,21 @@ export function closePhone() {
 export function toggle() {
     if (open) closePhone();
     else openPhone();
+}
+
+function hideOtherFloaters(hide) {
+    try {
+        const list = document.querySelectorAll('#cd-fab, .cd-fab');
+        for (const el of list) {
+            if (hide) {
+                if (!el.dataset.mpWasHidden) el.dataset.mpWasHidden = el.style.display || '1';
+                el.style.setProperty('display', 'none', 'important');
+            } else if (el.dataset.mpWasHidden) {
+                el.style.removeProperty('display');
+                delete el.dataset.mpWasHidden;
+            }
+        }
+    } catch { /* ignore */ }
 }
 
 function onOpenChanged(value) {
