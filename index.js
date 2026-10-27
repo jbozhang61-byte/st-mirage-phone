@@ -187,18 +187,18 @@ function buildSettingsPanel() {
     root.appendChild(hint);
 
     const enabled = checkRow('启用小手机', settings.enabled, value => {
-        settings.enabled = value;
+        getSettings().enabled = value;
         saveNow('settings');
         phone?.setEnabled(value);
         syncPanel();
     });
     const inject = checkRow('把手机消息带进正文', settings.inject.enabled, value => {
-        settings.inject.enabled = value;
+        getSettings().inject.enabled = value;
         saveNow('settings');
         refreshInjection();
     });
     const proactive = checkRow('剧情后主动来信', settings.proactive.enabled, value => {
-        settings.proactive.enabled = value;
+        getSettings().proactive.enabled = value;
         saveNow('settings');
         syncPanel();
     });
@@ -217,7 +217,7 @@ function buildSettingsPanel() {
         roundsSelect.appendChild(option);
     }
     roundsSelect.addEventListener('change', () => {
-        settings.proactive.rounds = Number(roundsSelect.value) || 1;
+        getSettings().proactive.rounds = Number(roundsSelect.value) || 1;
         proactiveRounds = 0;
         saveNow('settings');
     });
@@ -241,7 +241,7 @@ function buildSettingsPanel() {
         themeSelect.appendChild(option);
     }
     themeSelect.addEventListener('change', () => {
-        settings.theme = themeSelect.value;
+        getSettings().theme = themeSelect.value;
         saveNow('settings');
         refreshTheme();
     });
@@ -262,7 +262,7 @@ function buildSettingsPanel() {
         accentSelect.appendChild(option);
     }
     accentSelect.addEventListener('change', () => {
-        settings.accent = accentSelect.value;
+        getSettings().accent = accentSelect.value;
         saveNow('settings');
         refreshTheme();
     });

@@ -132,6 +132,19 @@ const report = await evaluate(`(() => {
 })()`);
 
 console.log('REPORT ' + JSON.stringify(report));
+const proactiveTest = await evaluate(`(() => {
+    const boxes = document.querySelectorAll('#mp_st_panel input[type="checkbox"]');
+    const box = boxes[2];
+    if (!box) return 'no-checkbox';
+    const before = box.checked;
+    const info = { disabled: box.disabled, type: box.type, pe: getComputedStyle(box).pointerEvents, disabledAttr: box.getAttribute('disabled'), outer: box.outerHTML.slice(0, 140) };
+    box.click();
+    const afterClick = box.checked;
+    box.checked = true;
+    box.dispatchEvent(new Event('change', { bubbles: true }));
+    return { before, info, afterClick, afterDispatch: box.checked, setting: window.MiragePhone?.settings?.proactive?.enabled };
+})()`);
+console.log('PROACTIVE ' + JSON.stringify(proactiveTest));
 console.log('ERRORS ' + errors.length);
 for (const error of errors.slice(0, 12)) console.log('  ' + String(error).split('\n').slice(0, 3).join(' | ').slice(0, 400));
 console.log('LOGTAIL');
