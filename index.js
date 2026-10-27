@@ -108,9 +108,9 @@ function ensureCity() {
 }
 
 function wireEvents() {
-    subscribe('CHAT_CHANGED', () => {
-        scheduleChatSync();
-    });
+    for (const eventName of ['CHAT_CHANGED', 'CHARACTER_CHANGED', 'CHAT_LOADED', 'GROUP_UPDATED']) {
+        subscribe(eventName, () => scheduleChatSync());
+    }
     subscribe('MESSAGE_RECEIVED', () => {
         refreshInjection();
         try {
