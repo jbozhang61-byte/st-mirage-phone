@@ -1,0 +1,47 @@
+name: Bug 反馈
+description: 某个功能不对 / 打不开 / 报错
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: 请尽量附截图和控制台报错（F12 → Console）。
+  - type: input
+    id: version
+    attributes:
+      label: 幻镜手机版本
+      placeholder: 例如 1.5.0（设置 → 关于）
+    validations:
+      required: true
+  - type: input
+    id: st
+    attributes:
+      label: SillyTavern 版本
+      placeholder: 例如 1.18.0
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Android
+        - HarmonyOS
+        - iOS / iPadOS
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么
+      description: 哪个 App、点了什么、期望是什么
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 报错 / 截图
+      description: 控制台红字或截图可以直接贴进来

@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: SillyTavern 文档
+    url: https://docs.sillytavern.app/
+    about: 酒馆本身的安装、模型配置问题

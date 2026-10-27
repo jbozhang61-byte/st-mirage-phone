@@ -1,0 +1,17 @@
+name: 功能建议
+description: 想要的新 App / 新玩法 / UI 改进
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: 你想要什么
+      description: 越具体越好，比如「小红书要能评论」「桌面要能建文件夹」
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 为什么
+      description: 现在的哪里不够用

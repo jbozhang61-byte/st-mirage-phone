@@ -1,0 +1,121 @@
+/* 预览页：假装是一间开着酒馆的屋子 */
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background: #15131a;
+    color: #e8e2d6;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    overflow: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(60% 50% at 15% 0%, rgba(240, 163, 94, .16), transparent 60%),
+        radial-gradient(50% 60% at 92% 100%, rgba(120, 100, 220, .18), transparent 60%),
+        #15131a;
+}
+
+.stage {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 760px;
+    margin: 0 0 0 48px;
+    padding: 0 24px;
+}
+
+.stage__bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 54px;
+    border-bottom: 1px solid rgba(255, 255, 255, .07);
+    font-size: 12px;
+    color: rgba(232, 226, 214, .55);
+    letter-spacing: .3px;
+}
+
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #7ec9a0; box-shadow: 0 0 12px rgba(126, 201, 160, .7); }
+.stage__title { flex: 1; }
+.stage__right { opacity: .6; }
+
+.stage__chat {
+    flex: 1;
+    padding: 26px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: hidden;
+}
+
+.bubble {
+    max-width: 78%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: rgba(240, 236, 228, .92);
+    background: rgba(255, 255, 255, .06);
+    border: 1px solid rgba(255, 255, 255, .07);
+}
+
+.bubble.them { border-bottom-left-radius: 6px; }
+.bubble.me {
+    align-self: flex-end;
+    background: linear-gradient(140deg, rgba(240, 163, 94, .3), rgba(240, 163, 94, .14));
+    border-color: rgba(240, 163, 94, .22);
+    border-bottom-right-radius: 6px;
+}
+
+.bubble .who {
+    display: block;
+    font-size: 10.5px;
+    letter-spacing: 1px;
+    color: rgba(240, 163, 94, .8);
+    margin-bottom: 3px;
+}
+
+.bubble em { color: rgba(232, 226, 214, .45); font-style: normal; }
+
+.stage__hint {
+    margin-top: auto;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: .4px;
+    color: rgba(232, 226, 214, .26);
+    padding-bottom: 12px;
+}
+
+.stage__input {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    padding: 12px 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .08);
+    color: rgba(232, 226, 214, .35);
+    font-size: 13px;
+}
+
+.stage__input b {
+    font-size: 12px;
+    color: #1d1409;
+    background: #f0a35e;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+@media (max-width: 900px) {
+    .stage { display: none; }
+    body { background: #0b0c12; }
+}
+#boot-error:empty { display: none; }
