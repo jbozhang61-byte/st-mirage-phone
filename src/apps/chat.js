@@ -174,7 +174,12 @@ function mountConversation(host, nav, threadId) {
         let lastTs = 0;
         let lastName = '';
         let lastName2 = '';
-        for (const msg of thread.msgs) {
+        const all = Array.isArray(thread.msgs) ? thread.msgs : [];
+        const visible = all.length > 120 ? all.slice(-120) : all;
+        if (all.length > visible.length) {
+            scroll.appendChild(h('div', { class: 'mp-time-mark', text: '更早的 ' + (all.length - visible.length) + ' 条消息已收起' }));
+        }
+        for (const msg of visible) {
             if (msg.ts - lastTs > 5 * 60 * 1000) {
                 scroll.appendChild(h('div', { class: 'mp-time-mark', text: dayText(msg.ts) + ' ' + timeText(msg.ts) }));
             }
@@ -191,10 +196,10 @@ function mountConversation(host, nav, threadId) {
                 h('div', { class: 'mp-typing__bubble' }, h('i'), h('i'), h('i')),
             ));
         }
-        if (thread.msgs.length === 0) {
+        if (all.length === 0) {
             scroll.appendChild(starterBlock());
         }
-        if (atBottom || thread.msgs.length < 2) scrollToBottom(false);
+        if (atBottom || all.length < 2) scrollToBottom(false);
         renderHead();
     }
 
