@@ -123,6 +123,8 @@ const ICONS = {
     maximize: '<path d="M4 9V4h5"/><path d="M20 15v5h-5"/><path d="m4 4 6 6"/><path d="m20 20-6-6"/>',
     dice: '<rect x="4" y="4" width="16" height="16" rx="4.2"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"/>',
 
+};
+
 // 重新绘制的品牌图标：更接近真实 App 的辨识度
 const ICON_REDESIGN = {
     reddit: '<circle cx="12" cy="13.2" r="6.8"/><path d="M12 6.4 13.2 3.4l2.8 1"/><circle cx="16.2" cy="4.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.3" cy="12.2" r="1.15" fill="currentColor" stroke="none"/><circle cx="14.7" cy="12.2" r="1.15" fill="currentColor" stroke="none"/><path d="M9.2 15.4c1.6 1.4 4 1.4 5.6 0"/><path d="M5.4 11.6c-.9-.2-1.5.5-1.2 1.3.2.7.8 1.1 1.5 1M18.6 11.6c.9-.2 1.5.5 1.2 1.3-.2.7-.8 1.1-1.5 1"/>',
