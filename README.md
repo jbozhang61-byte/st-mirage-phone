@@ -87,9 +87,24 @@
 ## 安装
 
 ### Git URL
+
+仓库地址：
+
+§§§text
+https://github.com/jbozhang61-byte/st-mirage-phone
+§§§
+
 1. 酒馆 → **扩展** → **安装扩展**
-2. 填仓库地址
+2. 填上面的仓库地址
 3. 刷新页面，右下角出现手机图标
+
+也可以在酒馆的扩展目录里直接克隆：
+
+§§§bash
+git clone https://github.com/jbozhang61-byte/st-mirage-phone.git
+§§§
+
+> 仓库目前是私有的。别人要安装，需要先在 GitHub 上获得这个仓库的访问权限；公开后即可直接用上面的地址安装。
 
 ### 手动
 ```text

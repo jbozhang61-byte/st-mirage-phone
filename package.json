@@ -14,5 +14,13 @@
     "sillytavern-extension",
     "phone-ui"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jbozhang61-byte/st-mirage-phone.git"
+  },
+  "homepage": "https://github.com/jbozhang61-byte/st-mirage-phone#readme",
+  "bugs": {
+    "url": "https://github.com/jbozhang61-byte/st-mirage-phone/issues"
+  }
 }

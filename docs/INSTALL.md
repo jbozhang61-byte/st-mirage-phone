@@ -6,6 +6,14 @@
 - 一个可用的文字模型（酒馆里已经能正常聊天）
 - 想用 AI 配图的话，再准备一个生图接口（可选）
 
+## 仓库地址
+
+§§§text
+https://github.com/jbozhang61-byte/st-mirage-phone
+§§§
+
+酒馆扩展安装页填这个地址，或直接克隆到扩展目录。仓库目前是私有的，需要先获得访问权限。
+
 ## Windows / macOS / Linux
 
 把仓库放进：
