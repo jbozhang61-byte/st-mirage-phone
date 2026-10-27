@@ -98,7 +98,7 @@ export function mountTikTok(host, { nav }) {
             h('div', { class: 'mp-tt__rail' },
                 h('div', { class: 'mp-tt__avatar' }, avatar({ name: item.author, size: 46 })),
                 heart,
-                h('button', { type: 'button', class: 'mp-tt__act', onclick: () => openComments(item, '抖音') }, icon('comment'), h('span', { class: 'mp-tt__count', text: num(item.comments) })),
+                h('button', { type: 'button', class: 'mp-tt__act', onclick: () => openVideo(item, { app: '抖音' }) }, icon('comment'), h('span', { class: 'mp-tt__count', text: num(item.comments) })),
                 h('button', { type: 'button', class: 'mp-tt__act', onclick: () => toast('分享要长按，这里先记下') }, icon('share'), h('span', { class: 'mp-tt__count', text: num(item.shares) })),
                 h('span', { class: 'mp-tt__disc' }, icon('music')),
             ),

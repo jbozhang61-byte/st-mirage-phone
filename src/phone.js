@@ -31,6 +31,8 @@ import { mountBrowser } from './apps/browser.js';
 import { mountSocial } from './apps/social.js';
 import { mountDiscord, mountTelegram, mountSpotify, mountGmail } from './apps/extra.js';
 import { mountStocks } from './apps/stocks.js';
+import { mountFacebook } from './apps/facebook.js';
+import { mountSignal } from './apps/signal.js';
 
 const APPS = {
     chat: { mount: mountChat },
@@ -62,6 +64,8 @@ const APPS = {
     spotify: { mount: mountSpotify },
     gmail: { mount: mountGmail },
     stocks: { mount: mountStocks },
+    facebook: { mount: mountFacebook },
+    signal: { mount: mountSignal },
 };
 
 let rootEl = null;

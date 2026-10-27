@@ -63,7 +63,7 @@ export function defaultSettings() {
         home: { order: [], folders: [] },
         image: { enabled: false, provider: 'openai', endpoint: '', apiKey: '', model: 'gpt-image-1', size: '1024x1024' },
         inject: { enabled: true, depth: 2 },
-        proactive: { enabled: false, cooldown: 120, perHour: 4 },
+        proactive: { enabled: false, cooldown: 120, perHour: 4, rounds: 1 },
         ai: {
             useMain: true, baseUrl: '', apiKey: '', model: '', commentStyle: '真实网友', length: 320, style: DEFAULT_STYLE },
         replyInGroup: true,
@@ -97,6 +97,7 @@ export function normalizeSettings(raw) {
     s.inject.depth = clamp(Math.round(Number(s.inject.depth) || 0), 0, 20);
     s.proactive.cooldown = clamp(Math.round(Number(s.proactive.cooldown) || 0), 30, 3600);
     s.proactive.perHour = clamp(Math.round(Number(s.proactive.perHour) || 0), 1, 20);
+    s.proactive.rounds = clamp(Math.round(Number(s.proactive.rounds) || 1), 1, 20);
     s.ai.length = clamp(Math.round(Number(s.ai.length) || 320), 120, 1200);
     if (typeof s.ai.style !== 'string' || !s.ai.style.trim()) s.ai.style = DEFAULT_STYLE;
     s.ai.style = s.ai.style.slice(0, 4000);

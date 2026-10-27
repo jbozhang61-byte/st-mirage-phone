@@ -69,6 +69,8 @@ export const STORE_APPS = [
         category: '视频', size: '156 MB', rating: '4.9', color: '#fb7299', accent: '#fb7299',
         desc: '你感兴趣的视频都在这里',
     },
+    { id: 'facebook', name: 'Facebook', sub: 'FB', label: 'Facebook', icon: 'facebook', cls: 'g-fb', category: '社交', size: '120 MB', rating: '4.3', color: '#1877f2', accent: '#4a9bff', desc: '和朋友、和这个世界保持联系' },
+    { id: 'signal', name: 'Signal', sub: 'Signal', label: 'Signal', icon: 'signal', cls: 'g-signal', category: '社交', size: '62 MB', rating: '4.8', color: '#3a76f0', accent: '#6a9bff', desc: '端到端加密的私人对话' },
 ];
 
 export const APP_META = Object.fromEntries([...CORE_APPS, ...STORE_APPS].map(app => [app.id, app]));

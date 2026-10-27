@@ -143,6 +143,8 @@ const ICON_REDESIGN = {
     browser: '<circle cx="12" cy="12" r="8.4"/><ellipse cx="12" cy="12" rx="3.5" ry="8.4"/><path d="M3.8 9.4h16.4M3.8 14.6h16.4"/><path d="M12 3.6c2.4 2.4 2.4 14.4 0 16.8" opacity=".5"/>',
     maps: '<path d="M9 4.4 4.2 6.2v13.4l4.8-1.8 6 1.8 4.8-1.8V4.4l-4.8 1.8Z"/><path d="M9 4.4v13.4M15 6.2v13.4"/><circle cx="12" cy="11.2" r="1.6" fill="currentColor" stroke="none"/>',
     xlogo: '<path d="M4.4 4.2h3.4l4.3 5.7 5-5.7h2.6l-6.4 7.3 6.6 8.3h-3.4l-4.5-6-5.3 6H3.9l6.8-7.7Z" fill="currentColor" stroke="none"/>',
+    facebook: '<path d="M14.6 21v-7.2h2.7l.4-3h-3.1V9c0-.9.3-1.5 1.6-1.5h1.6V4.8c-.3 0-1.3-.1-2.4-.1-2.4 0-3.9 1.4-3.9 4V10H8.9v3h2.6v7.2Z" fill="currentColor" stroke="none"/>',
+    signal: '<path d="M20.5 11.6a7.9 7.9 0 0 1-8.6 7.9 9 9 0 0 1-3.3-.6L3.5 20.5l1.5-5.1A7.9 7.9 0 1 1 20.5 11.6Z"/><rect x="9.7" y="9.6" width="4.6" height="3.9" rx="1.1"/><path d="M10.9 9.6V8.4a1.1 1.1 0 0 1 2.2 0v1.2"/>',
 };
 Object.assign(ICONS, ICON_REDESIGN);
 

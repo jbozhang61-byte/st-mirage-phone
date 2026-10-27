@@ -35,8 +35,9 @@ const VERSION = '1.5.0';
 let phone = null;
 let started = false;
 let panel = null;
-const panelRefs = { theme: null, accent: null };
+const panelRefs = { theme: null, accent: null, rounds: null };
 let proactiveTimer = 0;
+let proactiveRounds = 0;
 let injectTimer = 0;
 
 /* --------------------------------- 启动 --------------------------------- */
@@ -77,6 +78,11 @@ function wireEvents() {
     });
     subscribe('MESSAGE_RECEIVED', () => {
         refreshInjection();
+        try {
+            const c = ctx();
+            const last = c?.chat?.[c.chat.length - 1];
+            if (last && !last.is_user) proactiveRounds += 1;
+        } catch { /* ignore */ }
         scheduleProactive();
         phone.refreshBadges();
     });
@@ -133,9 +139,12 @@ function wireEvents() {
 function scheduleProactive() {
     const settings = getSettings();
     if (!settings.proactive.enabled) return;
+    const need = Math.max(1, Math.min(20, Number(settings.proactive.rounds) || 1));
+    if (proactiveRounds < need) return;
     clearTimeout(proactiveTimer);
     proactiveTimer = setTimeout(async () => {
         if (isBusy()) return;
+        proactiveRounds = 0;
         const result = await runProactive();
         if (result) {
             const thread = findThread(result.threadId);
@@ -193,6 +202,27 @@ function buildSettingsPanel() {
         saveNow('settings');
         syncPanel();
     });
+
+    const roundsRow = document.createElement('div');
+    roundsRow.className = 'mp-st-row';
+    const roundsLabel = document.createElement('label');
+    roundsLabel.textContent = '几轮剧情后主动来信';
+    const roundsSelect = document.createElement('select');
+    roundsSelect.className = 'text_pole';
+    for (let i = 1; i <= 10; i++) {
+        const option = document.createElement('option');
+        option.value = String(i);
+        option.textContent = i + ' 轮';
+        option.selected = (Number(settings.proactive.rounds) || 1) === i;
+        roundsSelect.appendChild(option);
+    }
+    roundsSelect.addEventListener('change', () => {
+        settings.proactive.rounds = Number(roundsSelect.value) || 1;
+        proactiveRounds = 0;
+        saveNow('settings');
+    });
+    roundsRow.append(roundsLabel, roundsSelect);
+    panelRefs.rounds = roundsSelect;
 
     panelRefs.theme = null;
     panelRefs.accent = null;
@@ -275,7 +305,7 @@ function buildSettingsPanel() {
     });
     actions.append(openBtn, clearBtn);
 
-    root.append(enabled, inject, proactive, themeRow, accentRow, actions);
+    root.append(enabled, inject, proactive, roundsRow, themeRow, accentRow, actions);
     host.appendChild(root);
     panel = root;
     syncPanel();
@@ -288,10 +318,17 @@ function checkRow(label, checked, onChangeValue) {
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.checked = !!checked;
-    input.addEventListener('change', () => onChangeValue(input.checked));
+    input.addEventListener('change', event => { event.stopPropagation(); onChangeValue(input.checked); });
+    input.style.pointerEvents = 'auto';
     const span = document.createElement('span');
     span.textContent = label;
     row.append(input, span);
+    row.addEventListener('click', event => {
+        if (event.target === input) return;
+        event.preventDefault();
+        input.checked = !input.checked;
+        onChangeValue(input.checked);
+    });
     return row;
 }
 
@@ -307,6 +344,7 @@ function syncPanel() {
         if (boxes[0]) boxes[0].checked = settings.enabled;
         if (boxes[1]) boxes[1].checked = settings.inject.enabled;
         if (boxes[2]) boxes[2].checked = settings.proactive.enabled;
+        if (panelRefs.rounds) panelRefs.rounds.value = String(Number(settings.proactive.rounds) || 1);
     }
 }
 
