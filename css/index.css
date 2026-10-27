@@ -1768,3 +1768,19 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
     html.mp-mobile-float .mp-zoom button { width: 32px; height: 32px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2); background: rgba(16,18,26,.72); color: #fff; font-size: 18px; line-height: 1; display: grid; place-items: center; backdrop-filter: blur(8px); }
     html.mp-mobile-float .mp-resize { width: 30px; height: 30px; right: 2px; bottom: 70px; opacity: 1; background: rgba(255,255,255,.9); border-color: rgba(0,0,0,.2); box-shadow: 0 2px 8px rgba(0,0,0,.3); }
 }
+
+.mp-shell { visibility: visible; }
+.mp-shell.is-closed { visibility: hidden; transition: opacity .2s ease, transform .2s ease, visibility 0s linear .25s; }
+.mp-shell.is-closed * { animation-play-state: paused !important; }
+
+/* 绂诲睆鍐呭璺宠繃甯冨眬鍜岀粯鍒?*/
+.mp-thread, .mp-msg, .mp-post, .mp-as__row, .mp-wb__post, .mp-tt__card, .mp-xhs__card, .mp-fb__post, .mp-tb__post, .mp-comment, .mp-cm__row {
+    content-visibility: auto;
+    contain-intrinsic-size: 72px;
+}
+
+.mp-root.is-lite .mp-appicon__glyph .mp-ic { filter: none !important; }
+.mp-root.is-lite .mp-appicon__glyph { box-shadow: none !important; }
+.mp-root.is-lite .mp-appicon__glyph::after { display: none !important; }
+.mp-root.is-lite .mp-status, .mp-root.is-lite .mp-nav, .mp-root.is-lite .mp-home__dock { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.mp-root.is-lite .mp-photo-tile img, .mp-root.is-lite .mp-soc__igcover, .mp-root.is-lite .mp-tt__art { image-rendering: auto; }

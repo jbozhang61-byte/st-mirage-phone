@@ -8,7 +8,7 @@ import {
 } from './store.js';
 import { totalUnread } from './state.js';
 import { isNarrow, personaAvatarUrl, loadPersonaAvatar, userName, chatId } from './st.js';
-import { applyThemeVars } from './theme.js';
+import { applyThemeVars, isLite } from './theme.js';
 import { mountHome } from './apps/home.js';
 import { mountChat } from './apps/chat.js';
 import { mountMoments } from './apps/moments.js';
@@ -212,7 +212,7 @@ export function createPhone(onOpenChange) {
             const settings = getSettings();
             settings.scale = Math.max(0.5, (Number(settings.scale) || 0.82) - 0.07);
             saveNow('settings');
-            applyLayout();
+            scheduleLayout();
         } }),
         h('button', { type: 'button', 'aria-label': '放大', text: '+', onclick: () => {
             const settings = getSettings();
@@ -283,6 +283,15 @@ function applyWallpaper() {
     } else {
         wall.style.backgroundImage = '';
     }
+}
+
+let layoutRaf = 0;
+function scheduleLayout() {
+    if (layoutRaf) return;
+    layoutRaf = requestAnimationFrame(() => {
+        layoutRaf = 0;
+        applyLayout();
+    });
 }
 
 function onResize() {
@@ -436,8 +445,8 @@ function bindDrag(device) {
     device.appendChild(handle);
     let resize = null;
     const setScale = value => {
-        getSettings().scale = Math.max(0.55, Math.min(1.65, value));
-        applyLayout();
+        getSettings().scale = Math.max(0.5, Math.min(1.65, value));
+        scheduleLayout();
     };
     handle.addEventListener('pointerdown', event => {
         const floating = document.documentElement.classList.contains('mp-mobile-float');
@@ -488,6 +497,7 @@ export function openPhone(app = 'home', params = {}) {
     }
     applyLayout();
     setFab(true);
+    if (!clockTimer) clockTimer = setInterval(tick, 15000);
     floatFabEl?.classList.add('is-hidden');
     if (app !== 'home') {
         openApp(app, params);
@@ -515,7 +525,18 @@ export function closePhone() {
     hideOtherFloaters(false);
     setFab(false);
     floatFabEl?.classList.remove('is-hidden');
+    clearInterval(clockTimer);
+    clockTimer = 0;
     onOpenChanged(false);
+    if (isLite()) {
+        setTimeout(() => {
+            if (open) return;
+            try { current?.view?.destroy?.(); } catch { /* ignore */ }
+            current?.el?.remove();
+            current = null;
+            screenEl?.classList.add('is-home');
+        }, 320);
+    }
 }
 
 function setFab(isOpen) {

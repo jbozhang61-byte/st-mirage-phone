@@ -31,6 +31,7 @@ export function resolvePerf(settings) {
     if (settings?.perf === 'full') return false;
     try {
         if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) return true;
+        if (globalThis.matchMedia?.('(max-width: 760px)')?.matches) return true;
         const cores = globalThis.navigator?.hardwareConcurrency || 8;
         const memory = globalThis.navigator?.deviceMemory || 8;
         return cores <= 4 || memory <= 4;
