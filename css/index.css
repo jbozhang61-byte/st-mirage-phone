@@ -1784,3 +1784,10 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-root.is-lite .mp-appicon__glyph::after { display: none !important; }
 .mp-root.is-lite .mp-status, .mp-root.is-lite .mp-nav, .mp-root.is-lite .mp-home__dock { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 .mp-root.is-lite .mp-photo-tile img, .mp-root.is-lite .mp-soc__igcover, .mp-root.is-lite .mp-tt__art { image-rendering: auto; }
+
+.mp-home__editbar { display: flex; align-items: center; justify-content: space-between; padding: 2px 6px 4px; color: var(--mp-text-3); font-size: 10px; }
+.mp-home__editbtn { border: 0; background: transparent; color: var(--mp-accent); font: inherit; font-size: 11px; font-weight: 700; padding: 2px 6px; }
+.mp-appicon { touch-action: pan-y; }
+.mp-appgrid.is-editing .mp-appicon { touch-action: none; }
+.mp-appgrid.is-editing .mp-appicon__glyph { animation: mp-jiggle .55s ease-in-out infinite alternate; }
+@keyframes mp-jiggle { from { transform: rotate(-1.2deg); } to { transform: rotate(1.2deg); } }

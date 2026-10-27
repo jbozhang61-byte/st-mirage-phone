@@ -13,6 +13,7 @@ const DOCK = ['chat', 'contacts', 'moments', 'me'];
 export function mountHome(host, { nav }) {
     let timeEl = null;
     let draggedAt = 0;
+    let editing = false;
     let dateEl = null;
 
     function render() {
@@ -70,7 +71,15 @@ export function mountHome(host, { nav }) {
 
         // 应用网格：系统 App + 应用商店里装上的
         const apps = [...CORE_APPS, ...installedAppMeta(settings.apps || [])];
-        const grid = h('div', { class: 'mp-appgrid' });
+        const grid = h('div', { class: 'mp-appgrid' + (editing ? ' is-editing' : '') });
+        scroll.appendChild(h('div', { class: 'mp-home__editbar' },
+            h('span', { text: editing ? '拖动图标排序，松手完成' : '桌面' }),
+            h('button', {
+                type: 'button', class: 'mp-home__editbtn',
+                text: editing ? '完成' : '编辑',
+                onclick: () => { editing = !editing; render(); },
+            }),
+        ));
         const entries = buildEntries(apps);
         for (const entry of entries) {
             if (entry.type === 'folder') {
@@ -119,6 +128,8 @@ export function mountHome(host, { nav }) {
             type: 'button',
             class: 'mp-appicon',
             onclick: () => {
+                if (Date.now() - draggedAt < 300) return;
+                if (editing) { draggedAt = Date.now(); openIconMenu(app.id); return; }
                 if (app.id === 'float') {
                     globalThis.MiragePhone?.close?.();
                     toast('已最小化到悬浮球');
@@ -217,7 +228,7 @@ export function mountHome(host, { nav }) {
                 draggedAt = Date.now();
                 el.classList.add('is-armed');
                 try { navigator.vibrate?.(12); } catch { /* ignore */ }
-            }, 5000);
+            }, editing ? 0 : 5000);
         });
 
         el.addEventListener('pointermove', event => {
