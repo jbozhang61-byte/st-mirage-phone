@@ -89,6 +89,7 @@ let fabDrag = null;
 let fabSaved = null;
 let resizeTimer = 0;
 let viewportTimer = 0;
+let phoneInputFocused = false;
 let bannerTimer = 0;
 let themeMedia = null;
 let openListener = null;
@@ -201,8 +202,16 @@ export function createPhone(onOpenChange) {
     document.addEventListener('focusin', event => {
         const target = event.target;
         if (!(target instanceof HTMLElement) || !screenEl?.contains(target)) return;
-        if (document.documentElement.classList.contains('mp-keyboard-open')) return;
-        setTimeout(() => applyLayout(), 300);
+        phoneInputFocused = true;
+        setTimeout(() => applyLayout(), 260);
+    }, true);
+    document.addEventListener('focusout', event => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement) || !screenEl?.contains(target)) return;
+        const next = event.relatedTarget;
+        if (next instanceof HTMLElement && screenEl.contains(next)) return;
+        phoneInputFocused = false;
+        setTimeout(() => applyLayout(), 260);
     }, true);
     document.addEventListener('visibilitychange', onVisibility);
     themeMedia = window.matchMedia?.('(prefers-color-scheme: light)');
@@ -383,7 +392,7 @@ function applyLayout() {
     const floating = document.documentElement.classList.contains('mp-mobile-float');
     if (narrow) {
         const vp = viewportMetrics();
-        const keyboardOpen = vp.height < window.innerHeight - 120;
+        const keyboardOpen = phoneInputFocused && vp.height < window.innerHeight - 100;
         if (keyboardOpen) {
             // 键盘模式：手机变成键盘上方的整块面板，内容重新排版，不缩放、不裁切
             shellEl.classList.add('mp-keyboard');
@@ -700,6 +709,7 @@ function clearCurrent() {
 export function closePhone() {
     if (!shellEl) return;
     open = false;
+    phoneInputFocused = false;
     globalThis.__mpIslandToast = false;
     shellEl.classList.add('is-closed');
     hideOtherFloaters(false);
