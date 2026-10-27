@@ -88,6 +88,7 @@ let fabDraggedAt = 0;
 let fabDrag = null;
 let fabSaved = null;
 let resizeTimer = 0;
+let viewportTimer = 0;
 let bannerTimer = 0;
 let themeMedia = null;
 let openListener = null;
@@ -193,11 +194,15 @@ export function createPhone(onOpenChange) {
     setTimeout(applyLayout, 700);
     setTimeout(applyLayout, 1800);
     window.addEventListener('resize', onResize, { passive: true });
-    globalThis.visualViewport?.addEventListener('resize', onResize, { passive: true });
+    globalThis.visualViewport?.addEventListener('resize', () => {
+        clearTimeout(viewportTimer);
+        viewportTimer = setTimeout(() => { applyLayout(); syncFabPosition(); }, 180);
+    }, { passive: true });
     document.addEventListener('focusin', event => {
         const target = event.target;
         if (!(target instanceof HTMLElement) || !screenEl?.contains(target)) return;
-        setTimeout(() => applyLayout(), 220);
+        if (document.documentElement.classList.contains('mp-keyboard-open')) return;
+        setTimeout(() => applyLayout(), 300);
     }, true);
     document.addEventListener('visibilitychange', onVisibility);
     themeMedia = window.matchMedia?.('(prefers-color-scheme: light)');
