@@ -2,7 +2,7 @@
  * 幻镜手机 · Mirage Phone
  * SillyTavern 第三方扩展入口：挂载手机、接事件、注入手机状态、生成扩展设置面板。
  */
-import { ctx, subscribe, toast, characterAvatar } from './src/st.js';
+import { ctx, subscribe, toast, characterAvatar, chatId, currentCharacter } from './src/st.js';
 import {
     initStore, getSettings, getData, onChange, saveNow, flushSave, findThread,
 } from './src/store.js';
@@ -38,6 +38,8 @@ let panel = null;
 const panelRefs = { theme: null, accent: null, rounds: null };
 let proactiveTimer = 0;
 let proactiveRounds = 0;
+let lastChatId = '';
+let chatSyncTimer = 0;
 let injectTimer = 0;
 
 /* --------------------------------- 启动 --------------------------------- */
@@ -51,6 +53,8 @@ function boot() {
     }
     started = true;
     initStore();
+    lastChatId = chatId();
+    ensureCity();
     phone = createPhone(openState => {
         const settings = getSettings();
         settings.collapsed = !openState;
@@ -67,14 +71,45 @@ function boot() {
 
 /* --------------------------------- 事件 --------------------------------- */
 
+function syncChatState() {
+    initStore();
+    refreshInjection();
+    phone?.refresh();
+    phone?.refreshBadges();
+    syncPanel();
+    ensureCity();
+}
+
+function scheduleChatSync() {
+    clearTimeout(chatSyncTimer);
+    const startedAt = chatId();
+    chatSyncTimer = setTimeout(() => {
+        syncChatState();
+        lastChatId = chatId();
+        // 酒馆切换聊天时 chatMetadata 可能晚一拍，再补一次
+        if (lastChatId !== startedAt) setTimeout(syncChatState, 500);
+    }, 180);
+}
+
+function ensureCity() {
+    try {
+        const data = getData();
+        const card = currentCharacter();
+        if (!data?.meta) return;
+        if (data.meta.city && data.meta.city !== '此间') return;
+        const chat = Array.isArray(ctx()?.chat) ? ctx().chat.slice(-6).map(m => String(m?.mes || '')) : [];
+        const sample = [card?.scenario, card?.description, ...chat].join('\n');
+        const match = sample.match(/([\u4e00-\u9fa5]{2,4})(?:市|城|镇|村|区|县)/);
+        if (match?.[1]) {
+            data.meta.city = match[1];
+            saveNow('data');
+        }
+    } catch { /* ignore */ }
+}
+
 function wireEvents() {
     subscribe('CHAT_CHANGED', () => {
-        initStore();
-        refreshInjection();
-        if (phone?.isOpen?.()) phone.home();
-        phone.refresh();
-        phone.refreshBadges();
-        syncPanel();
+        scheduleChatSync();
     });
     subscribe('MESSAGE_RECEIVED', () => {
         refreshInjection();
