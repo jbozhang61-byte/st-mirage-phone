@@ -330,8 +330,18 @@ function applyLayout() {
     const floating = document.documentElement.classList.contains('mp-mobile-float');
     if (narrow) {
         const vp = viewportMetrics();
+        const keyboardOpen = vp.height < window.innerHeight - 120;
+        if (floating && keyboardOpen) {
+            // 键盘弹出：保持宽度可读，把手机底部贴到键盘上边缘
+            const widthFit = (vp.width - 16) / 384;
+            const scale = Math.max(0.58, Math.min(1.12, widthFit, Number(settings.scale) || 0.82));
+            shellEl.style.setProperty('--mp-scale', String(scale));
+            const h = 812 * scale;
+            paintFloat(scale, { x: 0, y: (vp.top + vp.height - h - 8) - (vp.top + (vp.height - h) / 2) });
+            return;
+        }
         const fit = Math.min((vp.width - 16) / 384, (vp.height - 16) / 812);
-        const scale = floating ? Math.max(0.38, Math.min(1.12, fit, Number(settings.scale) || 0.86)) : 1;
+        const scale = floating ? Math.max(0.5, Math.min(1.12, fit, Number(settings.scale) || 0.86)) : 1;
         shellEl.style.setProperty('--mp-scale', String(scale));
         if (floating) {
             const w = 384 * scale;
