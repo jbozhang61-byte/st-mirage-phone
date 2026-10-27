@@ -1454,3 +1454,9 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-appicon__glyph { transition: transform .15s ease, box-shadow .15s ease; }
 
 .mp-folder__title { font-size: 18px; font-weight: 750; margin-bottom: 10px; }
+
+.mp-as__body { padding: 0 14px 32px; }
+.mp-as__hero { margin: 4px 0 10px; }
+.mp-as__card { margin-bottom: 10px; }
+.mp-as__card-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 8px; font-size: 12px; font-weight: 700; color: #6e6e73; }
+.mp-as__card-head span:last-child { font-size: 10px; font-weight: 500; color: #9a9aa2; }

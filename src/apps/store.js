@@ -57,21 +57,27 @@ export function mountStore(host, { nav }) {
         const featured = category === '全部' && !keyword && (apps.find(app => !installed.includes(app.id)) || apps[0]);
         if (featured) body.appendChild(hero(featured, installed.includes(featured.id)));
 
-        body.appendChild(sectionTitle(category === '全部' ? '热门 App' : category));
         const list = h('div', { class: 'mp-as__list' });
         for (const app of apps) list.appendChild(row(app, installed.includes(app.id)));
         if (!apps.length) list.appendChild(h('div', { class: 'mp-as__empty', text: '没有找到这个 App' }));
-        body.appendChild(h('div', { class: 'mp-as__card' }, list));
+        body.appendChild(h('div', { class: 'mp-as__card' },
+            h('div', { class: 'mp-as__card-head' }, h('span', { text: category === '全部' ? '热门 App' : category }), h('span', { text: apps.length + ' 个' })),
+            list,
+        ));
 
         if (installed.length) {
-            body.appendChild(sectionTitle('我的应用'));
             const mine = h('div', { class: 'mp-as__card' });
             for (const id of installed) {
                 const app = STORE_APPS.find(item => item.id === id);
                 if (!app) continue;
                 mine.appendChild(row(app, true));
             }
-            body.appendChild(mine);
+            if (mine.children.length) {
+                body.appendChild(h('div', { class: 'mp-as__card' },
+                    h('div', { class: 'mp-as__card-head' }, h('span', { text: '我的应用' })),
+                    mine,
+                ));
+            }
         }
 
         body.appendChild(h('div', { class: 'mp-as__foot', text: 'App 的图标和界面是照着它们的样子重新画的，只是这个世界里的版本。' }));
