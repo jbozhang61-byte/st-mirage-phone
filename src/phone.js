@@ -199,7 +199,6 @@ export function createPhone(onOpenChange) {
         if (!(target instanceof HTMLElement) || !screenEl?.contains(target)) return;
         setTimeout(() => applyLayout(), 220);
     }, true);
-    document.addEventListener('focusout', () => setTimeout(applyLayout, 120), true);
     document.addEventListener('visibilitychange', onVisibility);
     themeMedia = window.matchMedia?.('(prefers-color-scheme: light)');
     themeMedia?.addEventListener?.('change', applyThemeVars.bind(null, rootEl, getSettings()));
