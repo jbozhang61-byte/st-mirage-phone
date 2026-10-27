@@ -1,7 +1,7 @@
 /** Signal：端到端加密的聊天列表 + 整页对话。 */
-import { h, icon, avatar, toast } from '../render.js';
-import { getCast, getFeed, setFeed, saveNow } from '../store.js';
-import { userName, characterAvatar } from '../st.js';
+import { h, icon, avatar } from '../render.js';
+import { getCast, getFeed, setFeed } from '../store.js';
+import { characterAvatar } from '../st.js';
 
 export function mountSignal(host, { nav }) {
     const body = h('div', { class: 'mp-sg__body' });

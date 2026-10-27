@@ -16,7 +16,7 @@ import { FEEDS } from './feed.js';
 import { SOCIAL } from './social.js';
 import { EXTRA } from './extra.js';
 import { plotSystemPrompt, plotUserPrompt, plotFallback, toneOf } from './plot.js';
-import { sparkSystemPrompt, sparkUserPrompt, sparkFallback, dateSystemPrompt, dateFallback, MAX_DATES } from './spark.js';
+import { sparkSystemPrompt, sparkUserPrompt, sparkFallback, dateSystemPrompt, dateFallback } from './spark.js';
 import { webSystemPrompt, webUserPrompt, webFallback } from './web.js';
 
 const busy = new Set();

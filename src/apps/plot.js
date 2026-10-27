@@ -6,7 +6,7 @@ import { h, icon, sheet, toast } from '../render.js';
 import { getData, saveNow } from '../store.js';
 import { advancePlot } from '../ai.js';
 import { TONES, toneOf, plotFallback } from '../plot.js';
-import { userName, currentCharacter, storyContext, setOneShot, sendAsUserAndGenerate, subscribe } from '../st.js';
+import { currentCharacter, storyContext, setOneShot, sendAsUserAndGenerate, subscribe } from '../st.js';
 import { uid } from '../state.js';
 
 export function mountPlot(host, { nav }) {

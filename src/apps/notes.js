@@ -1,7 +1,7 @@
 /**
  * 备忘录：手写便签，也可以让 AI 把最近的剧情记成一篇日记。
  */
-import { h, icon, avatar, relativeText, sheet, confirmSheet, toast } from '../render.js';
+import { h, icon, relativeText, sheet, confirmSheet, toast } from '../render.js';
 import { getData, addNote, removeNote, saveNow } from '../store.js';
 import { writeDiary, friendlyError } from '../ai.js';
 

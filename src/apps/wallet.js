@@ -1,8 +1,8 @@
 /**
  * 钱包：红包和转账记录，余额按聊天里真实的钱算。
  */
-import { h, icon, avatar, relativeText, toast } from '../render.js';
-import { getData, findThread } from '../store.js';
+import { h, icon, avatar } from '../render.js';
+import { getData } from '../store.js';
 import { characterAvatar } from '../st.js';
 
 export function mountWallet(host, { nav }) {

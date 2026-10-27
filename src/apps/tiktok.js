@@ -6,7 +6,7 @@ import { h, icon, avatar, toast } from '../render.js';
 import { artFor } from '../art.js';
 import { cachedImage, warmImages } from '../imagegen.js';
 import { openVideo } from './video.js';
-import { openComments } from './comments.js';
+
 import { loadFeed, refreshFeed, num, moodOf } from './feed-common.js';
 
 export function mountTikTok(host, { nav }) {

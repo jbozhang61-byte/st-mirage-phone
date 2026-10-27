@@ -1,7 +1,7 @@
 /**
  * 天气：不联网，跟着日期和最近的剧情走。
  */
-import { h, icon, relativeText, sheet, toast } from '../render.js';
+import { h, icon, sheet } from '../render.js';
 import { getData, saveNow } from '../store.js';
 import { storyContext } from '../st.js';
 import { buildWeather } from '../weather.js';

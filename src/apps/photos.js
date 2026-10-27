@@ -1,8 +1,8 @@
 /**
  * 相册：收藏的图片 + 从剧情里扫到的画面。
  */
-import { h, icon, avatar, timeText, relativeText, toast, sheet } from '../render.js';
-import { getData, addPhoto, removePhoto, saveNow } from '../store.js';
+import { h, icon, toast } from '../render.js';
+import { getData, addPhoto, removePhoto } from '../store.js';
 import { ctx } from '../st.js';
 
 export function mountPhotos(host, { nav }) {

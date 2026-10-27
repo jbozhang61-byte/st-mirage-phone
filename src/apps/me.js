@@ -1,9 +1,9 @@
 /** 我：个人中心。资料、资产、世界、账号与快捷入口。 */
-import { h, icon, avatar, sheet, toast } from '../render.js';
+import { h, icon, avatar, toast } from '../render.js';
 import { getData, getSettings, installedApps } from '../store.js';
 import { getCast } from '../store.js';
 import { userName, personaAvatarUrl, currentCharacter, personaDescription } from '../st.js';
-import { APP_META } from '../app-meta.js';
+
 
 export function mountMe(host, { nav }) {
     nav.setChrome?.('dark');

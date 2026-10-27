@@ -2,10 +2,10 @@
  * 相遇：写一个你想要的人，见几个候选人，然后开始约会。
  */
 import { h, icon, avatar, sheet, confirmSheet, toast } from '../render.js';
-import { getData, saveNow, upsertPerson, ensureThread, findThread, findPerson, appendMessages } from '../store.js';
-import { findMatches, planDate } from '../ai.js';
+import { getData, saveNow, upsertPerson, ensureThread, findPerson, appendMessages } from '../store.js';
+import { findMatches } from '../ai.js';
 import { MAX_DATES, STAGES, VIBES } from '../spark.js';
-import { setOneShot, currentCharacter, appendStoryMessage, generateStory, sendAsUserAndGenerate, subscribe } from '../st.js';
+import { setOneShot, sendAsUserAndGenerate, subscribe } from '../st.js';
 
 const TONE_STYLE = {
     warm: 'linear-gradient(150deg, #f6b38a, #b5654f)',

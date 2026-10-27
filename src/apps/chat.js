@@ -1,13 +1,9 @@
 /**
  * 消息：会话列表 + 对话。手机里最重要的一页。
  */
-import {
-    h, icon, avatar, timeText, dayText, relativeText, sheet, confirmSheet, toast, haptic, hashOf,
-} from '../render.js';
-import {
-    getData, getSettings, findThread, appendMessages, markRead, removeThread, saveNow, uid,
-} from '../store.js';
-import { characterAvatar, personaAvatarUrl, userName, findCharacter, setOneShot } from '../st.js';
+import { h, icon, avatar, timeText, dayText, sheet, confirmSheet, toast, haptic, hashOf } from '../render.js';
+import { getData, findThread, appendMessages, markRead, removeThread, saveNow, uid } from '../store.js';
+import { characterAvatar, personaAvatarUrl, userName, setOneShot } from '../st.js';
 import { findPerson } from '../store.js';
 import { replyToThread, isBusy, aiEvents, quoteForBring, friendlyError } from '../ai.js';
 import { storeImage, resolveImage } from '../images.js';

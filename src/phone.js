@@ -2,12 +2,12 @@
  * 手机外壳：窗口、状态栏、灵动岛、主屏、路由、通知。
  * 应用模块只负责画自己的页面，拿到的 nav 提供跳转与提示。
  */
-import { h, icon, avatar, clockText, dayText, weekdayText, toast as rawToast, sheet, confirmSheet, setLayer, haptic, ensureSprite } from './render.js';
+import { h, icon, avatar, clockText, toast as rawToast, sheet, confirmSheet, setLayer, haptic, ensureSprite } from './render.js';
 import {
     getSettings, getData, onChange, markRead, findThread, saveNow,
 } from './store.js';
 import { totalUnread } from './state.js';
-import { isNarrow, personaAvatarUrl, loadPersonaAvatar, userName, chatId } from './st.js';
+import { isNarrow, loadPersonaAvatar } from './st.js';
 import { applyThemeVars, isLite } from './theme.js';
 import { mountHome } from './apps/home.js';
 import { mountChat } from './apps/chat.js';
@@ -178,8 +178,10 @@ export function createPhone(onOpenChange) {
         },
     }, icon('maximize'));
     document.body.appendChild(rootEl);
-    document.body.appendChild(floatFabEl);
-    document.body.appendChild(fabEl);
+    const fabHost = document.documentElement;
+    fabHost.appendChild(floatFabEl);
+    fabHost.appendChild(fabEl);
+    setTimeout(syncFabPosition, 0);
     try {
         if (isNarrow()) {
             globalThis.localStorage?.setItem('mirage_mobile_float', '1');
@@ -282,9 +284,23 @@ function scheduleLayout() {
     });
 }
 
+function syncFabPosition() {
+    if (!fabEl) return;
+    const viewport = window.visualViewport?.height || window.innerHeight;
+    const narrow = isNarrow();
+    const gap = narrow ? 96 : 22;
+    const size = narrow ? 56 : 58;
+    fabEl.style.setProperty('top', Math.round(viewport - gap - size) + 'px', 'important');
+    fabEl.style.setProperty('bottom', 'auto', 'important');
+    if (floatFabEl) {
+        floatFabEl.style.setProperty('top', Math.round(viewport - gap - size - (narrow ? 8 : 14)) + 'px', 'important');
+        floatFabEl.style.setProperty('bottom', 'auto', 'important');
+    }
+}
+
 function onResize() {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(applyLayout, 120);
+    resizeTimer = setTimeout(() => { applyLayout(); syncFabPosition(); }, 120);
 }
 
 function applyLayout() {
@@ -547,6 +563,7 @@ export function openPhone(app = 'home', params = {}) {
     }
     applyLayout();
     setFab(true);
+    syncFabPosition();
     if (!clockTimer) clockTimer = setInterval(tick, 15000);
     floatFabEl?.classList.add('is-hidden');
     if (app !== 'home') {
@@ -574,6 +591,7 @@ export function closePhone() {
     shellEl.classList.add('is-closed');
     hideOtherFloaters(false);
     setFab(false);
+    syncFabPosition();
     floatFabEl?.classList.remove('is-hidden');
     clearInterval(clockTimer);
     clockTimer = 0;

@@ -1,6 +1,6 @@
 /** 评论区：全部由 API 生成，可换风格、可刷新。 */
-import { h, icon, avatar, sheet, toast } from '../render.js';
-import { getCast, getData, getSettings, saveNow } from '../store.js';
+import { h, icon, avatar, sheet } from '../render.js';
+import { getData, getSettings, saveNow } from '../store.js';
 import { userName } from '../st.js';
 import { generateComments, friendlyError } from '../ai.js';
 

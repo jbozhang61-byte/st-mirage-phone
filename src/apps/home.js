@@ -1,10 +1,10 @@
 /**
  * 主屏：大时钟、最近消息、应用网格、底部 Dock。
  */
-import { h, icon, avatar, clockText, dayText, weekdayText, relativeText, gradientFor, sheet, toast } from '../render.js';
+import { h, icon, avatar, clockText, weekdayText, relativeText, sheet, toast } from '../render.js';
 import { getCast, getData, getSettings, saveNow } from '../store.js';
 import { totalUnread } from '../state.js';
-import { characterAvatar, personaAvatarUrl, userName, currentCharacter, storyContext } from '../st.js';
+import { characterAvatar, currentCharacter, storyContext } from '../st.js';
 import { buildWeather, weatherLine } from '../weather.js';
 import { CORE_APPS, installedAppMeta } from '../app-meta.js';
 

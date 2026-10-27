@@ -1,7 +1,7 @@
 /**
  * 小红书：双列瀑布流笔记。
  */
-import { h, icon, avatar, sheet, toast } from '../render.js';
+import { h, icon, avatar, toast } from '../render.js';
 import { loadFeed, refreshFeed, num, moodOf } from './feed-common.js';
 
 export function mountXhs(host, { nav }) {

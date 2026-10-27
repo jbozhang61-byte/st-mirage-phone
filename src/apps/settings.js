@@ -3,7 +3,7 @@
  */
 import { h, icon, sheet, confirmSheet, toast } from '../render.js';
 import { getSettings, getData, patchSettings, replaceData, resetData, saveNow } from '../store.js';
-import { ACCENTS, WALLPAPERS, DEFAULT_STYLE, normalizeData } from '../state.js';
+import { ACCENTS, WALLPAPERS, DEFAULT_STYLE } from '../state.js';
 import { storeImage } from '../images.js';
 import { previewInjection } from '../ai.js';
 import { isNarrow } from '../st.js';

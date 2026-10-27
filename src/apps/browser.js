@@ -1,7 +1,7 @@
 /**
  * 浏览器：地址栏、常用网站、搜索结果、网页正文。
  */
-import { h, icon, sheet, toast } from '../render.js';
+import { h, icon, toast } from '../render.js';
 import { getData, saveNow } from '../store.js';
 import { browse } from '../ai.js';
 import { setOneShot } from '../st.js';

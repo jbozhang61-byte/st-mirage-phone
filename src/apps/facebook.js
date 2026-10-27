@@ -1,6 +1,6 @@
 /** Facebook：蓝色信息流，整页详情 + API 评论。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
-import { getCast, getFeed, setFeed, saveNow } from '../store.js';
+import { getCast, getFeed, setFeed } from '../store.js';
 import { userName, storyContext } from '../st.js';
 import { artFor } from '../art.js';
 import { openPostPage } from './postpage.js';

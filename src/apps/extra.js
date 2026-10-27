@@ -5,8 +5,8 @@ import { getData, getCast, getFeed } from '../store.js';
 import { generateExtra, friendlyError } from '../ai.js';
 import { EXTRA } from '../extra.js';
 import { feedContext } from './feed-common.js';
-import { userName, characterAvatar, personaAvatarUrl } from '../st.js';
-import { setOneShot } from '../st.js';
+import { userName, personaAvatarUrl } from '../st.js';
+
 
 function profileSheet() {
     const name = userName() || '我';

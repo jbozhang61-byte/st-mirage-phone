@@ -3,7 +3,7 @@
  */
 import { h, icon, avatar, relativeText, sheet, toast } from '../render.js';
 import { getData, getSettings, addMoment, saveNow } from '../store.js';
-import { characterAvatar, personaAvatarUrl, userName, currentCharacter } from '../st.js';
+import { characterAvatar, personaAvatarUrl, userName } from '../st.js';
 import { generateMoments, commentOnMoment, friendlyError } from '../ai.js';
 
 export function mountMoments(host, { nav }) {
