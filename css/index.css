@@ -1627,3 +1627,21 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-appicon__glyph.g-signal { background: linear-gradient(160deg, #7aa8ff, #3a76f0 58%, #2456c9); }
 .mp-as__icon.g-fb { background: linear-gradient(150deg, #4a9bff, #1877f2); }
 .mp-as__icon.g-signal { background: linear-gradient(150deg, #7aa8ff, #3a76f0); }
+
+.mp-status__collapse { border: 0; background: rgba(255,255,255,.12); color: inherit; width: 22px; height: 22px; border-radius: 8px; display: grid; place-items: center; padding: 0; cursor: pointer; margin-right: 2px; }
+.mp-status__collapse .mp-ic { width: 13px; height: 13px; }
+
+@media (max-width: 760px) {
+    .mp-fab.is-open {
+        right: 14px !important;
+        bottom: calc(18px + env(safe-area-inset-bottom, 0px)) !important;
+        width: 44px !important;
+        height: 44px !important;
+        opacity: .72;
+        border-radius: 14px !important;
+        background: rgba(10, 12, 18, .72) !important;
+        border: 1px solid rgba(255,255,255,.18) !important;
+        box-shadow: 0 6px 18px rgba(0,0,0,.35) !important;
+    }
+    .mp-fab.is-open .mp-ic { width: 20px; height: 20px; }
+}

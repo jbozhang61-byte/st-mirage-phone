@@ -122,8 +122,12 @@ export function createPhone(onOpenChange) {
         type: 'button', class: 'mp-status__float', 'aria-label': '切换悬浮窗',
         onclick: event => { event.stopPropagation(); toggleFloatMode(); },
     }, icon('maximize'));
+    const collapseBtn = h('button', {
+        type: 'button', class: 'mp-status__collapse', 'aria-label': '收起小手机', title: '收起小手机',
+        onclick: event => { event.stopPropagation(); closePhone(); },
+    }, icon('down'));
     const statusEl = h('div', { class: 'mp-status' }, timeEl,
-        h('div', { class: 'mp-status__right' }, floatBtn, signal, icon('wifi'), batt));
+        h('div', { class: 'mp-status__right' }, collapseBtn, floatBtn, signal, icon('wifi'), batt));
 
     const wallEl = h('div', { class: 'mp-wallpaper', 'data-wall': 'aurora' });
     refs.wall = wallEl;
@@ -260,6 +264,7 @@ function onResize() {
 
 function applyLayout() {
     if (!shellEl) return;
+    setFab(open);
     const settings = getSettings();
     const narrow = isNarrow();
     if (narrow) {
@@ -404,7 +409,7 @@ export function openPhone(app = 'home', params = {}) {
     try { document.body.appendChild(rootEl); } catch { /* ignore */ }
     hideOtherFloaters(true);
     shellEl.classList.remove('is-closed');
-    fabEl.classList.add('is-hidden');
+    setFab(true);
     floatFabEl?.classList.add('is-hidden');
     if (app !== 'home') {
         openApp(app, params);
@@ -430,9 +435,20 @@ export function closePhone() {
     globalThis.__mpIslandToast = false;
     shellEl.classList.add('is-closed');
     hideOtherFloaters(false);
-    fabEl.classList.remove('is-hidden');
+    setFab(false);
     floatFabEl?.classList.remove('is-hidden');
     onOpenChanged(false);
+}
+
+function setFab(isOpen) {
+    if (!fabEl) return;
+    const narrow = isNarrow();
+    fabEl.classList.toggle('is-hidden', isOpen && !narrow);
+    fabEl.classList.toggle('is-open', isOpen && narrow);
+    const next = icon(isOpen && narrow ? 'down' : 'phone', 'mp-fab__icon');
+    const old = fabEl.querySelector('.mp-ic');
+    if (old) old.replaceWith(next);
+    fabEl.setAttribute('aria-label', isOpen ? '收起小手机' : '打开小手机');
 }
 
 export function toggle() {
