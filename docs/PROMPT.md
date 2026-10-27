@@ -73,18 +73,18 @@
 {"people":[{"name":"名字","role":"身份","relation":"和用户的关系","desc":"一两句人设","style":"说话方式"}]}
 ```
 
-拿到之后存在当前聊天的 §world.cast§ 里。之后聊天时，系统提示里的「你是谁」用的是这个人的 desc / style / relation，而不是整张卡的描述。
+拿到之后存在当前聊天的 world.cast 里。之后聊天时，系统提示里的「你是谁」用的是这个人的 desc / style / relation，而不是整张卡的描述。
 
 ## App 内容协议
 
-每个 App 有自己的 JSON schema（§src/feed.js§）：
+每个 App 有自己的 JSON schema（src/feed.js）：
 
-- 抖音：§{"videos":[{"author","title","desc","tags","likes","comments","shares","music","mood"}]}§
-- 微博：§{"hot":[{"title","heat","tag"}],"posts":[{"author","time","text","topic","likes","comments","reposts"}]}§
-- 小红书：§{"notes":[{"author","title","text","likes","collects","mood"}]}§
-- B 站：§{"videos":[{"author","title","tag","views","danmaku","duration","mood"}]}§
+- 抖音：{"videos":[{"author","title","desc","tags","likes","comments","shares","music","mood"}]}
+- 微博：{"hot":[{"title","heat","tag"}],"posts":[{"author","time","text","topic","likes","comments","reposts"}]}
+- 小红书：{"notes":[{"author","title","text","likes","collects","mood"}]}
+- B 站：{"videos":[{"author","title","tag","views","danmaku","duration","mood"}]}
 
-§mood§ 决定封面的配色（warm / cold / night / neon / street）。解析失败或生成超时，会回落到内置的兜底内容。
+mood 决定封面的配色（warm / cold / night / neon / street）。解析失败或生成超时，会回落到内置的兜底内容。
 
 ## 朋友圈协议
 
