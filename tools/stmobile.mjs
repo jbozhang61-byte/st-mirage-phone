@@ -238,6 +238,12 @@ try {
         return { pos: cs.position, top: cs.top, bottom: cs.bottom, height: cs.height, transform: cs.transform, margin: cs.margin, rootTop: root.top, rootH: root.height, rootPos: rcs.position, rootInset: rcs.inset, rootDisplay: rcs.display, rootTransform: rcs.transform, rootContain: rcs.contain, rootWillChange: rcs.willChange, shellStyle: s.getAttribute('style'), atTop: (() => { const el = document.elementFromPoint(20, 20); return el ? (el.id + '|' + el.className + '|' + el.tagName) : null; })(), innerH: window.innerHeight, scrollY: window.scrollY };
     })()`);
     console.log('DBG ' + JSON.stringify(dbg));
+    await evaluate(`window.MiragePhone?.openApp?.('chat')`);
+    await sleep(900);
+    const chatShot = await send('Page.captureScreenshot', { format: 'png' });
+    writeFileSync(resolve('shots/mobile-chat2.png'), Buffer.from(chatShot.data, 'base64'));
+    const chatBox = await evaluate(`(() => { const s = document.querySelector('.mp-shell').getBoundingClientRect(); const a = document.querySelector('.mp-app')?.getBoundingClientRect(); return { shell: { left: Math.round(s.left), top: Math.round(s.top), w: Math.round(s.width), h: Math.round(s.height) }, app: a ? { left: Math.round(a.left), top: Math.round(a.top), w: Math.round(a.width), h: Math.round(a.height) } : null }; })()`);
+    console.log('CHATBOX ' + JSON.stringify(chatBox));
     const shot = await send('Page.captureScreenshot', { format: 'png' });
     mkdirSync(resolve(OUT, '..'), { recursive: true });
     writeFileSync(OUT, Buffer.from(shot.data, 'base64'));

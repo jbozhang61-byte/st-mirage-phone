@@ -454,6 +454,11 @@ export function openPhone(app = 'home', params = {}) {
     try { document.body.appendChild(rootEl); } catch { /* ignore */ }
     hideOtherFloaters(true);
     shellEl.classList.remove('is-closed');
+    if (isNarrow()) {
+        const settings = getSettings();
+        settings.pos = { x: 0, y: 0 };
+    }
+    applyLayout();
     setFab(true);
     floatFabEl?.classList.add('is-hidden');
     if (app !== 'home') {
