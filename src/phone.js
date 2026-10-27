@@ -194,14 +194,10 @@ export function createPhone(onOpenChange) {
     setTimeout(applyLayout, 1800);
     window.addEventListener('resize', onResize, { passive: true });
     globalThis.visualViewport?.addEventListener('resize', onResize, { passive: true });
-    globalThis.visualViewport?.addEventListener('scroll', onResize, { passive: true });
     document.addEventListener('focusin', event => {
         const target = event.target;
         if (!(target instanceof HTMLElement) || !screenEl?.contains(target)) return;
-        setTimeout(() => {
-            applyLayout();
-            target.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-        }, 160);
+        setTimeout(() => applyLayout(), 220);
     }, true);
     document.addEventListener('focusout', () => setTimeout(applyLayout, 120), true);
     document.addEventListener('visibilitychange', onVisibility);
