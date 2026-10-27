@@ -193,7 +193,14 @@ export function createPhone(onOpenChange) {
     window.addEventListener('resize', onResize, { passive: true });
     globalThis.visualViewport?.addEventListener('resize', onResize, { passive: true });
     globalThis.visualViewport?.addEventListener('scroll', onResize, { passive: true });
-    document.addEventListener('focusin', () => setTimeout(applyLayout, 120), true);
+    document.addEventListener('focusin', event => {
+        const target = event.target;
+        if (!(target instanceof HTMLElement) || !screenEl?.contains(target)) return;
+        setTimeout(() => {
+            applyLayout();
+            target.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+        }, 160);
+    }, true);
     document.addEventListener('focusout', () => setTimeout(applyLayout, 120), true);
     document.addEventListener('visibilitychange', onVisibility);
     themeMedia = window.matchMedia?.('(prefers-color-scheme: light)');
@@ -276,7 +283,8 @@ function scheduleLayout() {
 
 function syncFabPosition() {
     if (!fabEl) return;
-    const viewport = window.visualViewport?.height || window.innerHeight;
+    const vv = window.visualViewport;
+    const viewport = (vv?.offsetTop || 0) + (vv?.height || window.innerHeight);
     const narrow = isNarrow();
     const gap = narrow ? 96 : 22;
     const size = narrow ? 56 : 58;

@@ -1802,3 +1802,18 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
 .mp-edge--right { right: 0; }
 .mp-edge--bottom { left: 26px; right: 26px; bottom: 0; height: 14px; }
 .mp-edge:hover { background: rgba(255,255,255,.04); }
+
+.mp-screen { overscroll-behavior: contain; }
+.mp-conv__scroll, .mp-body, .mp-tt__feed, .mp-wb__body, .mp-xhs__body, .mp-soc-page__scroll,
+.mp-vid-page__scroll, .mp-as__body, .mp-chatpage__scroll, .mp-fb__body, .mp-tb__body {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+.mp-root button, .mp-root a, .mp-root [role="button"] { -webkit-tap-highlight-color: transparent; }
+.mp-status__collapse, .mp-status__float { width: 30px !important; height: 30px !important; border-radius: 10px !important; }
+.mp-status__collapse .mp-ic, .mp-status__float .mp-ic { width: 15px !important; height: 15px !important; }
+@media (max-width: 760px) {
+    .mp-status { padding-top: env(safe-area-inset-top, 0px); }
+    .mp-cm__composer, .mp-home__dock { padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
+    .mp-fab { bottom: auto !important; }
+}
