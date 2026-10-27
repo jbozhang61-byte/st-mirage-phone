@@ -340,14 +340,41 @@ function applyLayout() {
         const vp = viewportMetrics();
         const keyboardOpen = vp.height < window.innerHeight - 120;
         if (floating && keyboardOpen) {
-            // 键盘弹出：保持宽度可读，把手机底部贴到键盘上边缘
-            const widthFit = (vp.width - 16) / 384;
-            const scale = Math.max(0.58, Math.min(1.12, widthFit, Number(settings.scale) || 0.82));
-            shellEl.style.setProperty('--mp-scale', String(scale));
-            const h = 812 * scale;
-            paintFloat(scale, { x: 0, y: (vp.top + vp.height - h - 8) - (vp.top + (vp.height - h) / 2) });
+            // 键盘模式：手机变成键盘上方的整块面板，内容重新排版，不缩放、不裁切
+            shellEl.classList.add('mp-keyboard');
+            document.documentElement.classList.add('mp-keyboard-open');
+            shellEl.style.setProperty('left', '0px', 'important');
+            shellEl.style.setProperty('top', '0px', 'important');
+            shellEl.style.setProperty('right', 'auto', 'important');
+            shellEl.style.setProperty('bottom', 'auto', 'important');
+            shellEl.style.setProperty('width', Math.round(vp.width) + 'px', 'important');
+            shellEl.style.setProperty('height', Math.round(vp.height) + 'px', 'important');
+            shellEl.style.setProperty('transform', 'translate3d(' + Math.round(vp.left) + 'px, ' + Math.round(vp.top) + 'px, 0)', 'important');
+            shellEl.style.setProperty('transform-origin', 'top left', 'important');
+            const deviceEl = shellEl.querySelector('.mp-device');
+            if (deviceEl) {
+                deviceEl.style.setProperty('width', '100%', 'important');
+                deviceEl.style.setProperty('height', '100%', 'important');
+                deviceEl.style.setProperty('max-height', 'none', 'important');
+                deviceEl.style.setProperty('border-radius', '0', 'important');
+            }
+            const screen = shellEl.querySelector('.mp-screen');
+            if (screen) screen.style.setProperty('border-radius', '0', 'important');
             return;
         }
+        shellEl.classList.remove('mp-keyboard');
+        document.documentElement.classList.remove('mp-keyboard-open');
+        const deviceEl = shellEl.querySelector('.mp-device');
+        if (deviceEl) {
+            deviceEl.style.removeProperty('width');
+            deviceEl.style.removeProperty('height');
+            deviceEl.style.removeProperty('max-height');
+            deviceEl.style.removeProperty('border-radius');
+        }
+        const screenEl2 = shellEl.querySelector('.mp-screen');
+        if (screenEl2) screenEl2.style.removeProperty('border-radius');
+        shellEl.style.removeProperty('width');
+        shellEl.style.removeProperty('height');
         const fit = Math.min((vp.width - 16) / 384, (vp.height - 16) / 812);
         const scale = floating ? Math.max(0.5, Math.min(1.12, fit, Number(settings.scale) || 0.86)) : 1;
         shellEl.style.setProperty('--mp-scale', String(scale));

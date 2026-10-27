@@ -1817,3 +1817,14 @@ body:has(.mp-shell:not(.is-closed)) #toast-container { display: none !important;
     .mp-cm__composer, .mp-home__dock { padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
     .mp-fab { bottom: auto !important; }
 }
+
+.mp-shell.mp-keyboard { border-radius: 0 !important; }
+.mp-shell.mp-keyboard .mp-device { box-shadow: none !important; }
+.mp-shell.mp-keyboard .mp-status,
+.mp-shell.mp-keyboard .mp-homebar,
+.mp-shell.mp-keyboard .mp-fab { display: none !important; }
+.mp-shell.mp-keyboard .mp-resize,
+.mp-shell.mp-keyboard .mp-edge { display: none !important; }
+html.mp-keyboard-open .mp-fab { display: none !important; }
+.mp-shell.mp-keyboard .mp-chatpage,
+.mp-shell.mp-keyboard .mp-conv { height: 100% !important; }
