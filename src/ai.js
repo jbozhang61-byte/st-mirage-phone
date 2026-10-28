@@ -216,17 +216,55 @@ function relevantHearts(data) {
     return [...all].sort((a, b) => (Number(b.affection) || 0) - (Number(a.affection) || 0)).slice(0, 2);
 }
 
+function recentOtherChats() {
+    const lines = [];
+    const clean = (value) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 70);
+
+    const telegram = getFeed('telegram')?.chats || [];
+    for (const chat of telegram.slice(0, 4)) {
+        const msgs = (chat.messages || []).slice(-3);
+        if (!msgs.length) continue;
+        const body = msgs.map(msg => (msg.mine || msg.name === userName() ? userName() : (msg.name || chat.name)) + '：' + clean(msg.text)).join(' / ');
+        lines.push('· Telegram「' + chat.name + '」' + (chat.style ? '（' + chat.style + '）' : '') + '：' + body);
+    }
+
+    const signal = getFeed('signal')?.items || [];
+    for (const chat of (Array.isArray(signal) ? signal : []).slice(0, 4)) {
+        const msgs = (chat.messages || []).slice(-3);
+        if (!msgs.length) continue;
+        const body = msgs.map(msg => (msg.mine ? userName() : (msg.name || chat.name)) + '：' + clean(msg.text)).join(' / ');
+        lines.push('· Signal「' + chat.name + '」' + (chat.style ? '（' + chat.style + '）' : '') + '：' + body);
+    }
+
+    const discord = getFeed('discord')?.servers || [];
+    for (const server of discord.slice(0, 3)) {
+        for (const channel of (server.channels || []).slice(0, 2)) {
+            const msgs = (channel.messages || []).slice(-2);
+            if (!msgs.length) continue;
+            const body = msgs.map(msg => (msg.author || '网友') + '：' + clean(msg.text)).join(' / ');
+            lines.push('· Discord「' + server.name + ' / #' + channel.name + '」：' + body);
+        }
+    }
+
+    const emails = getFeed('gmail')?.emails || [];
+    for (const mail of emails.filter(item => item.replies?.length).slice(0, 3)) {
+        const body = mail.replies.slice(-2).map(reply => (reply.mine ? userName() : (reply.from || mail.from)) + '：' + clean(reply.text)).join(' / ');
+        lines.push('· Gmail「' + mail.subject + '」：' + body);
+    }
+    return lines.slice(0, 10);
+}
+
 export function refreshInjection() {
     const settings = getSettings();
     const data = getData();
-    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: data.heartSelf || null, worldProfile: data.worldInfo || null });
+    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: data.heartSelf || null, worldProfile: data.worldInfo || null, extras: recentOtherChats() });
     setPhonePrompt(text, { depth: settings.inject.depth, enabled: settings.inject.enabled && !!text });
     return text;
 }
 
 export function previewInjection() {
     const data = getData();
-    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data) });
+    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), extras: recentOtherChats() });
 }
 
 /**

@@ -388,7 +388,7 @@ export function proactivePrompt({ thread, user, story }) {
 }
 
 /** 注入正文的手机状态摘要。 */
-export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, maxThreads = 5, maxMsgs = 4 }) {
+export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, extras = [], maxThreads = 5, maxMsgs = 4 }) {
     const lines = [];
     const sorted = [...(threads || [])].filter(t => t.msgs?.length).sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, maxThreads);
     for (const thread of sorted) {
@@ -408,6 +408,11 @@ export function phoneStateSummary({ threads, user, hearts = [], selfProfile = nu
         parts.push('以下是你和「' + user + '」在手机上的聊天（发生在剧情里，你是知道的）：');
         parts.push(...lines);
         parts.push('如果剧情合适，可以自然地提到这些消息；不要逐条复述，也不要假装没看到。');
+    }
+    if (extras.length) {
+        parts.push('【手机里其他软件的最近聊天】');
+        parts.push('以下同样是剧情里发生过的，生成正文时可以自然参考，不要逐条复述：');
+        parts.push(...extras);
     }
     const heartLines = [];
     for (const person of hearts.slice(0, 6)) {
