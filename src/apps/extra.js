@@ -5,6 +5,7 @@ import { getData, getCast, getFeed } from '../store.js';
 import { generateExtra, friendlyError } from '../ai.js';
 import { EXTRA } from '../extra.js';
 import { feedContext } from './feed-common.js';
+import { openGroupCreate } from '../groupgen.js';
 import { userName, personaAvatarUrl } from '../st.js';
 
 
@@ -143,46 +144,44 @@ export function mountDiscord(host, { nav }) {
     }
 
     function addServer(data) {
-        const input = h('input', { class: 'mp-input', type: 'text', placeholder: '服务器名字' });
-        const s = sheet({
-            title: '新建服务器',
-            content: h('div', { class: 'mp-field-list' }, input),
-            actions: h('button', {
-                class: 'mp-btn primary small', type: 'button', text: '创建',
-                onclick: () => {
-                    const name = input.value.trim();
-                    if (!name) return;
-                    data.servers.push({ name, channels: [{ name: '综合', messages: [] }] });
-                    serverIndex = data.servers.length - 1;
-                    channelIndex = 0;
-                    save(data);
-                    s.close();
-                    view.render(data);
-                    toast('服务器已创建');
-                },
-            }),
+        openGroupCreate({
+            title: '新建服务器', kind: 'discord',
+            onCreate: ({ name, style, data: generated }) => {
+                const channels = (generated.channels || []).map(channel => ({
+                    name: String(channel.name || '综合').slice(0, 24),
+                    messages: (channel.messages || []).slice(0, 8).map(message => ({
+                        author: String(message.author || message.name || '网友').slice(0, 24),
+                        text: String(message.text || '').slice(0, 240),
+                        time: String(message.time || '刚刚').slice(0, 10),
+                    })),
+                }));
+                data.servers.push({ name, style, channels: channels.length ? channels : [{ name: '综合', messages: [] }] });
+                serverIndex = data.servers.length - 1;
+                channelIndex = 0;
+                save(data);
+                view.render(data);
+            },
         });
     }
 
     function addChannel(data, server) {
-        const input = h('input', { class: 'mp-input', type: 'text', placeholder: '频道名字' });
-        const s = sheet({
-            title: '新建频道',
-            content: h('div', { class: 'mp-field-list' }, input),
-            actions: h('button', {
-                class: 'mp-btn primary small', type: 'button', text: '创建',
-                onclick: () => {
-                    const name = input.value.trim();
-                    if (!name) return;
-                    server.channels = server.channels || [];
-                    server.channels.push({ name, messages: [] });
-                    channelIndex = server.channels.length - 1;
-                    save(data);
-                    s.close();
-                    view.render(data);
-                    toast('频道已创建');
-                },
-            }),
+        openGroupCreate({
+            title: '新建频道', kind: 'discord',
+            onCreate: ({ name, style, data: generated }) => {
+                const first = generated.channels?.[0];
+                server.channels = server.channels || [];
+                server.channels.push({
+                    name, style,
+                    messages: (first?.messages || []).slice(0, 8).map(message => ({
+                        author: String(message.author || message.name || '网友').slice(0, 24),
+                        text: String(message.text || '').slice(0, 240),
+                        time: String(message.time || '刚刚').slice(0, 10),
+                    })),
+                });
+                channelIndex = server.channels.length - 1;
+                save(data);
+                view.render(data);
+            },
         });
     }
 
@@ -232,23 +231,23 @@ export function mountTelegram(host, { nav }) {
     function save(data) { setFeed('telegram', data); saveNow('data'); }
 
     function addGroup(data) {
-        const input = h('input', { class: 'mp-input', type: 'text', placeholder: '群组名字' });
-        const s = sheet({
-            title: '新建群组',
-            content: h('div', { class: 'mp-field-list' }, input),
-            actions: h('button', {
-                class: 'mp-btn primary small', type: 'button', text: '创建',
-                onclick: () => {
-                    const name = input.value.trim();
-                    if (!name) return;
-                    data.chats = data.chats || [];
-                    data.chats.unshift({ name, preview: '群组已创建', time: '刚刚', unread: 0, group: true, members: 1 });
-                    save(data);
-                    s.close();
-                    view.render(data);
-                    toast('群组已创建');
-                },
-            }),
+        openGroupCreate({
+            title: '新建群组', kind: 'telegram',
+            onCreate: ({ name, style, data: generated }) => {
+                const messages = (generated.messages || []).slice(0, 10).map(message => ({
+                    name: String(message.author || message.name || '网友').slice(0, 24),
+                    text: String(message.text || '').slice(0, 240),
+                    mine: false,
+                }));
+                data.chats = data.chats || [];
+                data.chats.unshift({
+                    name, style, group: true, members: getCast().length + 1,
+                    preview: messages[messages.length - 1]?.text || '群组已创建',
+                    time: '刚刚', unread: 0, messages,
+                });
+                save(data);
+                view.render(data);
+            },
         });
     }
 

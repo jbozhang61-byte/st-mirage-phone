@@ -432,7 +432,8 @@ export async function generateExtra(appId) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
-    const raw = await generateText({ system: config.system({ world, people, user }), prompt: config.prompt(), length: 1300, json: true });
+    const story = storyContext(8, 300);
+    const raw = await generateText({ system: config.system({ world, people, user, story }), prompt: config.prompt(), length: 1300, json: true });
     const parsed = config.parse(extractJson(raw) || {});
     const has = (parsed.servers?.length || parsed.chats?.length || parsed.tracks?.length || parsed.emails?.length);
     if (!has) throw new Error('这次没生成出内容');

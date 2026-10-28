@@ -1,9 +1,10 @@
 /** 百度贴吧：吧列表 + 帖子，整页详情和评论。 */
 import { h, icon, avatar, toast } from '../render.js';
-import { getCast, getFeed, setFeed } from '../store.js';
+import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
 import { storyContext } from '../st.js';
 import { artFor } from '../art.js';
 import { openPostPage } from './postpage.js';
+import { openGroupCreate } from '../groupgen.js';
 
 const FORUMS = ['旧城吧', '夜班吧', '修表铺吧', '雪天吧', '便利店吧'];
 
@@ -18,19 +19,67 @@ const SEED = [
 
 export function mountTieba(host, { nav }) {
     const body = h('div', { class: 'mp-tb__body' });
+    const forumsEl = h('div', { class: 'mp-tb__forums' });
+    let selected = '';
     const el = h('div', { class: 'mp-tb' },
         h('div', { class: 'mp-tb__bar' },
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
             h('div', { class: 'mp-tb__logo', text: '贴吧' }),
+            h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '新建吧', onclick: () => createForum() }, icon('plus')),
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '刷新', onclick: () => refresh() }, icon('refresh')),
         ),
-        h('div', { class: 'mp-tb__forums' }, ...FORUMS.map((name, i) => h('button', {
-            type: 'button', class: 'mp-tb__forum' + (i === 0 ? ' on' : ''), text: name,
-            onclick: () => toast('先看 ' + name),
-        }))),
+        forumsEl,
         body,
     );
     host.appendChild(el);
+
+    function forums() {
+        const data = getData();
+        const custom = Array.isArray(data.tiebaForums) ? data.tiebaForums.map(item => item.name).filter(Boolean) : [];
+        return [...new Set([...FORUMS, ...custom])];
+    }
+
+    function paintForums() {
+        forumsEl.innerHTML = '';
+        const list = [''].concat(forums());
+        for (const name of list) {
+            forumsEl.appendChild(h('button', {
+                type: 'button', class: 'mp-tb__forum' + ((selected || '') === name ? ' on' : ''),
+                text: name || '全部',
+                onclick: () => { selected = name; paintForums(); render(); },
+            }));
+        }
+    }
+
+    function createForum() {
+        openGroupCreate({
+            title: '新建贴吧', kind: 'tieba',
+            onCreate: ({ name, style, data: generated }) => {
+                const data = getData();
+                data.tiebaForums = Array.isArray(data.tiebaForums) ? data.tiebaForums : [];
+                if (!data.tiebaForums.some(item => item.name === name)) data.tiebaForums.push({ name, style });
+                const cast = getCast();
+                const posts = (generated.posts || []).slice(0, 6).map((post, index) => ({
+                    id: 'tb-' + Date.now().toString(36) + index,
+                    title: String(post.title || '无题').slice(0, 60),
+                    text: String(post.text || '').slice(0, 400),
+                    author: String(post.author || cast[index % Math.max(1, cast.length)]?.name || '旧城的人').slice(0, 24),
+                    replies: Math.max(0, Number(post.replies) || 0),
+                    likes: Math.max(0, Number(post.likes) || 0),
+                    forum: name,
+                    image: '',
+                }));
+                if (posts.length) {
+                    const cached = getFeed('tieba')?.items || [];
+                    setFeed('tieba', [...posts, ...cached]);
+                }
+                saveNow('data');
+                selected = name;
+                paintForums();
+                render();
+            },
+        });
+    }
 
     function load() {
         const cached = getFeed('tieba')?.items;
@@ -52,7 +101,7 @@ export function mountTieba(host, { nav }) {
     }
 
     function render() {
-        const posts = load();
+        const posts = load().filter(post => !selected || post.forum === selected);
         body.innerHTML = '';
         for (const post of posts) {
             body.appendChild(h('article', {
@@ -85,6 +134,7 @@ export function mountTieba(host, { nav }) {
         render();
     }
 
+    paintForums();
     render();
     return { refresh: render };
 }

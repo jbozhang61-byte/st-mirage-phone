@@ -1,7 +1,14 @@
 /** Discord / Telegram / Spotify / Gmail：内容配方与兜底。 */
-const base = ({ world, people, user }) => [
-    world ? '世界：' + world : '', people.length ? '人物：' + people.join('、') : '', '用户：' + user,
-].filter(Boolean).join('\n');
+const base = ({ world, people, user, story }) => {
+    const lines = [
+        world ? '世界：' + world : '',
+        people.length ? '人物：' + people.join('、') : '',
+        '用户：' + user,
+    ].filter(Boolean);
+    const text = (story || []).map(line => (line.isUser ? '用户' : line.name) + '：' + String(line.text || '').slice(0, 200)).join('\n');
+    if (text) lines.push('最近的剧情：\n' + text);
+    return lines.join('\n');
+};
 
 export const EXTRA = {
     discord: {
