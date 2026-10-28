@@ -381,7 +381,7 @@ export function proactivePrompt({ thread, user, story }) {
 }
 
 /** 注入正文的手机状态摘要。 */
-export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, maxThreads = 5, maxMsgs = 4 }) {
+export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, maxThreads = 5, maxMsgs = 4 }) {
     const lines = [];
     const sorted = [...(threads || [])].filter(t => t.msgs?.length).sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, maxThreads);
     for (const thread of sorted) {
@@ -422,6 +422,23 @@ export function phoneStateSummary({ threads, user, hearts = [], selfProfile = nu
         parts.push('【你对这些人的了解（手机「心」里记录的，成年角色、双方自愿）】');
         parts.push(...heartLines);
         parts.push('聊到相关话题时可以自然带出，不要生硬复述。');
+    }
+    if (worldProfile && typeof worldProfile === 'object') {
+        const worldFields = [
+            worldProfile.name ? '名称：' + worldProfile.name : '',
+            worldProfile.type ? '类型：' + worldProfile.type : '',
+            worldProfile.scale ? '范围：' + worldProfile.scale : '',
+            worldProfile.era ? '时代：' + worldProfile.era : '',
+            worldProfile.rules ? '规则：' + worldProfile.rules : '',
+            worldProfile.factions?.length ? '势力：' + worldProfile.factions.join('、') : '',
+            worldProfile.places?.length ? '地点：' + worldProfile.places.join('、') : '',
+            worldProfile.notes ? '补充：' + worldProfile.notes : '',
+        ].filter(Boolean);
+        if (worldFields.length) {
+            parts.push('【这个世界（手机「世界」里填写的）】');
+            parts.push('· ' + trim(worldFields.join('｜'), 700));
+            parts.push('生成时保持世界设定一致，不要写进正文。');
+        }
     }
     if (selfProfile && typeof selfProfile === 'object') {
         const selfFields = [
