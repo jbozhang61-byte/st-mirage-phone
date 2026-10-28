@@ -5,7 +5,7 @@ import { toast } from '../render.js';
 import { getFeed, getData } from '../store.js';
 import { FEEDS } from '../feed.js';
 import { generateFeed, friendlyError } from '../ai.js';
-import { userName, currentCharacter, storyContext } from '../st.js';
+import { userName, currentCharacter, storyContext, memoryContext } from '../st.js';
 
 export function feedContext() {
     const data = getData();
@@ -13,7 +13,8 @@ export function feedContext() {
         world: currentCharacter()?.name || '',
         people: (data.world?.cast || []).map(person => person.name),
         user: userName(),
-        story: storyContext(4, 180),
+        story: storyContext(40, 340),
+        memory: memoryContext(12),
     };
 }
 

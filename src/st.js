@@ -149,6 +149,11 @@ export function memoryContext(limit = 12) {
     return out.slice(-limit);
 }
 
+/** 记忆库/摘要拼成一段纯文本，给各种生成用。 */
+export function memoryText(limit = 12, each = 600) {
+    return memoryContext(limit).map(item => String(item.text || '').slice(0, each)).filter(Boolean).join('\n');
+}
+
 /**
  * 从聊天里挑重要的，而不是只取最后几条。
  * 摘要/系统消息、长消息、带事件词和引号的消息权重更高，同时保留最近几条。

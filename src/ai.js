@@ -76,12 +76,13 @@ export async function replyToThread(threadId, { proactive = false } = {}) {
         const settings = getSettings();
         const user = userName();
         const story = storyContext(6, 320);
+        const memory = memoryContext(10);
         const members = thread.members;
         const worldCard = currentCharacter();
         const world = worldCard?.group ? worldCard.name : (worldCard?.name || '');
         const card = findCharacter(worldCard?.name) || worldCard;
         const person = findPerson(members[0]);
-        let system = chatSystemPrompt({ thread, person, world, card, settings, user, story, reply: !proactive });
+        let system = chatSystemPrompt({ thread, person, world, card, settings, user, story, memory, reply: !proactive });
         if (members.length > 1) {
             const blocks = [];
             for (const name of members.slice(0, 4)) {
@@ -122,9 +123,10 @@ export async function generateMoments(count = 4) {
     const user = userName();
     const contacts = allContactCandidates();
     if (!contacts.length) throw new Error('先在酒馆里打开一个角色，或者去「通讯录」加一个人');
-    const story = storyContext(5, 300);
+    const story = storyContext(40, 340);
+    const memory = memoryContext(12);
     const recent = data.moments.slice(0, 6).map(m => m.text);
-    const system = momentsSystemPrompt({ contacts, user, story });
+    const system = momentsSystemPrompt({ contacts, user, story, memory });
     const prompt = momentsUserPrompt({ count: Math.max(1, Math.min(5, count)), recent });
     const raw = await generateText({ system, prompt, length: Math.min(700, 140 * count) });
     const posts = parseMoments(raw, { contacts, user, max: count });
@@ -270,8 +272,9 @@ export async function generateFeed(appId) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
-    const story = storyContext(4, 200);
-    const system = config.system({ world, people, user, story });
+    const story = storyContext(40, 340);
+    const memory = memoryContext(12);
+    const system = config.system({ world, people, user, story, memory });
     const prompt = config.prompt({ count: config.count, people });
     const raw = await generateText({ system, prompt, length: 1500, json: true });
     const items = config.parse(raw);
@@ -432,8 +435,9 @@ export async function generateExtra(appId) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
-    const story = storyContext(8, 300);
-    const raw = await generateText({ system: config.system({ world, people, user, story }), prompt: config.prompt(), length: 1300, json: true });
+    const story = storyContext(40, 340);
+    const memory = memoryContext(12);
+    const raw = await generateText({ system: config.system({ world, people, user, story, memory }), prompt: config.prompt(), length: 1300, json: true });
     const parsed = config.parse(extractJson(raw) || {});
     const has = (parsed.servers?.length || parsed.chats?.length || parsed.tracks?.length || parsed.emails?.length);
     if (!has) throw new Error('这次没生成出内容');

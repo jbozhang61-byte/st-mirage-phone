@@ -1,5 +1,5 @@
 /** Discord / Telegram / Spotify / Gmail：内容配方与兜底。 */
-const base = ({ world, people, user, story }) => {
+const base = ({ world, people, user, story, memory }) => {
     const lines = [
         world ? '世界：' + world : '',
         people.length ? '人物：' + people.join('、') : '',
@@ -7,6 +7,8 @@ const base = ({ world, people, user, story }) => {
     ].filter(Boolean);
     const text = (story || []).map(line => (line.isUser ? '用户' : line.name) + '：' + String(line.text || '').slice(0, 200)).join('\n');
     if (text) lines.push('最近的剧情：\n' + text);
+    const memoryText = (memory || []).map(item => String(item.text || '').slice(0, 600)).filter(Boolean).join('\n');
+    if (memoryText) lines.push('记忆库 / 摘要：\n' + memoryText);
     return lines.join('\n');
 };
 

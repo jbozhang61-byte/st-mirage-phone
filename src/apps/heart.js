@@ -1,7 +1,7 @@
 /** 心：主要人物的关系、亲密偏好、穿着与边界。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
-import { generateText, importantStoryContext, currentCharacter, personaDescription, userName } from '../st.js';
+import { generateText, importantStoryContext, memoryContext, currentCharacter, personaDescription, userName } from '../st.js';
 import { extractJson } from '../prompts.js';
 
 const STAGES = ['陌生', '认识', '互有好感', '暧昧', '恋人', '伴侣'];
@@ -307,11 +307,12 @@ export function mountHeart(host, { nav }) {
         busy = true;
         toast('正在重新感受…');
         try {
-            const story = importantStoryContext(24, 420).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
+            const memory = memoryContext(12).map(item => String(item.text || '').slice(0, 600)).filter(Boolean).join('\n');
+            const story = importantStoryContext(40, 420).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
             const list = cast.map(person => '- ' + person.name + '：' + [person.role, person.relation, person.desc].filter(Boolean).join(' / ')).join('\n');
             const raw = await generateText({
                 system: '你在整理一段故事里主要人物和用户的关系与亲密偏好。只输出 JSON，克制、不写露骨内容。',
-                prompt: '当前聊天：\n' + story + '\n\n人物：\n' + list +
+                prompt: (memory ? '记忆库 / 摘要：\n' + memory + '\n\n' : '') + '当前聊天：\n' + story + '\n\n人物：\n' + list +
                     '\n\n只输出：{"people":[{"name":"名字","stage":"陌生/认识/互有好感/暧昧/恋人/伴侣","affection":0-100,"summary":"一句关系说明","likes":["拥抱","接吻","牵手"],"sensitive":["耳后","颈侧"],"outfit":"当前穿着","style":"喜欢的穿着风格","boundaries":["不喜欢的事"]}]}',
                 length: 1800,
                 json: true,

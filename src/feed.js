@@ -9,13 +9,15 @@ function pick(list, index) {
     return list[index % list.length];
 }
 
-function baseContext({ world, people, user, story }) {
+function baseContext({ world, people, user, story, memory }) {
     const lines = [];
     if (world) lines.push('世界：' + world);
     if (people.length) lines.push('世界里的人：' + people.join('、'));
     lines.push('用户：' + user);
     const storyText = (story || []).map(line => (line.isUser ? '用户' : line.name) + '：' + trim(line.text, 160)).join('\n');
     if (storyText) lines.push('最近的剧情：\n' + storyText);
+    const memoryText = (memory || []).map(item => String(item.text || '').slice(0, 500)).filter(Boolean).join('\n');
+    if (memoryText) lines.push('记忆库 / 摘要：\n' + memoryText);
     return lines.join('\n');
 }
 

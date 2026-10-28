@@ -248,7 +248,7 @@ export function historyBlock(msgs, { user = '我', members = [], max = 24, each 
  * 手机聊天的系统提示。
  * person 是这个世界里的「人」，不是角色卡本身；world 是卡名，card 提供世界设定。
  */
-export function chatSystemPrompt({ thread, person = null, world = '', card = null, settings, user, story, reply = true }) {
+export function chatSystemPrompt({ thread, person = null, world = '', card = null, settings, user, story, memory = [], reply = true }) {
     const members = thread.members || [];
     const who = person?.name || (members.length > 1 ? members.join('、') : members[0]);
     const lines = [];
@@ -280,6 +280,8 @@ export function chatSystemPrompt({ thread, person = null, world = '', card = nul
 
     const storyText = storyBlock(story);
     if (storyText) lines.push('\n【最近发生的事（只作背景，不要复述）】\n' + storyText);
+    const memoryText = (memory || []).map(item => String(item.text || '').slice(0, 600)).filter(Boolean).join('\n');
+    if (memoryText) lines.push('\n【记忆库 / 长线摘要（只作背景，不要复述）】\n' + memoryText);
     lines.push('\n【说话方式】\n' + ((settings?.ai?.style || '').slice(0, 2500)));
     lines.push([
         '\n【手机消息格式】一行就是一条消息。可以直接写文字，也可以发这些：',
@@ -338,11 +340,13 @@ export function castUserPrompt({ card, story = [], user = '我' }) {
     return parts.join('\n');
 }
 
-export function momentsSystemPrompt({ contacts, user, story }) {
+export function momentsSystemPrompt({ contacts, user, story, memory = [] }) {
     const lines = [];
     lines.push('你在为一个故事世界生成「朋友圈」动态。作者的手机里有这些好友：' + contacts.join('、') + '。');
     const storyText = storyBlock(story, { each: 320, max: 6 });
     if (storyText) lines.push('\n最近发生的剧情（只作背景）：\n' + storyText);
+    const memoryText = (memory || []).map(item => String(item.text || '').slice(0, 600)).filter(Boolean).join('\n');
+    if (memoryText) lines.push('\n记忆库 / 长线摘要（只作背景，不要复述）：\n' + memoryText);
     lines.push([
         '\n像真人发朋友圈：一两句话到一小段，写日常、心情、见闻、吐槽，或者对最近发生的事的感受。',
         '口语、自然，可以带表情，不写旁白和动作描写。每个人的语气要符合人设，彼此不要雷同。',
