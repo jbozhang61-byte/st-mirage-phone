@@ -77,9 +77,16 @@ export function defaultSettings() {
 
 const isObject = v => v && typeof v === 'object' && !Array.isArray(v);
 
+function cloneValue(value) {
+    try {
+        if (typeof globalThis.structuredClone === 'function') return globalThis.structuredClone(value);
+    } catch { /* ignore */ }
+    return JSON.parse(JSON.stringify(value));
+}
+
 function mergeDefaults(base, value) {
-    if (!isObject(value)) return structuredClone(base);
-    const out = structuredClone(base);
+    if (!isObject(value)) return cloneValue(base);
+    const out = cloneValue(base);
     for (const key of Object.keys(value)) {
         if (isObject(base?.[key]) && isObject(value[key])) out[key] = mergeDefaults(base[key], value[key]);
         else if (value[key] !== undefined) out[key] = value[key];

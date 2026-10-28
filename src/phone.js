@@ -695,6 +695,7 @@ export function openPhone(app = 'home', params = {}) {
     globalThis.__mpIslandToast = true;
     try { document.body.appendChild(rootEl); } catch { /* ignore */ }
     hideOtherFloaters(true);
+    document.documentElement.classList.add('mp-phone-open');
     shellEl.classList.remove('is-closed');
     if (isNarrow()) {
         const settings = getSettings();
@@ -730,6 +731,7 @@ export function closePhone() {
     globalThis.__mpIslandToast = false;
     shellEl.classList.add('is-closed');
     hideOtherFloaters(false);
+    document.documentElement.classList.remove('mp-phone-open');
     setFab(false);
     syncFabPosition();
     clearInterval(clockTimer);

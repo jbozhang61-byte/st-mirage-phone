@@ -2023,3 +2023,25 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-msg__tts:active { opacity: 1; transform: scale(.92); }
 .mp-msg__tts .mp-ic { width: 13px; height: 13px; }
 .mp-msg.me .mp-msg__tts { display: none; }
+
+/* 涓嶄緷璧?:has 鐨勫厹搴曪細鏃?WebView / 鍏跺畠閰掗鍓嶇 */
+html.mp-phone-open body { overflow: hidden !important; }
+@media (max-width: 760px) {
+    html.mp-phone-open #top-bar,
+    html.mp-phone-open #top-settings-holder,
+    html.mp-phone-open #send_form,
+    html.mp-phone-open #form_sheld,
+    html.mp-phone-open #left-nav-panel,
+    html.mp-phone-open #right-nav-panel,
+    html.mp-phone-open #logo,
+    html.mp-phone-open .drawer-toggle,
+    html.mp-phone-open #character_popup,
+    html.mp-phone-open #cd-fab,
+    html.mp-phone-open .cd-fab { display: none !important; }
+}
+html.mp-phone-open #toast-container { display: none !important; }
+
+/* 娌℃湁姣涚幓鐠冩椂鐢ㄥ疄鑹诧紝涓嶈鐣岄潰鍙橀€忔槑 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .mp-appicon__glyph, .mp-status, .mp-home__dock, .mp-nav, .mp-fab { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+}
