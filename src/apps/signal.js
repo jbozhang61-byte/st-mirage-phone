@@ -2,7 +2,7 @@
 import { h, icon, avatar } from '../render.js';
 import { getCast, getFeed, setFeed } from '../store.js';
 import { characterAvatar } from '../st.js';
-import { openGroupCreate } from '../groupgen.js';
+import { openGroupCreate, generateMore } from '../groupgen.js';
 
 export function mountSignal(host, { nav }) {
     const body = h('div', { class: 'mp-sg__body' });
@@ -118,10 +118,38 @@ export function mountSignal(host, { nav }) {
             const stored = getFeed('signal')?.items;
             if (stored) setFeed('signal', stored.map(item => item.id === chat.id ? chat : item));
         };
+        const more = async mode => {
+            if (!chat.group) return;
+            toast(mode === 'replace' ? '正在重新生成…' : '正在追加…');
+            try {
+                const result = await generateMore({ kind: 'signal', name: chat.name, style: chat.style || '', count: 5 });
+                const list = (result.messages || []).map(message => ({
+                    name: String(message.author || message.name || '网友').slice(0, 24),
+                    text: String(message.text || '').slice(0, 240),
+                    mine: false,
+                }));
+                if (!list.length) { toast('这次没有生成出内容'); return; }
+                if (mode === 'replace') messages.length = 0;
+                messages.push(...list);
+                chat.messages = messages;
+                chat.preview = messages[messages.length - 1]?.text || chat.preview;
+                chat.time = '刚刚';
+                const stored = getFeed('signal')?.items;
+                if (stored) setFeed('signal', stored.map(item => item.id === chat.id ? chat : item));
+                draw();
+                toast(mode === 'replace' ? '已重新生成' : '已追加');
+            } catch (error) {
+                toast(String(error?.message || '生成失败'), 3000);
+            }
+        };
         const page = h('div', { class: 'mp-sg-page' },
             h('div', { class: 'mp-sg-page__bar' },
                 h('button', { type: 'button', class: 'mp-sg-page__back', onclick: close }, icon('back')),
                 h('div', {}, h('div', { class: 'mp-sg-page__title', text: chat.name }), h('div', { class: 'mp-sg-page__sub', text: chat.group ? '端到端加密 · ' + (chat.style || '群组') : '端到端加密' })),
+                chat.group ? h('div', { class: 'mp-sg-page__more' },
+                    h('button', { type: 'button', class: 'mp-sg-page__more', text: '重新生成', onclick: () => more('replace') }),
+                    h('button', { type: 'button', class: 'mp-sg-page__more', text: '追加', onclick: () => more('append') }),
+                ) : null,
             ),
             h('div', { class: 'mp-sg-page__scroll' }, list),
             h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: send }, '发送')),

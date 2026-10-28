@@ -4,7 +4,7 @@ import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
 import { storyContext } from '../st.js';
 import { artFor } from '../art.js';
 import { openPostPage } from './postpage.js';
-import { openGroupCreate } from '../groupgen.js';
+import { openGroupCreate, generateMore } from '../groupgen.js';
 
 const FORUMS = ['旧城吧', '夜班吧', '修表铺吧', '雪天吧', '便利店吧'];
 
@@ -20,6 +20,7 @@ const SEED = [
 export function mountTieba(host, { nav }) {
     const body = h('div', { class: 'mp-tb__body' });
     const forumsEl = h('div', { class: 'mp-tb__forums' });
+    const actionsEl = h('div', { class: 'mp-tb__actions' });
     let selected = '';
     const el = h('div', { class: 'mp-tb' },
         h('div', { class: 'mp-tb__bar' },
@@ -29,6 +30,7 @@ export function mountTieba(host, { nav }) {
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '刷新', onclick: () => refresh() }, icon('refresh')),
         ),
         forumsEl,
+        actionsEl,
         body,
     );
     host.appendChild(el);
@@ -48,6 +50,36 @@ export function mountTieba(host, { nav }) {
                 text: name || '全部',
                 onclick: () => { selected = name; paintForums(); render(); },
             }));
+        }
+    }
+
+    function forumStyle(name) {
+        return (getData().tiebaForums || []).find(item => item.name === name)?.style || '';
+    }
+
+    async function moreForum(mode) {
+        if (!selected) return;
+        toast(mode === 'replace' ? '正在重新生成…' : '正在追加…');
+        try {
+            const result = await generateMore({ kind: 'tieba', name: selected, style: forumStyle(selected), count: mode === 'replace' ? 4 : 3 });
+            const cast = getCast();
+            const posts = (result.posts || []).map((post, index) => ({
+                id: 'tb-' + Date.now().toString(36) + index,
+                title: String(post.title || '无题').slice(0, 60),
+                text: String(post.text || '').slice(0, 400),
+                author: String(post.author || cast[index % Math.max(1, cast.length)]?.name || '旧城的人').slice(0, 24),
+                replies: Math.max(0, Number(post.replies) || 0),
+                likes: Math.max(0, Number(post.likes) || 0),
+                forum: selected,
+                image: '',
+            }));
+            if (!posts.length) { toast('这次没有生成出内容'); return; }
+            const cached = getFeed('tieba')?.items || [];
+            setFeed('tieba', mode === 'replace' ? [...posts, ...cached.filter(post => post.forum !== selected)] : [...posts, ...cached]);
+            render();
+            toast(mode === 'replace' ? '已重新生成' : '已追加 ' + posts.length + ' 条');
+        } catch (error) {
+            toast(String(error?.message || '生成失败'), 3000);
         }
     }
 
@@ -102,6 +134,13 @@ export function mountTieba(host, { nav }) {
 
     function render() {
         const posts = load().filter(post => !selected || post.forum === selected);
+        actionsEl.innerHTML = '';
+        if (selected) {
+            actionsEl.append(
+                h('button', { type: 'button', text: '重新生成', onclick: () => moreForum('replace') }),
+                h('button', { type: 'button', text: '追加', onclick: () => moreForum('append') }),
+            );
+        }
         body.innerHTML = '';
         for (const post of posts) {
             body.appendChild(h('article', {

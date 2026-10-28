@@ -2047,3 +2047,10 @@ html.mp-phone-open #toast-container { display: none !important; }
 }
 
 .mp-sg__bname { display: block; font-size: 8.5px; color: var(--mp-text-3); margin-bottom: 2px; font-weight: 600; }
+
+.mp-tb__actions, .mp-dc__actions { display: flex; gap: 8px; padding: 8px 14px 4px; }
+.mp-tb__actions button, .mp-dc__actions button, .mp-tg-page__more, .mp-sg-page__more {
+    border: 1px solid var(--mp-line); background: var(--mp-field); color: var(--mp-text-2);
+    border-radius: 9px; font: inherit; font-size: 10px; padding: 5px 9px; cursor: pointer;
+}
+.mp-tg-page__more, .mp-sg-page__more { margin-left: 6px; }

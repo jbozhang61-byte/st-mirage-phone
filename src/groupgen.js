@@ -61,6 +61,34 @@ export async function generateGroup({ kind = 'telegram', name, style = '', note 
     return fallback(kind, name, style);
 }
 
+export async function generateMore({ kind = 'telegram', name, style = '', count = 4, note = '' } = {}) {
+    const cast = getCast().map(person => person.name);
+    const story = storyText();
+    const system = '你在为一段故事世界里的手机社区继续生成内容。人物、地点、关系必须和剧情一致，用中文，只输出 JSON。';
+    const shape = kind === 'tieba'
+        ? '{"posts":[{"title":"帖子标题","text":"帖子正文","author":"发帖人","replies":18,"likes":7}]}'
+        : '{"messages":[{"author":"名字","text":"消息","time":"21:02"}]}';
+    const prompt = [
+        story ? '最近的剧情：\n' + story : '',
+        cast.length ? '世界里的人：' + cast.join('、') : '',
+        (kind === 'tieba' ? '贴吧：' : '群聊：') + name,
+        '说话语言风格：' + (style || '自然、像真人'),
+        note ? '补充：' + note : '',
+        '再生成 ' + count + ' 条新内容，不要和已有内容重复。',
+        '只输出：' + shape,
+    ].filter(Boolean).join('\n');
+    try {
+        const raw = await generateText({ system, prompt, length: 900, json: true });
+        const json = extractJson(raw) || {};
+        if (kind === 'tieba' && Array.isArray(json.posts) && json.posts.length) return { posts: json.posts.slice(0, count) };
+        if (Array.isArray(json.messages) && json.messages.length) return { messages: json.messages.slice(0, count) };
+    } catch { /* 用兜底 */ }
+    const base = fallback(kind, name, style);
+    if (kind === 'tieba') return { posts: (base.posts || []).slice(0, count) };
+    const messages = base.messages || base.channels?.[0]?.messages || [];
+    return { messages: messages.slice(0, count) };
+}
+
 export function openGroupCreate({ title = '新建群组', kind = 'telegram', onCreate } = {}) {
     const name = h('input', { class: 'mp-input', type: 'text', placeholder: '群组 / 吧 / 服务器名字' });
     const style = h('input', { class: 'mp-input', type: 'text', placeholder: '说话风格，例如：学生、老师、古风、夜班工人' });

@@ -5,7 +5,7 @@ import { getData, getCast, getFeed } from '../store.js';
 import { generateExtra, friendlyError } from '../ai.js';
 import { EXTRA } from '../extra.js';
 import { feedContext } from './feed-common.js';
-import { openGroupCreate } from '../groupgen.js';
+import { openGroupCreate, generateMore } from '../groupgen.js';
 import { userName, personaAvatarUrl } from '../st.js';
 
 
@@ -102,6 +102,10 @@ export function mountDiscord(host, { nav }) {
             }));
         });
         main.appendChild(h('div', { class: 'mp-dc__channel-title', text: '#' + channel.name }));
+        main.appendChild(h('div', { class: 'mp-dc__actions' },
+            h('button', { type: 'button', text: '重新生成', onclick: () => moreChannel(data, server, channel, 'replace') }),
+            h('button', { type: 'button', text: '追加', onclick: () => moreChannel(data, server, channel, 'append') }),
+        ));
         for (const message of channel.messages || []) {
             main.appendChild(h('div', { class: 'mp-dc__msg' },
                 avatar({ name: message.author, size: 28 }),
@@ -162,6 +166,26 @@ export function mountDiscord(host, { nav }) {
                 view.render(data);
             },
         });
+    }
+
+    async function moreChannel(data, server, channel, mode) {
+        toast(mode === 'replace' ? '正在重新生成…' : '正在追加…');
+        try {
+            const result = await generateMore({ kind: 'discord', name: channel.name, style: server.style || '', count: 4 });
+            const list = result.messages || result.channels?.[0]?.messages || [];
+            const messages = list.map(message => ({
+                author: String(message.author || message.name || '网友').slice(0, 24),
+                text: String(message.text || '').slice(0, 240),
+                time: String(message.time || '刚刚').slice(0, 10),
+            }));
+            if (!messages.length) { toast('这次没有生成出内容'); return; }
+            channel.messages = mode === 'replace' ? messages : [...(channel.messages || []), ...messages];
+            save(data);
+            view.render(data);
+            toast(mode === 'replace' ? '已重新生成' : '已追加');
+        } catch (error) {
+            toast(String(error?.message || '生成失败'), 3000);
+        }
     }
 
     function addChannel(data, server) {
@@ -287,10 +311,38 @@ export function mountTelegram(host, { nav }) {
             const data = getFeed('telegram');
             if (data) { data.chats = (data.chats || []).map(item => item.name === chat.name ? chat : item); save(data); }
         };
+        const more = async mode => {
+            if (!chat.group) return;
+            toast(mode === 'replace' ? '正在重新生成…' : '正在追加…');
+            try {
+                const result = await generateMore({ kind: 'telegram', name: chat.name, style: chat.style || '', count: 5 });
+                const list = (result.messages || []).map(message => ({
+                    name: String(message.author || message.name || '网友').slice(0, 24),
+                    text: String(message.text || '').slice(0, 240),
+                    mine: false,
+                }));
+                if (!list.length) { toast('这次没有生成出内容'); return; }
+                if (mode === 'replace') messages.length = 0;
+                messages.push(...list);
+                chat.messages = messages;
+                chat.preview = messages[messages.length - 1]?.text || chat.preview;
+                chat.time = '刚刚';
+                const data = getFeed('telegram');
+                if (data) { data.chats = (data.chats || []).map(item => item.name === chat.name ? chat : item); save(data); }
+                draw();
+                toast(mode === 'replace' ? '已重新生成' : '已追加');
+            } catch (error) {
+                toast(String(error?.message || '生成失败'), 3000);
+            }
+        };
         const page = h('div', { class: 'mp-tg-page' },
             h('div', { class: 'mp-tg-page__bar' },
                 h('button', { type: 'button', class: 'mp-tg-page__back', onclick: close }, icon('back')),
                 h('div', { class: 'mp-tg-page__title', text: chat.name + (chat.group ? ' · ' + (chat.members || 0) + ' 人' : '') + (chat.style ? ' · ' + chat.style : '') }),
+                chat.group ? h('div', { class: 'mp-tg-page__more' },
+                    h('button', { type: 'button', class: 'mp-tg-page__more', text: '重新生成', onclick: () => more('replace') }),
+                    h('button', { type: 'button', class: 'mp-tg-page__more', text: '追加', onclick: () => more('append') }),
+                ) : null,
             ),
             h('div', { class: 'mp-tg-page__scroll' }, list),
             h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: send }, '发送')),
