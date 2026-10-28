@@ -18,8 +18,12 @@ function seedFor(person, index) {
         stage,
         affection: 35 + (hash % 60),
         summary: person.desc || person.relation || '在这个世界和你认识的人。',
-        likes: [likes[hash % likes.length], likes[(hash + 2) % likes.length], likes[(hash + 4) % likes.length]],
-        sensitive: [sensitive[hash % sensitive.length], sensitive[(hash + 3) % sensitive.length], sensitive[(hash + 6) % sensitive.length]],
+        likes: ['互有好感', '暧昧', '恋人', '伴侣'].includes(stage)
+            ? ['深吻', '抚摸', likes[hash % likes.length], likes[(hash + 2) % likes.length]]
+            : [likes[hash % likes.length], likes[(hash + 2) % likes.length], likes[(hash + 4) % likes.length]],
+        sensitive: ['互有好感', '暧昧', '恋人', '伴侣'].includes(stage)
+            ? ['私处', '大腿内侧', sensitive[hash % sensitive.length], sensitive[(hash + 3) % sensitive.length]]
+            : [sensitive[hash % sensitive.length], sensitive[(hash + 3) % sensitive.length], sensitive[(hash + 6) % sensitive.length]],
         outfit: {
             top: ['旧夹克', '针织衫', '深色衬衫', '长外套'][hash % 4],
             bottom: ['深色长裤', '半身裙', '牛仔裤', '工装裤'][(hash >> 1) % 4],
