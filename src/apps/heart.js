@@ -53,6 +53,7 @@ export function mountHeart(host, { nav }) {
     let selected = 0;
     let busy = false;
     let selfMode = false;
+    let pickerDragAt = 0;
 
     const OUTFIT_FIELDS = [
         ['top', '上衣'], ['bottom', '下装'], ['underwearTop', '内衣'],
@@ -98,14 +99,15 @@ export function mountHeart(host, { nav }) {
         const picker = h('div', { class: 'mp-heart__picker' });
         picker.appendChild(h('button', {
             type: 'button', class: 'mp-heart__pick' + (selfMode ? ' on' : ''),
-            onclick: () => { selfMode = true; render(); },
+            onclick: () => { if (Date.now() - pickerDragAt < 300) return; selfMode = true; render(); },
         }, avatar({ name: userName() || '我', size: 42 }), h('span', { text: '我' })));
         people.forEach((person, index) => {
             picker.appendChild(h('button', {
                 type: 'button', class: 'mp-heart__pick' + (!selfMode && index === selected ? ' on' : ''),
-                onclick: () => { selected = index; selfMode = false; render(); },
+                onclick: () => { if (Date.now() - pickerDragAt < 300) return; selected = index; selfMode = false; render(); },
             }, avatar({ name: person.name, size: 42 }), h('span', { text: person.name })));
         });
+        enablePickerDrag(picker);
         body.appendChild(picker);
 
         if (selfMode) {
@@ -170,6 +172,29 @@ export function mountHeart(host, { nav }) {
             };
         }
         return data.heartSelf;
+    }
+
+    function enablePickerDrag(el) {
+        let drag = null;
+        el.addEventListener('pointerdown', event => {
+            drag = { id: event.pointerId, x: event.clientX, left: el.scrollLeft, moved: false };
+            el.setPointerCapture?.(event.pointerId);
+        });
+        el.addEventListener('pointermove', event => {
+            if (!drag || event.pointerId !== drag.id) return;
+            const dx = event.clientX - drag.x;
+            if (!drag.moved && Math.abs(dx) < 4) return;
+            drag.moved = true;
+            el.scrollLeft = drag.left - dx;
+            event.preventDefault();
+        });
+        const end = () => {
+            if (!drag) return;
+            if (drag.moved) pickerDragAt = Date.now();
+            drag = null;
+        };
+        el.addEventListener('pointerup', end);
+        el.addEventListener('pointercancel', end);
     }
 
     function renderSelf() {

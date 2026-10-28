@@ -1942,3 +1942,6 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 
 .mp-device { touch-action: pan-x pan-y !important; }
 .mp-heart__picker, .mp-as__cats, .mp-quick, .mp-soc__stories { touch-action: pan-x; }
+
+.mp-heart__picker { touch-action: pan-x !important; overflow-x: auto !important; scrollbar-width: none; }
+.mp-heart__picker::-webkit-scrollbar { display: none; }
