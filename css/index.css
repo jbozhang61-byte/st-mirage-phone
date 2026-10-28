@@ -1870,3 +1870,37 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
     }
     .mp-shell .mp-screen { border-radius: 0 !important; }
 }
+
+.mp-heart { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: #130c14; color: #f4e9ee; }
+.mp-heart__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 14px 28px; }
+.mp-heart__picker { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; }
+.mp-heart__picker::-webkit-scrollbar { display: none; }
+.mp-heart__pick { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 0; background: transparent; color: #b9a5b0; font: inherit; font-size: 9.5px; opacity: .7; cursor: pointer; }
+.mp-heart__pick.on { opacity: 1; color: #ffd9e4; }
+.mp-heart__pick.on .mp-avatar { box-shadow: 0 0 0 2px #ff6b9a; }
+.mp-heart__card { background: linear-gradient(150deg, #2a1220, #1a0e17); border: 1px solid rgba(255,107,154,.18); border-radius: 20px; padding: 14px; }
+.mp-heart__top { display: flex; align-items: center; gap: 12px; }
+.mp-heart__id { min-width: 0; }
+.mp-heart__name { font-size: 19px; font-weight: 750; display: flex; align-items: center; gap: 7px; }
+.mp-heart__stage { font-size: 9.5px; font-weight: 600; color: #ffb3c8; border: 1px solid rgba(255,107,154,.35); background: rgba(255,107,154,.1); padding: 2px 7px; border-radius: 9px; }
+.mp-heart__summary { font-size: 10.5px; color: #b9a5b0; line-height: 1.5; margin-top: 3px; }
+.mp-heart__meter { margin-top: 14px; }
+.mp-heart__meterhead { display: flex; justify-content: space-between; font-size: 10px; color: #b9a5b0; margin-bottom: 5px; }
+.mp-heart__meterhead b { color: #ffb3c8; }
+.mp-heart__bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
+.mp-heart__bar i { display: block; height: 100%; background: linear-gradient(90deg, #ff6b9a, #ffb3c8); border-radius: 3px; }
+.mp-heart__section { margin-top: 16px; }
+.mp-heart__label { font-size: 10px; letter-spacing: 1px; color: #8f7a86; margin-bottom: 6px; }
+.mp-heart__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mp-heart__chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(255,107,154,.22); background: rgba(255,107,154,.07); color: #ffd9e4; border-radius: 12px; padding: 5px 9px; font-size: 10.5px; }
+.mp-heart__chip .mp-ic { width: 12px; height: 12px; color: #ff8fb4; }
+.mp-heart__chip.is-boundary { border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.05); color: #b9a5b0; }
+.mp-heart__chip.is-boundary .mp-ic { color: #8f7a86; }
+.mp-heart__list { display: flex; flex-direction: column; gap: 7px; }
+.mp-heart__wear { display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.05); border-radius: 12px; padding: 8px 10px; }
+.mp-heart__wear .mp-ic { width: 17px; height: 17px; color: #ff8fb4; flex: 0 0 auto; }
+.mp-heart__wear b { display: block; font-size: 11.5px; font-weight: 650; }
+.mp-heart__wear span { display: block; font-size: 9px; color: #8f7a86; margin-top: 1px; }
+.mp-heart__note { margin-top: 18px; font-size: 9.5px; line-height: 1.6; color: #8f7a86; }
+.mp-appicon__glyph.g-heart { background: linear-gradient(160deg, #ff9bb8, #e5386e 58%, #9e1c49); }
+.mp-as__icon.g-heart { background: linear-gradient(150deg, #ff9bb8, #e5386e); }
