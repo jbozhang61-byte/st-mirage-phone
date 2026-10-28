@@ -5,7 +5,7 @@
 import { generateText, storyContext, importantStoryContext, memoryContext, userName, findCharacter, setPhonePrompt, currentCharacter } from './st.js';
 import {
     getSettings, getData, findThread, appendMessages, ensureThread, addMoment, addNote, saveNow,
-    getCast, setCast, findPerson, setFeed,
+    getCast, setCast, findPerson, setFeed, getFeed,
 } from './store.js';
 import {
     chatSystemPrompt, chatUserPrompt, momentsSystemPrompt, momentsUserPrompt,
@@ -206,14 +206,14 @@ export async function runProactive({ force = false } = {}) {
 export function refreshInjection() {
     const settings = getSettings();
     const data = getData();
-    const text = phoneStateSummary({ threads: data.threads, user: userName() });
+    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: getFeed('heart')?.items || [] });
     setPhonePrompt(text, { depth: settings.inject.depth, enabled: settings.inject.enabled && !!text });
     return text;
 }
 
 export function previewInjection() {
     const data = getData();
-    return phoneStateSummary({ threads: data.threads, user: userName() });
+    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: getFeed('heart')?.items || [] });
 }
 
 /**

@@ -1,5 +1,5 @@
 /** 心：主要人物的关系、亲密偏好、穿着与边界。 */
-import { h, icon, avatar, toast } from '../render.js';
+import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getCast, getFeed, setFeed } from '../store.js';
 import { generateText, importantStoryContext, currentCharacter, userName } from '../st.js';
 import { extractJson } from '../prompts.js';
@@ -34,6 +34,7 @@ function seedFor(person, index) {
             accessories: ['没有特别的', '一条细链', '旧手表', '耳钉'][(hash >> 6) % 4],
         },
         style: ['干净、简单', '偏冷色', '舒服好动', '有点旧但合身'][(hash >> 2) % 4],
+        custom: [],
         boundaries: ['不喜欢被突然碰', '不喜欢当众亲密'],
     };
 }
@@ -76,7 +77,7 @@ export function mountHeart(host, { nav }) {
             const seed = seedFor(person, i);
             const item = cached?.find(entry => entry.name === person.name);
             if (!item) return seed;
-            return { ...seed, ...item, outfit: normalizeOutfit(item.outfit, seed) };
+            return { ...seed, ...item, outfit: normalizeOutfit(item.outfit, seed), custom: Array.isArray(item.custom) ? item.custom : [] };
         });
     }
 
@@ -128,6 +129,13 @@ export function mountHeart(host, { nav }) {
             ));
         wearRows.push(h('div', { class: 'mp-heart__wear is-style' }, icon('star'), h('div', {}, h('b', { text: person.style || '还没有记' }), h('span', { text: '喜欢的风格' }))));
         body.appendChild(section('今天穿着', wearRows, true));
+        const custom = Array.isArray(person.custom) ? person.custom : [];
+        const customChips = custom.map(tag => h('span', { class: 'mp-heart__chip is-custom' },
+            tag,
+            h('button', { type: 'button', class: 'mp-heart__chipdel', 'aria-label': '删除', onclick: event => { event.stopPropagation(); removeCustom(people, person, tag); } }, '×'),
+        ));
+        customChips.push(h('button', { type: 'button', class: 'mp-heart__chip is-add', onclick: () => addCustom(people, person) }, '+ 自定义'));
+        body.appendChild(section('自定义标签', customChips));
         if (person.boundaries?.length) body.appendChild(section('边界', person.boundaries.map(item => chip(item, 'lock'))));
         body.appendChild(h('div', { class: 'mp-heart__note', text: '角色均为成年人；这里只记录双方自愿的部分，不舒服就直接说。' }));
     }
@@ -141,6 +149,35 @@ export function mountHeart(host, { nav }) {
 
     function chip(text, iconName) {
         return h('span', { class: 'mp-heart__chip' + (iconName === 'lock' ? ' is-boundary' : '') }, icon(iconName), text);
+    }
+
+    function persistProfiles(people) {
+        setFeed('heart', people.map(person => ({ ...person })));
+    }
+
+    function addCustom(people, person) {
+        const input = h('input', { class: 'mp-input', type: 'text', placeholder: '例如：怕痒 / 喜欢被夸 / 锁骨' });
+        const dialog = sheet({
+            title: '添加自定义标签',
+            content: h('div', { class: 'mp-field-list' }, input),
+            actions: h('button', {
+                class: 'mp-btn primary small', type: 'button', text: '添加',
+                onclick: () => {
+                    const value = input.value.trim();
+                    if (!value) return;
+                    person.custom = [...new Set([...(person.custom || []), value.slice(0, 20)])];
+                    persistProfiles(people);
+                    dialog.close();
+                    render();
+                },
+            }),
+        });
+    }
+
+    function removeCustom(people, person, tag) {
+        person.custom = (person.custom || []).filter(item => item !== tag);
+        persistProfiles(people);
+        render();
     }
 
     async function refresh() {
@@ -162,6 +199,7 @@ export function mountHeart(host, { nav }) {
             const json = extractJson(raw);
             const people = Array.isArray(json?.people) ? json.people : [];
             if (!people.length) throw new Error('这次没有读出来');
+            const previous = getFeed('heart')?.items || [];
             setFeed('heart', people.map(item => ({
                 name: String(item.name || '').slice(0, 30),
                 stage: String(item.stage || '认识').slice(0, 12),
@@ -180,6 +218,7 @@ export function mountHeart(host, { nav }) {
                 } : { top: String(item.outfit || '').slice(0, 40) },
                 style: String(item.style || '').slice(0, 40),
                 boundaries: (Array.isArray(item.boundaries) ? item.boundaries : []).slice(0, 4).map(x => String(x).slice(0, 30)),
+                custom: previous.find(old => old.name === item.name)?.custom || [],
             })).filter(item => item.name));
             render();
             toast('更新好了');

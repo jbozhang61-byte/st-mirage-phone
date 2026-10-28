@@ -381,7 +381,7 @@ export function proactivePrompt({ thread, user, story }) {
 }
 
 /** 注入正文的手机状态摘要。 */
-export function phoneStateSummary({ threads, user, maxThreads = 5, maxMsgs = 4 }) {
+export function phoneStateSummary({ threads, user, hearts = [], maxThreads = 5, maxMsgs = 4 }) {
     const lines = [];
     const sorted = [...(threads || [])].filter(t => t.msgs?.length).sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, maxThreads);
     for (const thread of sorted) {
@@ -395,13 +395,35 @@ export function phoneStateSummary({ threads, user, maxThreads = 5, maxMsgs = 4 }
         }).join(' / ');
         lines.push('· 和「' + name + '」：' + body);
     }
-    if (!lines.length) return '';
-    return [
-        '【手机里的最近消息】',
-        '以下是你和「' + user + '」在手机上的聊天（发生在剧情里，你是知道的）：',
-        ...lines,
-        '如果剧情合适，可以自然地提到这些消息；不要逐条复述，也不要假装没看到。',
-    ].join('\n');
+    const parts = [];
+    if (lines.length) {
+        parts.push('【手机里的最近消息】');
+        parts.push('以下是你和「' + user + '」在手机上的聊天（发生在剧情里，你是知道的）：');
+        parts.push(...lines);
+        parts.push('如果剧情合适，可以自然地提到这些消息；不要逐条复述，也不要假装没看到。');
+    }
+    const heartLines = [];
+    for (const person of hearts.slice(0, 6)) {
+        if (!person?.name) continue;
+        const outfit = person.outfit && typeof person.outfit === 'object'
+            ? [person.outfit.top, person.outfit.bottom, person.outfit.stockings, person.outfit.shoes].filter(Boolean).join('/')
+            : String(person.outfit || '');
+        const fields = [
+            person.stage ? person.stage + (person.affection ? ' ' + person.affection + '%' : '') : '',
+            person.sensitive?.length ? '敏感：' + person.sensitive.join('、') : '',
+            person.likes?.length ? '喜欢：' + person.likes.join('、') : '',
+            person.custom?.length ? '自定义：' + person.custom.join('、') : '',
+            outfit ? '穿着：' + outfit : '',
+            person.boundaries?.length ? '边界：' + person.boundaries.join('、') : '',
+        ].filter(Boolean);
+        if (fields.length) heartLines.push('· ' + person.name + '：' + trim(fields.join('｜'), 220));
+    }
+    if (heartLines.length) {
+        parts.push('【你对这些人的了解（手机「心」里记录的，成年角色、双方自愿）】');
+        parts.push(...heartLines);
+        parts.push('聊到相关话题时可以自然带出，不要生硬复述。');
+    }
+    return parts.join('\n');
 }
 
 /** 带进剧情的一段话。 */

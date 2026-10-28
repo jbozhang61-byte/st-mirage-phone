@@ -1910,3 +1910,7 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-heart__wear b { font-size: 11.5px; font-weight: 600; }
 .mp-heart__wear.is-style { align-items: flex-start; }
 .mp-heart__wear.is-style .mp-ic { width: 16px; height: 16px; color: #ff8fb4; margin-top: 2px; }
+
+.mp-heart__chip.is-custom { padding-right: 4px; }
+.mp-heart__chipdel { border: 0; background: transparent; color: #ff8fb4; font-size: 13px; line-height: 1; padding: 0 2px; cursor: pointer; }
+.mp-heart__chip.is-add { border-style: dashed; background: transparent; color: #b9a5b0; cursor: pointer; font: inherit; font-size: 10.5px; }
