@@ -1976,3 +1976,21 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 @media (max-width: 760px) {
     .mp-island { width: 78px !important; margin-left: -47px !important; }
 }
+
+/* 鐏靛姩宀涙仮澶嶅師灏哄锛涙墜鏈虹涓嶅啀鏄剧ず鏀惰捣鎸夐挳锛岀敤鍙充笅瑙掓偓娴悆鏀惰捣 */
+.mp-island {
+    left: 50% !important;
+    width: 96px !important;
+    margin-left: -48px !important;
+    top: 11px !important;
+    height: 27px !important;
+}
+.mp-island.is-active {
+    top: 5px !important;
+    width: 250px !important;
+    margin-left: -125px !important;
+    height: 36px !important;
+}
+@media (max-width: 760px) {
+    .mp-status__collapse { display: none !important; }
+}
