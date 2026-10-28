@@ -6,6 +6,7 @@ import { generateExtra, friendlyError } from '../ai.js';
 import { EXTRA } from '../extra.js';
 import { feedContext } from './feed-common.js';
 import { openGroupCreate, generateMore } from '../groupgen.js';
+import { generateMailReply } from '../mailgen.js';
 import { userName, personaAvatarUrl } from '../st.js';
 
 
@@ -439,22 +440,82 @@ export function mountGmail(host, { nav }) {
     const { el, body, refresh } = shell('Gmail', 'is-gm', profileSheet);
     host.appendChild(el);
     const openMail = mail => {
-        sheet({
-            title: mail.subject,
-            content: h('div', { class: 'mp-gm__detail' },
-                h('div', { class: 'mp-gm__detail-from', text: mail.from + ' · ' + mail.time }),
-                h('div', { class: 'mp-gm__detail-body', text: (mail.body || mail.preview || '') + '\n\n' + '（这是一封来自这个世界的邮件。回复功能还在路上。）' }),
+        const screen = document.querySelector('.mp-screen');
+        if (!screen) return;
+        const chip = document.querySelector('.mp-backchip');
+        if (chip) chip.style.display = 'none';
+        const close = () => {
+            page.classList.add('is-closing');
+            setTimeout(() => { page.remove(); if (chip) chip.style.display = ''; }, 220);
+        };
+        const repliesEl = h('div', { class: 'mp-gm__replies' });
+        const drawReplies = () => {
+            repliesEl.innerHTML = '';
+            for (const reply of (mail.replies || [])) {
+                repliesEl.appendChild(h('div', { class: 'mp-gm__reply' + (reply.mine ? ' mine' : '') },
+                    h('div', { class: 'mp-gm__reply-from', text: reply.mine ? (userName() || '我') : (reply.from || mail.from) }),
+                    h('div', { class: 'mp-gm__reply-text', text: reply.text }),
+                ));
+            }
+            repliesEl.scrollTop = repliesEl.scrollHeight;
+        };
+        drawReplies();
+        const input = h('textarea', { class: 'mp-input', rows: '2', placeholder: '回复这封邮件…' });
+        const send = async () => {
+            const text = input.value.trim();
+            if (!text) return;
+            mail.replies = Array.isArray(mail.replies) ? mail.replies : [];
+            mail.replies.push({ from: userName() || '我', text, time: '刚刚', mine: true });
+            mail.preview = '你：' + text;
+            mail.time = '刚刚';
+            saveMail(mail);
+            input.value = '';
+            drawReplies();
+            const data = getFeed('gmail');
+            if (data) { data.emails = (data.emails || []).map(item => item === mail ? mail : item); saveNow('data'); }
+            const reply = await generateMailReply({ mail }).catch(() => '');
+            if (reply) {
+                mail.replies.push({ from: mail.from, text: reply, time: '刚刚', mine: false });
+                mail.preview = reply;
+                saveMail(mail);
+                drawReplies();
+            }
+        };
+        const page = h('div', { class: 'mp-gm-page' },
+            h('div', { class: 'mp-gm-page__bar' },
+                h('button', { type: 'button', class: 'mp-gm-page__back', onclick: close }, icon('back')),
+                h('div', { class: 'mp-gm-page__title', text: '邮件' }),
+                h('button', { type: 'button', class: 'mp-gm-page__back', onclick: close }, icon('close')),
             ),
-            actions: h('button', { class: 'mp-btn small', type: 'button', text: '回复', onclick: () => toast('回复功能还没接') }),
-        });
+            h('div', { class: 'mp-gm-page__scroll' },
+                h('div', { class: 'mp-gm-page__subject', text: mail.subject }),
+                h('div', { class: 'mp-gm-page__meta', text: mail.from + ' · ' + mail.time }),
+                h('div', { class: 'mp-gm-page__body', text: mail.body || mail.preview || '' }),
+                h('div', { class: 'mp-gm-page__divider', text: '回复' }),
+                repliesEl,
+            ),
+            h('div', { class: 'mp-gm-page__composer' }, input, h('button', { type: 'button', class: 'mp-btn primary small', text: '发送', onclick: send })),
+        );
+        screen.appendChild(page);
+        const data = getFeed('gmail');
+        if (data) data.emails = (data.emails || []).map(item => item === mail ? mail : item);
+        setTimeout(() => input.focus?.(), 220);
     };
+
+    function saveMail(mail) {
+        const data = getFeed('gmail');
+        if (!data) return;
+        data.emails = (data.emails || []).map(item => item === mail ? mail : item);
+        setFeed('gmail', data);
+        saveNow('data');
+    }
 
     const view = loader('gmail', data => {
         body.innerHTML = '';
         for (const mail of data.emails || []) {
-            body.appendChild(h('div', { class: 'mp-gm__row' },
+            body.appendChild(h('div', { class: 'mp-gm__row', onclick: () => openMail(mail) },
                 h('div', { class: 'mp-gm__from', text: (mail.from || '?').slice(0, 1) }),
-                h('div', { class: 'mp-gm__main', onclick: () => openMail(mail) },
+                h('div', { class: 'mp-gm__main' },
                     h('div', { class: 'mp-gm__line' }, h('b', { text: mail.from }), h('span', { class: 'mp-gm__time', text: mail.time })),
                     h('div', { class: 'mp-gm__subject', text: mail.subject }),
                     h('div', { class: 'mp-gm__preview', text: mail.preview }),
