@@ -139,6 +139,7 @@ function mountConversation(host, nav, threadId) {
     let typing = false;
     let pinBottom = true;
     let scrollLock = 0;
+    const burstTimers = [];
 
     // 兼容旧消息：把存成纯文本的 [s转账] / [红包] 重新解析成卡片
     (function migrateTags() {
@@ -495,8 +496,9 @@ function mountConversation(host, nav, threadId) {
             input.value = '';
             autoGrow();
             sendBtn.disabled = true;
-            scrollLock = Date.now() + 800;
+            scrollLock = Date.now() + 1600;
             scrollToBottom(false);
+            forceBottomBurst();
             await askReply();
         }
 
@@ -508,6 +510,7 @@ function mountConversation(host, nav, threadId) {
             renderMessages();
             scroll.scrollTop = scroll.scrollHeight;
             scrollToBottom(false);
+            forceBottomBurst();
             return msg;
         }
 
@@ -516,6 +519,7 @@ function mountConversation(host, nav, threadId) {
             pinBottom = true;
             generating = true;
             typing = true;
+            forceBottomBurst();
             sendBtn.disabled = true;
             renderMessages();
             try {
@@ -530,7 +534,8 @@ function mountConversation(host, nav, threadId) {
                 thread = findThread(thread.id) || thread;
                 markRead(threadId);
                 renderMessages();
-                scrollToBottom(true);
+                scrollToBottom(false);
+                forceBottomBurst();
                 sendBtn.disabled = !input.value.trim();
             }
         }
@@ -647,6 +652,20 @@ function mountConversation(host, nav, threadId) {
         return scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 120;
     }
 
+    function cancelBurst() {
+        while (burstTimers.length) clearTimeout(burstTimers.pop());
+    }
+
+    function forceBottomBurst() {
+        cancelBurst();
+        for (const delay of [0, 50, 150, 300, 600, 900, 1400]) {
+            burstTimers.push(setTimeout(() => {
+                scroll.scrollTop = scroll.scrollHeight;
+                scrollLock = Date.now() + 300;
+            }, delay));
+        }
+    }
+
     function scrollToBottom(smooth = false) {
         pinBottom = true;
         scrollLock = Date.now() + 600;
@@ -662,6 +681,8 @@ function mountConversation(host, nav, threadId) {
         if (!pinBottom && !typing && !generating) return;
         requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
     };
+    scroll.addEventListener('pointerdown', cancelBurst, { passive: true });
+    scroll.addEventListener('wheel', cancelBurst, { passive: true });
     scroll.addEventListener('scroll', () => {
         // 渲染清空、键盘重排引发的滚动事件不算“用户往上翻”
         if (Date.now() < scrollLock) return;
@@ -696,7 +717,9 @@ function mountConversation(host, nav, threadId) {
         markRead(threadId);
         pinBottom = true;
         renderMessages();
-        scrollToBottom(true);
+        pinBottom = true;
+        scrollToBottom(false);
+        forceBottomBurst();
         const tts = getSettings().tts;
         if (tts?.enabled && tts.auto) {
             const last = (detail.messages || [])[detail.messages.length - 1];
