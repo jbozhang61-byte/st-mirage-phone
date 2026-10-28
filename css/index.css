@@ -2045,3 +2045,5 @@ html.mp-phone-open #toast-container { display: none !important; }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .mp-appicon__glyph, .mp-status, .mp-home__dock, .mp-nav, .mp-fab { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
 }
+
+.mp-sg__bname { display: block; font-size: 8.5px; color: var(--mp-text-3); margin-bottom: 2px; font-weight: 600; }

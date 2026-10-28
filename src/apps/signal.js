@@ -2,6 +2,7 @@
 import { h, icon, avatar } from '../render.js';
 import { getCast, getFeed, setFeed } from '../store.js';
 import { characterAvatar } from '../st.js';
+import { openGroupCreate } from '../groupgen.js';
 
 export function mountSignal(host, { nav }) {
     const body = h('div', { class: 'mp-sg__body' });
@@ -9,6 +10,7 @@ export function mountSignal(host, { nav }) {
         h('div', { class: 'mp-nav' },
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
             h('div', { class: 'mp-nav__title' }, 'Signal', h('small', { text: '端到端加密' })),
+            h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '新建群组', onclick: () => createGroup() }, icon('plus')),
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '刷新', onclick: () => render() }, icon('refresh')),
         ),
         body,
@@ -34,6 +36,28 @@ export function mountSignal(host, { nav }) {
         }
         setFeed('signal', chats);
         return { chats };
+    }
+
+    function createGroup() {
+        openGroupCreate({
+            title: '新建群组', kind: 'signal',
+            onCreate: ({ name, style, data: generated }) => {
+                const data = load();
+                const messages = (generated.messages || []).slice(0, 10).map(message => ({
+                    name: String(message.author || message.name || '网友').slice(0, 24),
+                    text: String(message.text || '').slice(0, 240),
+                    mine: false,
+                }));
+                data.chats.unshift({
+                    id: 'sg-' + Date.now().toString(36), name, style, group: true,
+                    members: getCast().length + 1, unread: 0,
+                    preview: messages[messages.length - 1]?.text || '群组已创建',
+                    time: '刚刚', messages,
+                });
+                setFeed('signal', data.chats);
+                render();
+            },
+        });
     }
 
     function render() {
@@ -73,7 +97,10 @@ export function mountSignal(host, { nav }) {
         const list = h('div', { class: 'mp-sg__msgs' });
         const draw = () => {
             list.innerHTML = '';
-            for (const line of messages) list.appendChild(h('div', { class: 'mp-sg__bubble' + (line.mine ? ' mine' : ''), text: line.text }));
+            for (const line of messages) list.appendChild(h('div', { class: 'mp-sg__bubble' + (line.mine ? ' mine' : '') },
+                line.name && !line.mine ? h('span', { class: 'mp-sg__bname', text: line.name }) : null,
+                line.text,
+            ));
             list.scrollTop = list.scrollHeight;
         };
         draw();
