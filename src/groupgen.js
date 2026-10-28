@@ -5,7 +5,7 @@ import { getCast } from './store.js';
 import { extractJson } from './prompts.js';
 
 function storyText() {
-    return importantStoryContext(20, 340).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
+    return importantStoryContext(40, 340).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
 }
 
 function fallback(kind, name, style) {
