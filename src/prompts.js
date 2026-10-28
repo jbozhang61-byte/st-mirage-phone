@@ -405,13 +405,13 @@ export function phoneStateSummary({ threads, user, hearts = [], selfProfile = nu
     const parts = [];
     if (lines.length) {
         parts.push('【手机里的最近消息】');
-        parts.push('以下是你和「' + user + '」在手机上的聊天（发生在剧情里，你是知道的）：');
+        parts.push('以下只是手机聊天里已经发生的事实（发生在剧情里，你是知道的）：');
         parts.push(...lines);
-        parts.push('如果剧情合适，可以自然地提到这些消息；不要逐条复述，也不要假装没看到。');
+        parts.push('把聊天内容当作已经发生的事来理解，可以自然体现；但正文里不要引用、复述或粘贴聊天原文，不要写「手机里说」「聊天记录」之类的话，也不要出现聊天界面。');
     }
     if (extras.length) {
-        parts.push('【手机里其他软件的最近聊天】');
-        parts.push('以下同样是剧情里发生过的，生成正文时可以自然参考，不要逐条复述：');
+        parts.push('【手机聊天里已经发生的事实】');
+        parts.push('以下同样是剧情里发生过的事，只提取事实（谁做了什么、约定了什么），不要让正文出现聊天原文、聊天记录或「手机里说」之类表述：');
         parts.push(...extras);
     }
     const heartLines = [];
