@@ -20,7 +20,15 @@ function seedFor(person, index) {
         summary: person.desc || person.relation || '在这个世界和你认识的人。',
         likes: [likes[hash % likes.length], likes[(hash + 2) % likes.length]],
         sensitive: [sensitive[hash % sensitive.length], sensitive[(hash + 3) % sensitive.length]],
-        outfit: ['旧夹克', '针织衫', '深色衬衫', '长外套'][hash % 4],
+        outfit: {
+            top: ['旧夹克', '针织衫', '深色衬衫', '长外套'][hash % 4],
+            bottom: ['深色长裤', '半身裙', '牛仔裤', '工装裤'][(hash >> 1) % 4],
+            underwearTop: ['白色棉质内衣', '黑色无痕内衣', '浅灰运动内衣'][(hash >> 2) % 3],
+            underwearBottom: ['白色棉质内裤', '黑色无痕内裤', '浅灰平角内裤'][(hash >> 3) % 3],
+            stockings: ['没有穿', '黑色连裤袜', '深灰短袜', '白色中筒袜'][(hash >> 4) % 4],
+            shoes: ['旧皮靴', '白色运动鞋', '黑色乐福鞋', '帆布鞋'][(hash >> 5) % 4],
+            accessories: ['没有特别的', '一条细链', '旧手表', '耳钉'][(hash >> 6) % 4],
+        },
         style: ['干净、简单', '偏冷色', '舒服好动', '有点旧但合身'][(hash >> 2) % 4],
         boundaries: ['不喜欢被突然碰', '不喜欢当众亲密'],
     };
@@ -40,13 +48,32 @@ export function mountHeart(host, { nav }) {
     let selected = 0;
     let busy = false;
 
+    const OUTFIT_FIELDS = [
+        ['top', '上衣'], ['bottom', '下装'], ['underwearTop', '内衣'],
+        ['underwearBottom', '内裤'], ['stockings', '丝袜'], ['shoes', '鞋子'], ['accessories', '配饰'],
+    ];
+
+    function normalizeOutfit(outfit, fallback) {
+        if (outfit && typeof outfit === 'object') {
+            const merged = {};
+            for (const [key] of OUTFIT_FIELDS) merged[key] = String(outfit[key] || fallback.outfit[key] || '').slice(0, 40);
+            return merged;
+        }
+        if (typeof outfit === 'string' && outfit.trim()) {
+            return { ...fallback.outfit, top: outfit.trim().slice(0, 40) };
+        }
+        return { ...fallback.outfit };
+    }
+
     function load() {
         const cached = getFeed('heart')?.items;
         const cast = getCast();
-        if (cached?.length) {
-            return cast.map((person, i) => cached.find(item => item.name === person.name) || seedFor(person, i));
-        }
-        return cast.map(seedFor);
+        return cast.map((person, i) => {
+            const seed = seedFor(person, i);
+            const item = cached?.find(entry => entry.name === person.name);
+            if (!item) return seed;
+            return { ...seed, ...item, outfit: normalizeOutfit(item.outfit, seed) };
+        });
     }
 
     function render() {
@@ -89,10 +116,14 @@ export function mountHeart(host, { nav }) {
 
         body.appendChild(section('喜欢怎样靠近', (person.likes || []).map(item => chip(item, 'heart'))));
         body.appendChild(section('敏感的地方', (person.sensitive || []).map(item => chip(item, 'sparkle'))));
-        body.appendChild(section('今天穿着', [
-            h('div', { class: 'mp-heart__wear' }, icon('user'), h('div', {}, h('b', { text: person.outfit || '还没有记' }), h('span', { text: '现在身上' }))),
-            h('div', { class: 'mp-heart__wear' }, icon('star'), h('div', {}, h('b', { text: person.style || '还没有记' }), h('span', { text: '喜欢的风格' }))),
-        ], true));
+        const wearRows = OUTFIT_FIELDS
+            .filter(([key]) => person.outfit?.[key])
+            .map(([key, label]) => h('div', { class: 'mp-heart__wear' },
+                h('span', { class: 'mp-heart__wearlabel', text: label }),
+                h('b', { text: person.outfit[key] }),
+            ));
+        wearRows.push(h('div', { class: 'mp-heart__wear is-style' }, icon('star'), h('div', {}, h('b', { text: person.style || '还没有记' }), h('span', { text: '喜欢的风格' }))));
+        body.appendChild(section('今天穿着', wearRows, true));
         if (person.boundaries?.length) body.appendChild(section('边界', person.boundaries.map(item => chip(item, 'lock'))));
         body.appendChild(h('div', { class: 'mp-heart__note', text: '这里只记录双方都愿意的部分；不舒服就直接说。' }));
     }
@@ -134,7 +165,15 @@ export function mountHeart(host, { nav }) {
                 summary: String(item.summary || '').slice(0, 120),
                 likes: (Array.isArray(item.likes) ? item.likes : []).slice(0, 6).map(x => String(x).slice(0, 12)),
                 sensitive: (Array.isArray(item.sensitive) ? item.sensitive : []).slice(0, 6).map(x => String(x).slice(0, 12)),
-                outfit: String(item.outfit || '').slice(0, 40),
+                outfit: (item.outfit && typeof item.outfit === 'object') ? {
+                    top: String(item.outfit.top || '').slice(0, 40),
+                    bottom: String(item.outfit.bottom || '').slice(0, 40),
+                    underwearTop: String(item.outfit.underwearTop || '').slice(0, 40),
+                    underwearBottom: String(item.outfit.underwearBottom || '').slice(0, 40),
+                    stockings: String(item.outfit.stockings || '').slice(0, 40),
+                    shoes: String(item.outfit.shoes || '').slice(0, 40),
+                    accessories: String(item.outfit.accessories || '').slice(0, 40),
+                } : { top: String(item.outfit || '').slice(0, 40) },
                 style: String(item.style || '').slice(0, 40),
                 boundaries: (Array.isArray(item.boundaries) ? item.boundaries : []).slice(0, 4).map(x => String(x).slice(0, 30)),
             })).filter(item => item.name));

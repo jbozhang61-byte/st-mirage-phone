@@ -1904,3 +1904,9 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-heart__note { margin-top: 18px; font-size: 9.5px; line-height: 1.6; color: #8f7a86; }
 .mp-appicon__glyph.g-heart { background: linear-gradient(160deg, #ff9bb8, #e5386e 58%, #9e1c49); }
 .mp-as__icon.g-heart { background: linear-gradient(150deg, #ff9bb8, #e5386e); }
+
+.mp-heart__wear { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.05); border-radius: 12px; padding: 8px 10px; }
+.mp-heart__wearlabel { flex: 0 0 44px; font-size: 9.5px; color: #8f7a86; letter-spacing: .4px; }
+.mp-heart__wear b { font-size: 11.5px; font-weight: 600; }
+.mp-heart__wear.is-style { align-items: flex-start; }
+.mp-heart__wear.is-style .mp-ic { width: 16px; height: 16px; color: #ff8fb4; margin-top: 2px; }
