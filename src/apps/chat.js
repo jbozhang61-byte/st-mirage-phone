@@ -186,6 +186,8 @@ function mountConversation(host, nav, threadId) {
 
     function renderMessages() {
         const atBottom = isNearBottom();
+        const prevTop = scroll.scrollTop;
+        const prevHeight = scroll.scrollHeight;
         scroll.innerHTML = '';
         let lastName = '';
         let lastName2 = '';
@@ -210,7 +212,13 @@ function mountConversation(host, nav, threadId) {
         if (all.length === 0) {
             scroll.appendChild(starterBlock());
         }
-        if (typing || generating || atBottom || all.length < 2) scrollToBottom(false);
+        const keepBottom = typing || generating || atBottom || pinBottom || all.length < 2;
+        if (keepBottom) {
+            scroll.scrollTop = scroll.scrollHeight;
+            requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
+        } else if (prevHeight > 0) {
+            scroll.scrollTop = Math.max(0, prevTop + (scroll.scrollHeight - prevHeight));
+        }
         renderHead();
     }
 
