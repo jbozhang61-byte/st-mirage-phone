@@ -137,6 +137,7 @@ function mountConversation(host, nav, threadId) {
     }
     let generating = isBusy(threadId);
     let typing = false;
+    let pinBottom = true;
 
     // 兼容旧消息：把存成纯文本的 [s转账] / [红包] 重新解析成卡片
     (function migrateTags() {
@@ -488,6 +489,7 @@ function mountConversation(host, nav, threadId) {
         async function send() {
             const text = input.value.trim();
             if (!text || generating) return;
+            pinBottom = true;
             sendMe({ type: 'text', text });
             input.value = '';
             autoGrow();
@@ -497,6 +499,7 @@ function mountConversation(host, nav, threadId) {
         }
 
         function sendMe(payload) {
+            pinBottom = true;
             const msg = { id: uid(), from: 'me', type: payload.type || 'text', text: payload.text || '', meta: payload.meta || {}, ts: Date.now() };
             appendMessages(thread.id, msg);
             haptic(6);
@@ -508,6 +511,7 @@ function mountConversation(host, nav, threadId) {
 
         async function askReply() {
             if (generating) return;
+            pinBottom = true;
             generating = true;
             typing = true;
             sendBtn.disabled = true;
@@ -642,6 +646,7 @@ function mountConversation(host, nav, threadId) {
     }
 
     function scrollToBottom(smooth = false) {
+        pinBottom = true;
         const jump = () => { scroll.scrollTop = scroll.scrollHeight; };
         requestAnimationFrame(() => {
             if (smooth) scroll.scrollTo({ top: scroll.scrollHeight, behavior: 'smooth' });
@@ -649,6 +654,22 @@ function mountConversation(host, nav, threadId) {
             requestAnimationFrame(jump);
         });
     }
+
+    const pinNow = () => {
+        if (!pinBottom && !typing && !generating) return;
+        requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
+    };
+    scroll.addEventListener('scroll', () => {
+        pinBottom = isNearBottom();
+    }, { passive: true });
+    const contentObserver = typeof MutationObserver === 'function'
+        ? new MutationObserver(() => pinNow())
+        : null;
+    contentObserver?.observe(scroll, { childList: true });
+    const resizeObserver = typeof ResizeObserver === 'function'
+        ? new ResizeObserver(() => pinNow())
+        : null;
+    resizeObserver?.observe(scroll);
 
     function askReply() {
         return composer.askReply();
@@ -668,6 +689,7 @@ function mountConversation(host, nav, threadId) {
         if (detail.threadId !== threadId) return;
         thread = findThread(threadId) || thread;
         markRead(threadId);
+        pinBottom = true;
         renderMessages();
         scrollToBottom(true);
         const tts = getSettings().tts;
@@ -699,6 +721,8 @@ function mountConversation(host, nav, threadId) {
             renderMessages();
         },
         destroy() {
+            contentObserver?.disconnect();
+            resizeObserver?.disconnect();
             globalThis.visualViewport?.removeEventListener('resize', onViewportChange);
             aiEvents.removeEventListener('typing', onTyping);
             aiEvents.removeEventListener('reply', onReply);
