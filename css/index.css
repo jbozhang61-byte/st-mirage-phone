@@ -2073,3 +2073,8 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-gm__reply-text { font-size: 11.5px; line-height: 1.65; white-space: pre-wrap; }
 .mp-gm-page__composer { display: flex; align-items: flex-end; gap: 8px; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); border-top: 1px solid var(--mp-line); }
 .mp-gm-page__composer .mp-input { flex: 1 1 auto; resize: none; }
+
+.mp-gm-page { top: 44px !important; }
+@media (max-width: 760px) {
+    .mp-gm-page { top: calc(44px + env(safe-area-inset-top, 0px)) !important; }
+}

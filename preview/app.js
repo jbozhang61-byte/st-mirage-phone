@@ -187,3 +187,4 @@ if (query.get('dragtest') === '1') setTimeout(async () => {
     document.body.dataset.dragtest = err || 'done';
 }, 1200);
 if (query.get('tiebadetail') === '1') setTimeout(() => document.querySelector('.mp-tb__post')?.click(), 1800);
+if (query.get('gmailopen') === '1') setTimeout(() => document.querySelector('.mp-gm__row')?.click(), 1400);
