@@ -64,6 +64,7 @@ export function defaultSettings() {
         image: { enabled: false, provider: 'openai', endpoint: '', apiKey: '', model: 'gpt-image-1', size: '1024x1024' },
         inject: { enabled: true, depth: 2 },
         proactive: { enabled: false, cooldown: 120, perHour: 4, rounds: 1 },
+        tts: { enabled: false, auto: false, rate: 1, voice: '' },
         ai: {
             useMain: true, baseUrl: '', apiKey: '', model: '', commentStyle: '真实网友', length: 320, style: DEFAULT_STYLE },
         replyInGroup: true,
@@ -98,6 +99,9 @@ export function normalizeSettings(raw) {
     s.proactive.cooldown = clamp(Math.round(Number(s.proactive.cooldown) || 0), 30, 3600);
     s.proactive.perHour = clamp(Math.round(Number(s.proactive.perHour) || 0), 1, 20);
     s.proactive.rounds = clamp(Math.round(Number(s.proactive.rounds) || 1), 1, 20);
+    s.tts = s.tts && typeof s.tts === 'object' ? s.tts : { enabled: false, auto: false, rate: 1, voice: '' };
+    s.tts.rate = Math.max(0.5, Math.min(2, Number(s.tts.rate) || 1));
+    s.tts.voice = String(s.tts.voice || '').slice(0, 80);
     s.ai.length = clamp(Math.round(Number(s.ai.length) || 320), 120, 1200);
     if (typeof s.ai.style !== 'string' || !s.ai.style.trim()) s.ai.style = DEFAULT_STYLE;
     s.ai.style = s.ai.style.slice(0, 4000);

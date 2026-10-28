@@ -8,6 +8,7 @@ import { storeImage } from '../images.js';
 import { previewInjection } from '../ai.js';
 import { isNarrow } from '../st.js';
 import { generateImage } from '../imagegen.js';
+import { ttsVoices, ttsSupported } from '../tts.js';
 
 export function mountSettings(host, { nav }) {
     const body = h('div', { class: 'mp-body' });
@@ -152,9 +153,9 @@ export function mountSettings(host, { nav }) {
         wrap.appendChild(section('AI 配图', [
             row({ icon: 'image', label: '启用', hint: '用你自己的生图接口给抖音/Ins 配图；没配就用程序化照片' },
                 toggle(settings.image?.enabled, value => { patchImage({ enabled: value }); })),
-            settings.image?.enabled ? row({ icon: 'globe', label: '接口形态', hint: 'OpenAI 兼容或 SD WebUI' },
-                choices([['openai', 'OpenAI'], ['sd', 'SD WebUI']], settings.image?.provider || 'openai', value => patchImage({ provider: value }))) : null,
-            settings.image?.enabled ? row({ icon: 'link', label: '接口地址', hint: 'OpenAI: …/v1　SD: http://127.0.0.1:7860' },
+            settings.image?.enabled ? row({ icon: 'globe', label: '接口形态', hint: 'OpenAI / SD WebUI / ComfyUI' },
+                choices([['openai', 'OpenAI'], ['sd', 'SD WebUI'], ['comfyui', 'ComfyUI']], settings.image?.provider || 'openai', value => patchImage({ provider: value }))) : null,
+            settings.image?.enabled ? row({ icon: 'link', label: '接口地址', hint: 'OpenAI: …/v1　SD: :7860　ComfyUI: :8188' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'text', value: settings.image?.endpoint || '', placeholder: 'https://…',
                     onchange: event => patchImage({ endpoint: event.target.value.trim() }),
@@ -172,6 +173,17 @@ export function mountSettings(host, { nav }) {
                         patchImage({ model: model || 'gpt-image-1', size: size || '1024x1024' });
                     },
                 }))) : null,
+            settings.image?.enabled && (settings.image?.provider || 'openai') === 'comfyui' ? row({ icon: 'grid', label: '模型文件名', hint: 'ComfyUI 的 CheckpointLoaderSimple 里填的 ckpt 名' },
+                h('div', { class: 'mp-field' }, h('input', {
+                    type: 'text', value: settings.image?.comfyCheckpoint || '', placeholder: 'sd_xl_base_1.0.safetensors',
+                    onchange: event => patchImage({ comfyCheckpoint: event.target.value.trim() }),
+                }))) : null,
+            settings.image?.enabled && (settings.image?.provider || 'openai') === 'comfyui' ? row({ icon: 'edit', label: '工作流 JSON', hint: '可选；留空用内置文生图工作流，支持 {{prompt}} / {{negative}} 占位' },
+                h('div', { class: 'mp-field' }, h('textarea', {
+                    class: 'mp-input', rows: '4', placeholder: '{ "3": { "class_type": "KSampler", ... } }',
+                    value: settings.image?.comfyWorkflow || '',
+                    onchange: event => patchImage({ comfyWorkflow: event.target.value }),
+                }))) : null,
             settings.image?.enabled ? row({ icon: 'refresh', label: '测试接口', hint: '生成一张测试图，成功会提示' },
                 h('button', {
                     class: 'mp-btn small', type: 'button', text: '生成一张',
@@ -183,6 +195,25 @@ export function mountSettings(host, { nav }) {
                         } catch (error) { toast(String(error?.message || '生成失败'), 3200); }
                     },
                 })) : null,
+        ]));
+
+        /* ---------------- 语音 ---------------- */
+        const voices = ttsVoices();
+        wrap.appendChild(section('语音朗读', [
+            row({ icon: 'volume', label: '启用 TTS', hint: ttsSupported() ? '用系统语音朗读手机消息' : '当前浏览器不支持语音合成' },
+                toggle(settings.tts?.enabled, value => patchTTS({ enabled: value }))),
+            settings.tts?.enabled ? row({ icon: 'bell', label: '自动朗读', hint: '手机收到新回复时自动读出来' },
+                toggle(settings.tts?.auto, value => patchTTS({ auto: value }))) : null,
+            settings.tts?.enabled ? row({ icon: 'music', label: '语速', hint: '0.6 慢 – 1.6 快' },
+                slider(0.6, 1.6, 0.1, Number(settings.tts?.rate) || 1, v => Number(v).toFixed(1) + '×', value => patchTTS({ rate: Number(value) }))) : null,
+            settings.tts?.enabled ? row({ icon: 'user', label: '声音', hint: voices.length ? '系统里可用的语音' : '系统没有返回语音包' },
+                h('select', {
+                    class: 'text_pole',
+                    onchange: event => patchTTS({ voice: event.target.value }),
+                }, h('option', { value: '', text: '系统默认' }), ...voices.map(voice => h('option', {
+                    value: voice.name, selected: settings.tts?.voice === voice.name,
+                    text: voice.name + (voice.lang ? ' · ' + voice.lang : ''),
+                })))) : null,
         ]));
 
         /* ---------------- 数据 ---------------- */
@@ -218,6 +249,13 @@ export function mountSettings(host, { nav }) {
     function patchAI(patch) {
         const current = getSettings();
         current.ai = { ...(current.ai || {}), ...patch };
+        saveNow('settings');
+        render();
+    }
+
+    function patchTTS(patch) {
+        const current = getSettings();
+        current.tts = { ...(current.tts || {}), ...patch };
         saveNow('settings');
         render();
     }

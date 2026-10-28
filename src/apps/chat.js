@@ -2,11 +2,12 @@
  * 消息：会话列表 + 对话。手机里最重要的一页。
  */
 import { h, icon, avatar, timeText, dayText, sheet, confirmSheet, toast, haptic, hashOf } from '../render.js';
-import { getData, findThread, appendMessages, markRead, removeThread, saveNow, uid } from '../store.js';
+import { getData, getSettings, findThread, appendMessages, markRead, removeThread, saveNow, uid } from '../store.js';
 import { characterAvatar, personaAvatarUrl, userName, setOneShot } from '../st.js';
 import { findPerson } from '../store.js';
 import { replyToThread, isBusy, aiEvents, quoteForBring, friendlyError } from '../ai.js';
 import { storeImage, resolveImage } from '../images.js';
+import { speak, stopTts } from '../tts.js';
 
 const EMOJIS = ['😊', '😂', '🥺', '😭', '😳', '😴', '😡', '🫂', '🌙', '☀️', '🌸', '🍰', '☕', '🎧', '💤', '❤️'];
 
@@ -213,6 +214,11 @@ function mountConversation(host, nav, threadId) {
             return h('div', { class: 'mp-time-mark', text: msg.text });
         }
         const inner = bubbleContent(msg);
+        const canRead = !mine && msg.text && ['text', 'voice'].includes(msg.type) && getSettings().tts?.enabled;
+        const ttsButton = canRead ? h('button', {
+            type: 'button', class: 'mp-msg__tts', 'aria-label': '朗读',
+            onclick: event => { event.stopPropagation(); speak(msg.text, { rate: getSettings().tts?.rate }); },
+        }, icon('volume')) : null;
         const row = h('div', { class: 'mp-msg' + (mine ? ' me' : '') + (msg.state === 'failed' ? ' is-failed' : '') + (showAvatar ? '' : ' is-tail') },
             showAvatar
                 ? avatar({ name: mine ? userName() : msg.sender || thread.members[0], src: mine ? personaAvatarUrl() : characterAvatar(msg.sender || thread.members[0]), size: 30 })
@@ -220,6 +226,7 @@ function mountConversation(host, nav, threadId) {
             h('div', { class: 'mp-msg__col' },
                 showName && !mine ? h('div', { class: 'mp-msg__sender', text: msg.sender || thread.members[0] }) : null,
                 inner,
+                ttsButton,
             ),
         );
         row.addEventListener('contextmenu', event => {
@@ -642,6 +649,11 @@ function mountConversation(host, nav, threadId) {
         markRead(threadId);
         renderMessages();
         scrollToBottom(true);
+        const tts = getSettings().tts;
+        if (tts?.enabled && tts.auto) {
+            const last = (detail.messages || [])[detail.messages.length - 1];
+            if (last?.text) speak(last.text, { rate: tts.rate });
+        }
     };
     aiEvents.addEventListener('typing', onTyping);
     aiEvents.addEventListener('reply', onReply);
@@ -664,6 +676,7 @@ function mountConversation(host, nav, threadId) {
         destroy() {
             aiEvents.removeEventListener('typing', onTyping);
             aiEvents.removeEventListener('reply', onReply);
+            stopTts();
         },
     };
 }

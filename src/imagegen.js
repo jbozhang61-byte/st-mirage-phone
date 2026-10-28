@@ -27,6 +27,9 @@ export async function generateImage(prompt) {
     const config = imageConfig();
     if (!config.enabled || !config.endpoint) throw new Error('还没有配置生图接口');
     const endpoint = config.endpoint.replace(/\/$/, '');
+    if (config.provider === 'comfyui') {
+        return generateComfy(endpoint, config, prompt);
+    }
     if (config.provider === 'sd') {
         const response = await fetch(endpoint + '/sdapi/v1/txt2img', {
             method: 'POST',
@@ -51,6 +54,67 @@ export async function generateImage(prompt) {
     if (item.b64_json) return 'data:image/png;base64,' + item.b64_json;
     if (item.url) return item.url;
     throw new Error('生图接口返回格式不对');
+}
+
+function fillComfy(node, prompt, negative) {
+    if (typeof node === 'string') return node.split('{{prompt}}').join(prompt).split('{{negative}}').join(negative);
+    if (Array.isArray(node)) return node.map(item => fillComfy(item, prompt, negative));
+    if (node && typeof node === 'object') {
+        const out = {};
+        for (const [key, value] of Object.entries(node)) out[key] = fillComfy(value, prompt, negative);
+        return out;
+    }
+    return node;
+}
+
+function comfyWorkflow(config, prompt, negative) {
+    if (config.comfyWorkflow && String(config.comfyWorkflow).trim()) {
+        let parsed;
+        try { parsed = JSON.parse(config.comfyWorkflow); } catch { throw new Error('ComfyUI 工作流不是合法 JSON'); }
+        return fillComfy(parsed, prompt, negative);
+    }
+    const checkpoint = config.comfyCheckpoint || 'sd_xl_base_1.0.safetensors';
+    return {
+        '3': { class_type: 'KSampler', inputs: { seed: Math.floor(Math.random() * 1000000000), steps: 24, cfg: 6, sampler_name: 'euler', scheduler: 'normal', denoise: 1, model: ['4', 0], positive: ['6', 0], negative: ['7', 0], latent_image: ['5', 0] } },
+        '4': { class_type: 'CheckpointLoaderSimple', inputs: { ckpt_name: checkpoint } },
+        '5': { class_type: 'EmptyLatentImage', inputs: { width: 768, height: 1024, batch_size: 1 } },
+        '6': { class_type: 'CLIPTextEncode', inputs: { text: prompt, clip: ['4', 1] } },
+        '7': { class_type: 'CLIPTextEncode', inputs: { text: negative || 'low quality, blurry, text, watermark', clip: ['4', 1] } },
+        '8': { class_type: 'VAEDecode', inputs: { samples: ['3', 0], vae: ['4', 2] } },
+        '9': { class_type: 'SaveImage', inputs: { filename_prefix: 'mirage', images: ['8', 0] } },
+    };
+}
+
+async function generateComfy(endpoint, config, prompt) {
+    const clientId = 'mirage-' + Date.now().toString(36);
+    const workflow = comfyWorkflow(config, prompt, 'low quality, blurry, text, watermark');
+    const response = await fetch(endpoint + '/prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: workflow, client_id: clientId }),
+    });
+    if (!response.ok) throw new Error('ComfyUI 返回 ' + response.status);
+    const queued = await response.json();
+    const id = queued?.prompt_id;
+    if (!id) throw new Error('ComfyUI 没有返回任务 id');
+    const deadline = Date.now() + 90000;
+    while (Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        const historyResponse = await fetch(endpoint + '/history/' + encodeURIComponent(id));
+        if (!historyResponse.ok) continue;
+        const history = await historyResponse.json();
+        const entry = history?.[id];
+        if (!entry) continue;
+        if (entry.status?.status_str === 'error') throw new Error('ComfyUI 生成失败');
+        const outputs = entry.outputs || {};
+        for (const output of Object.values(outputs)) {
+            const image = output?.images?.[0];
+            if (!image?.filename) continue;
+            const params = new URLSearchParams({ filename: image.filename, subfolder: image.subfolder || '', type: image.type || 'output' });
+            return endpoint + '/view?' + params.toString();
+        }
+    }
+    throw new Error('ComfyUI 生成超时');
 }
 
 /** 给前 N 张内容生成配图；一张一张来，避免打爆接口。 */

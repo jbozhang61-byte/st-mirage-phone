@@ -2018,3 +2018,8 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 /* 鎸夊疄闄呮墜鏈鸿瀵燂紝鐏靛姩宀涙暣浣撳悜鍙冲井璋?*/
 .mp-island { left: calc(50% + 6px) !important; }
 .mp-island.is-active { left: calc(50% + 6px) !important; }
+
+.mp-msg__tts { border: 0; background: transparent; color: var(--mp-text-3); width: 22px; height: 22px; display: grid; place-items: center; margin-top: 2px; padding: 0; cursor: pointer; opacity: .55; }
+.mp-msg__tts:active { opacity: 1; transform: scale(.92); }
+.mp-msg__tts .mp-ic { width: 13px; height: 13px; }
+.mp-msg.me .mp-msg__tts { display: none; }
