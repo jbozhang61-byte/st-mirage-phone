@@ -11,15 +11,15 @@ function seedFor(person, index) {
     let hash = 0;
     for (const ch of text) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
     const stage = STAGES[Math.min(STAGES.length - 1, 1 + (hash % 4))];
-    const likes = ['拥抱', '接吻', '牵手', '靠肩', '摸头', '耳语'];
-    const sensitive = ['耳后', '颈侧', '手腕', '腰侧', '后背', '膝盖'];
+    const likes = ['拥抱', '接吻', '深吻', '牵手', '靠肩', '摸头', '耳语', '轻咬', '抚摸', '贴着睡'];
+    const sensitive = ['耳后', '颈侧', '锁骨', '胸口', '腰侧', '小腹', '大腿内侧', '私处', '后背', '膝盖'];
     return {
         name: person.name,
         stage,
         affection: 35 + (hash % 60),
         summary: person.desc || person.relation || '在这个世界和你认识的人。',
-        likes: [likes[hash % likes.length], likes[(hash + 2) % likes.length]],
-        sensitive: [sensitive[hash % sensitive.length], sensitive[(hash + 3) % sensitive.length]],
+        likes: [likes[hash % likes.length], likes[(hash + 2) % likes.length], likes[(hash + 4) % likes.length]],
+        sensitive: [sensitive[hash % sensitive.length], sensitive[(hash + 3) % sensitive.length], sensitive[(hash + 6) % sensitive.length]],
         outfit: {
             top: ['旧夹克', '针织衫', '深色衬衫', '长外套'][hash % 4],
             bottom: ['深色长裤', '半身裙', '牛仔裤', '工装裤'][(hash >> 1) % 4],
@@ -125,7 +125,7 @@ export function mountHeart(host, { nav }) {
         wearRows.push(h('div', { class: 'mp-heart__wear is-style' }, icon('star'), h('div', {}, h('b', { text: person.style || '还没有记' }), h('span', { text: '喜欢的风格' }))));
         body.appendChild(section('今天穿着', wearRows, true));
         if (person.boundaries?.length) body.appendChild(section('边界', person.boundaries.map(item => chip(item, 'lock'))));
-        body.appendChild(h('div', { class: 'mp-heart__note', text: '这里只记录双方都愿意的部分；不舒服就直接说。' }));
+        body.appendChild(h('div', { class: 'mp-heart__note', text: '角色均为成年人；这里只记录双方自愿的部分，不舒服就直接说。' }));
     }
 
     function section(title, children, plain = false) {
@@ -163,8 +163,8 @@ export function mountHeart(host, { nav }) {
                 stage: String(item.stage || '认识').slice(0, 12),
                 affection: Math.max(0, Math.min(100, Number(item.affection) || 50)),
                 summary: String(item.summary || '').slice(0, 120),
-                likes: (Array.isArray(item.likes) ? item.likes : []).slice(0, 6).map(x => String(x).slice(0, 12)),
-                sensitive: (Array.isArray(item.sensitive) ? item.sensitive : []).slice(0, 6).map(x => String(x).slice(0, 12)),
+                likes: (Array.isArray(item.likes) ? item.likes : []).slice(0, 8).map(x => String(x).slice(0, 12)),
+                sensitive: (Array.isArray(item.sensitive) ? item.sensitive : []).slice(0, 8).map(x => String(x).slice(0, 12)),
                 outfit: (item.outfit && typeof item.outfit === 'object') ? {
                     top: String(item.outfit.top || '').slice(0, 40),
                     bottom: String(item.outfit.bottom || '').slice(0, 40),
