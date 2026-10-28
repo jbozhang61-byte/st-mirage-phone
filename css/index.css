@@ -1936,3 +1936,6 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-worldapp__chip { display: inline-block; border: 1px solid rgba(95,208,192,.2); background: rgba(95,208,192,.07); color: #b9e8df; border-radius: 11px; padding: 5px 9px; font-size: 10.5px; }
 .mp-appicon__glyph.g-world { background: linear-gradient(160deg, #4fb9c9, #1d6d7c 58%, #0e424e); }
 .mp-as__icon.g-world { background: linear-gradient(150deg, #4fb9c9, #1d6d7c); }
+
+.mp-worldapp .mp-st-hint { font-size: 11px; line-height: 1.7; color: #8fb3ba; margin: 10px 2px; }
+.mp-worldapp .mp-heart__note { color: #6f8a91; }
