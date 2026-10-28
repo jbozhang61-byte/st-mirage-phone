@@ -1939,3 +1939,6 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 
 .mp-worldapp .mp-st-hint { font-size: 11px; line-height: 1.7; color: #8fb3ba; margin: 10px 2px; }
 .mp-worldapp .mp-heart__note { color: #6f8a91; }
+
+.mp-device { touch-action: pan-x pan-y !important; }
+.mp-heart__picker, .mp-as__cats, .mp-quick, .mp-soc__stories { touch-action: pan-x; }
