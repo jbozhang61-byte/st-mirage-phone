@@ -24,10 +24,20 @@ function showBootError(message) {
 }
 
 window.addEventListener('error', event => {
-    if (String(event.filename || '').includes('st-mirage-phone')) showBootError(event.message || '未知错误');
+    const file = String(event.filename || '');
+    const stack = String(event.error?.stack || '');
+    if (!file.includes('st-mirage-phone') && !stack.includes('st-mirage-phone')) return;
+    showBootError(event.message || '未知错误');
 });
 window.addEventListener('unhandledrejection', event => {
-    const text = String(event.reason?.message || event.reason || '');
+    const reason = event.reason;
+    const text = String(reason?.message || reason || '');
+    const stack = String(reason?.stack || '');
+    // 只报告来自本扩展的错误；别的扩展 / 酒馆内部的异常不要显示成「幻镜手机出错」
+    if (!stack.includes('st-mirage-phone')) {
+        console.warn('[幻镜手机] 忽略外部异常', reason);
+        return;
+    }
     if (text) showBootError(text);
 });
 
