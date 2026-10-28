@@ -138,6 +138,7 @@ function mountConversation(host, nav, threadId) {
     let generating = isBusy(threadId);
     let typing = false;
     let pinBottom = true;
+    let scrollLock = 0;
 
     // 兼容旧消息：把存成纯文本的 [s转账] / [红包] 重新解析成卡片
     (function migrateTags() {
@@ -494,6 +495,7 @@ function mountConversation(host, nav, threadId) {
             input.value = '';
             autoGrow();
             sendBtn.disabled = true;
+            scrollLock = Date.now() + 800;
             scrollToBottom(false);
             await askReply();
         }
@@ -647,7 +649,8 @@ function mountConversation(host, nav, threadId) {
 
     function scrollToBottom(smooth = false) {
         pinBottom = true;
-        const jump = () => { scroll.scrollTop = scroll.scrollHeight; };
+        scrollLock = Date.now() + 600;
+        const jump = () => { scroll.scrollTop = scroll.scrollHeight; scrollLock = Date.now() + 600; };
         requestAnimationFrame(() => {
             if (smooth) scroll.scrollTo({ top: scroll.scrollHeight, behavior: 'smooth' });
             else jump();
@@ -660,6 +663,8 @@ function mountConversation(host, nav, threadId) {
         requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
     };
     scroll.addEventListener('scroll', () => {
+        // 渲染清空、键盘重排引发的滚动事件不算“用户往上翻”
+        if (Date.now() < scrollLock) return;
         pinBottom = isNearBottom();
     }, { passive: true });
     const contentObserver = typeof MutationObserver === 'function'
