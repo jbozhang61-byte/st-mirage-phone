@@ -7,6 +7,7 @@ import { characterAvatar, personaAvatarUrl, userName, setOneShot } from '../st.j
 import { findPerson } from '../store.js';
 import { replyToThread, isBusy, aiEvents, quoteForBring, friendlyError } from '../ai.js';
 import { storeImage, resolveImage } from '../images.js';
+import { parseLine } from '../prompts.js';
 import { speak, stopTts } from '../tts.js';
 
 const EMOJIS = ['😊', '😂', '🥺', '😭', '😳', '😴', '😡', '🫂', '🌙', '☀️', '🌸', '🍰', '☕', '🎧', '💤', '❤️'];
@@ -136,6 +137,21 @@ function mountConversation(host, nav, threadId) {
     }
     let generating = isBusy(threadId);
     let typing = false;
+
+    // 兼容旧消息：把存成纯文本的 [s转账] / [红包] 重新解析成卡片
+    (function migrateTags() {
+        let changed = false;
+        for (const msg of thread.msgs || []) {
+            if (msg.type !== 'text' || !/^[\[【]/.test(String(msg.text || ''))) continue;
+            const parsed = parseLine(msg.text);
+            if (!parsed || parsed.type === 'text') continue;
+            msg.type = parsed.type;
+            msg.text = parsed.text;
+            msg.meta = { ...(msg.meta || {}), ...(parsed.meta || {}) };
+            changed = true;
+        }
+        if (changed) saveNow('data');
+    })();
 
     const el = h('div', { class: 'mp-conv' });
     const bg = h('div', { class: 'mp-conv__bg' });
