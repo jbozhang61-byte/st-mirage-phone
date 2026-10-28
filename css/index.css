@@ -1994,3 +1994,9 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 @media (max-width: 760px) {
     .mp-status__collapse { display: none !important; }
 }
+
+/* 鐘舵€佹爮鍙充晶涓や釜鎸夐挳鍏ㄩ儴闅愯棌锛屾敹璧锋墜鏈虹敤鎮诞鐞?*/
+.mp-status__collapse,
+.mp-status__float,
+.mp-status__collapse *,
+.mp-status__float * { display: none !important; }
