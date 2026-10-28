@@ -364,12 +364,14 @@ export function momentsUserPrompt({ count = 4, recent = [] }) {
     return hints + '生成 ' + count + ' 条新的朋友圈动态，作者从好友里选，尽量不同的人。';
 }
 
-export function commentSystemPrompt({ contacts, user }) {
+export function commentSystemPrompt({ contacts, user, memory = [] }) {
+    const memoryText = (memory || []).map(item => String(item.text || '').slice(0, 500)).filter(Boolean).join('\n');
     return [
         '你在为一个故事世界里的朋友圈生成互动。好友：' + contacts.join('、') + '。',
         '「' + user + '」刚发了一条动态，好友们会点赞、评论。评论要短、口语、符合各自人设，可以互相接话，也可以开玩笑。',
+        memoryText ? '记住的长线剧情 / 摘要：\n' + memoryText : '',
         '只输出 JSON：{"likes":["名字"],"comments":[{"by":"名字","text":"评论"}]}',
-    ].join('\n');
+    ].filter(Boolean).join('\n');
 }
 
 export function commentUserPrompt({ text, user }) {

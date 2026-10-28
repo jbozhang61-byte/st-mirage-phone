@@ -147,7 +147,7 @@ export async function commentOnMoment(momentId) {
     if (!moment) throw new Error('找不到这条动态');
     const contacts = allContactCandidates().filter(n => n !== moment.author);
     if (!contacts.length) return { likes: [], comments: [] };
-    const system = commentSystemPrompt({ contacts, user: moment.author });
+    const system = commentSystemPrompt({ contacts, user: moment.author, memory: memoryContext(10) });
     const prompt = commentUserPrompt({ text: moment.text, user: moment.author });
     const raw = await generateText({ system, prompt, length: 220 });
     const json = extractJson(raw) || {};
