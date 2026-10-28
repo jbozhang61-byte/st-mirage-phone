@@ -396,12 +396,14 @@ function applyLayout() {
         // 平板 / 桌面软键盘：把悬浮窗整体贴到键盘上沿，并按可见高度缩放
         const scale = Math.max(0.38, Math.min(1.12, (vpGlobal.width - 20) / 384, (vpGlobal.height - 20) / 812, Number(settings.scale) || 0.86));
         shellEl.classList.add('mp-keyboard');
+        document.documentElement.classList.add('mp-keyboard-open');
         shellEl.style.setProperty('--mp-scale', String(scale));
         const h = 812 * scale;
         paintFloat(scale, { x: 0, y: (vpGlobal.height - h) / 2 - 8 });
         return;
     }
     shellEl.classList.remove('mp-keyboard');
+    document.documentElement.classList.remove('mp-keyboard-open');
     if (narrow) {
         const vp = vpGlobal;
         if (keyboardOpen) {
