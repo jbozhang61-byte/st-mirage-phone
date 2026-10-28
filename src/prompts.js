@@ -4,7 +4,7 @@
  * 这里全部是纯函数，方便单独测试。
  */
 
-const TAG_RE = /^[\[【]\s*(图片|照片|语音|红包|转账|位置|表情|video|语音通话|通话)[^\]】]*[\]】]\s*([\s\S]*)$/;
+const TAG_RE = /^[\[【]\s*(图片|照片|语音|红包|s?转账|转帐|位置|表情|video|语音通话|通话)[^\]】]*[\]】]\s*([\s\S]*)$/;
 const NAME_RE = /^\s*(?:\*\*)?([^：:\n]{1,24}?)(?:\*\*)?\s*[：:]\s*([\s\S]+)$/;
 
 export function trim(text, max) {
@@ -56,7 +56,8 @@ export function parseLine(line) {
 
     const tag = raw.match(TAG_RE);
     if (tag) {
-        const kind = tag[1];
+        let kind = tag[1];
+        if (kind === 's转账' || kind === 's转帐' || kind === '转帐') kind = '转账';
         const rest = tag[2].trim();
         const inside = raw.match(/^[\[【]([^\]】]*)[\]】]/)?.[1] || '';
         if (kind === '图片' || kind === '照片') return { type: 'photo', text: stripQuotes(rest) || '一张照片', meta: { caption: stripQuotes(rest) } };
