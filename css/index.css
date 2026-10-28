@@ -1947,3 +1947,13 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-heart__picker::-webkit-scrollbar { display: none; }
 
 .mp-heart__picker { touch-action: none !important; }
+
+/* 鐏靛姩宀涘缁堢暀鍦ㄧ姸鎬佹爮鍐咃紝灞曞紑涔熶笉鍘嬪埌搴旂敤鏍囬/杩斿洖閿?*/
+.mp-island { top: 9px !important; height: 26px !important; }
+.mp-island.is-active {
+    top: 4px !important;
+    height: 34px !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 18px rgba(0,0,0,.35) !important;
+}
+.mp-island.is-active .mp-island__inner { max-height: 34px; }
