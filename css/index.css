@@ -1961,3 +1961,18 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-status__right { transition: opacity .2s ease; }
 .mp-status.is-dim .mp-status__right { opacity: 0; pointer-events: none; }
 .mp-island.is-active { max-width: calc(100% - 150px); }
+
+/* 鐏靛姩宀涚缉绐勫苟鐣ュ悜宸︼紝缁欏彸渚х姸鎬佹寜閽暀鍑虹┖闂?*/
+.mp-island {
+    left: calc(50% - 8px) !important;
+    width: 84px !important;
+    margin-left: -50px !important;
+}
+.mp-island.is-active {
+    left: 50% !important;
+    width: 250px !important;
+    margin-left: -125px !important;
+}
+@media (max-width: 760px) {
+    .mp-island { width: 78px !important; margin-left: -47px !important; }
+}
