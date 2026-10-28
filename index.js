@@ -10,16 +10,21 @@ import { ACCENTS } from './src/state.js';
 import { createPhone, openPhone, refreshTheme } from './src/phone.js';
 import { aiEvents, runProactive, refreshInjection, isBusy } from './src/ai.js';
 
+let bootErrorTimer = 0;
 function showBootError(message) {
     try {
         let box = document.getElementById('mp-boot-error');
         if (!box) {
             box = document.createElement('div');
             box.id = 'mp-boot-error';
-            box.style.cssText = 'position:fixed;left:12px;top:12px;z-index:2147483000;max-width:420px;background:#7a1f2b;color:#fff;font:12px/1.5 system-ui;padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px #0007;white-space:pre-wrap;';
+            box.style.cssText = 'position:fixed;left:12px;top:12px;z-index:2147483000;max-width:420px;background:#7a1f2b;color:#fff;font:12px/1.5 system-ui;padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px #0007;white-space:pre-wrap;cursor:pointer;';
+            box.title = '点击关闭';
+            box.addEventListener('click', () => box.remove());
             document.body.appendChild(box);
         }
         box.textContent = '幻镜手机出错：' + message;
+        clearTimeout(bootErrorTimer);
+        bootErrorTimer = setTimeout(() => { try { box.remove(); } catch { /* ignore */ } }, 6000);
     } catch { /* ignore */ }
 }
 
