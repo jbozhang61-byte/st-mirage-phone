@@ -191,7 +191,7 @@ function mountConversation(host, nav, threadId) {
         if (all.length === 0) {
             scroll.appendChild(starterBlock());
         }
-        if (atBottom || all.length < 2) scrollToBottom(false);
+        if (typing || generating || atBottom || all.length < 2) scrollToBottom(false);
         renderHead();
     }
 
@@ -476,6 +476,7 @@ function mountConversation(host, nav, threadId) {
             input.value = '';
             autoGrow();
             sendBtn.disabled = true;
+            scrollToBottom(false);
             await askReply();
         }
 
@@ -484,7 +485,8 @@ function mountConversation(host, nav, threadId) {
             appendMessages(thread.id, msg);
             haptic(6);
             renderMessages();
-            scrollToBottom(true);
+            scroll.scrollTop = scroll.scrollHeight;
+            scrollToBottom(false);
             return msg;
         }
 
@@ -624,8 +626,11 @@ function mountConversation(host, nav, threadId) {
     }
 
     function scrollToBottom(smooth = false) {
+        const jump = () => { scroll.scrollTop = scroll.scrollHeight; };
         requestAnimationFrame(() => {
-            scroll.scrollTo({ top: scroll.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+            if (smooth) scroll.scrollTo({ top: scroll.scrollHeight, behavior: 'smooth' });
+            else jump();
+            requestAnimationFrame(jump);
         });
     }
 
@@ -655,6 +660,10 @@ function mountConversation(host, nav, threadId) {
             if (last?.text) speak(last.text, { rate: tts.rate });
         }
     };
+    const onViewportChange = () => {
+        if (typing || generating || isNearBottom()) scrollToBottom(false);
+    };
+    globalThis.visualViewport?.addEventListener('resize', onViewportChange, { passive: true });
     aiEvents.addEventListener('typing', onTyping);
     aiEvents.addEventListener('reply', onReply);
 
@@ -674,6 +683,7 @@ function mountConversation(host, nav, threadId) {
             renderMessages();
         },
         destroy() {
+            globalThis.visualViewport?.removeEventListener('resize', onViewportChange);
             aiEvents.removeEventListener('typing', onTyping);
             aiEvents.removeEventListener('reply', onReply);
             stopTts();
