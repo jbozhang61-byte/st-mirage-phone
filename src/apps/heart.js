@@ -1,7 +1,7 @@
 /** 心：主要人物的关系、亲密偏好、穿着与边界。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getCast, getFeed, setFeed } from '../store.js';
-import { generateText, importantStoryContext, currentCharacter, userName } from '../st.js';
+import { generateText, importantStoryContext, currentCharacter, personaDescription, userName } from '../st.js';
 import { extractJson } from '../prompts.js';
 
 const STAGES = ['陌生', '认识', '互有好感', '暧昧', '恋人', '伴侣'];
@@ -52,6 +52,7 @@ export function mountHeart(host, { nav }) {
     host.appendChild(el);
     let selected = 0;
     let busy = false;
+    let selfMode = false;
 
     const OUTFIT_FIELDS = [
         ['top', '上衣'], ['bottom', '下装'], ['underwearTop', '内衣'],
@@ -95,13 +96,22 @@ export function mountHeart(host, { nav }) {
         }
         if (selected >= people.length) selected = 0;
         const picker = h('div', { class: 'mp-heart__picker' });
+        picker.appendChild(h('button', {
+            type: 'button', class: 'mp-heart__pick' + (selfMode ? ' on' : ''),
+            onclick: () => { selfMode = true; render(); },
+        }, avatar({ name: userName() || '我', size: 42 }), h('span', { text: '我' })));
         people.forEach((person, index) => {
             picker.appendChild(h('button', {
-                type: 'button', class: 'mp-heart__pick' + (index === selected ? ' on' : ''),
-                onclick: () => { selected = index; render(); },
+                type: 'button', class: 'mp-heart__pick' + (!selfMode && index === selected ? ' on' : ''),
+                onclick: () => { selected = index; selfMode = false; render(); },
             }, avatar({ name: person.name, size: 42 }), h('span', { text: person.name })));
         });
         body.appendChild(picker);
+
+        if (selfMode) {
+            renderSelf();
+            return;
+        }
 
         const person = people[selected];
         const pct = Math.max(0, Math.min(100, Number(person.affection) || 0));
@@ -149,6 +159,91 @@ export function mountHeart(host, { nav }) {
 
     function chip(text, iconName) {
         return h('span', { class: 'mp-heart__chip' + (iconName === 'lock' ? ' is-boundary' : '') }, icon(iconName), text);
+    }
+
+    function selfProfile() {
+        const data = getData();
+        if (!data.heartSelf || typeof data.heartSelf !== 'object') {
+            data.heartSelf = {
+                appearance: '', personality: personaDescription().trim().slice(0, 300),
+                body: '', family: '', likes: [], dislikes: [], custom: [],
+            };
+        }
+        return data.heartSelf;
+    }
+
+    function renderSelf() {
+        const me = selfProfile();
+        const edit = h('button', { type: 'button', class: 'mp-heart__edit', onclick: () => editSelf() }, icon('edit'), '编辑');
+        body.appendChild(h('div', { class: 'mp-heart__card' },
+            h('div', { class: 'mp-heart__top' },
+                avatar({ name: userName() || '我', size: 56 }),
+                h('div', { class: 'mp-heart__id' },
+                    h('div', { class: 'mp-heart__name' }, userName() || '我', h('span', { class: 'mp-heart__stage', text: '我自己' })),
+                    h('div', { class: 'mp-heart__summary', text: me.personality || '在酒馆人设里写下你自己。' }),
+                ),
+            ),
+            h('div', { class: 'mp-heart__selfedit' }, edit),
+        ));
+        const lines = [
+            ['颜值', me.appearance],
+            ['性格', me.personality],
+            ['身体', me.body],
+            ['家世', me.family],
+        ].filter(([, value]) => value);
+        for (const [label, value] of lines) {
+            body.appendChild(h('div', { class: 'mp-heart__selfrow' }, h('span', { text: label }), h('div', { text: value })));
+        }
+        for (const [label, list] of [['喜爱', me.likes], ['厌恶', me.dislikes], ['自定义', me.custom]]) {
+            if (!Array.isArray(list) || !list.length) continue;
+            body.appendChild(section(label, list.map(item => chip(item, label === '厌恶' ? 'lock' : 'heart'))));
+        }
+        if (!lines.length && !me.likes?.length) {
+            body.appendChild(h('div', { class: 'mp-st-hint', text: '点「编辑」写下你的样子、性格、身体、家世和喜恶。' }));
+        }
+        body.appendChild(h('div', { class: 'mp-heart__note', text: '这部分只用于酒馆生成时参考，不会写进正文。' }));
+    }
+
+    function editSelf() {
+        const me = selfProfile();
+        const appearance = h('input', { class: 'mp-input', type: 'text', value: me.appearance || '', placeholder: '例如：清秀、偏冷、笑起来很软' });
+        const personality = h('textarea', { class: 'mp-input', rows: '3', placeholder: '性格、说话方式' });
+        personality.value = me.personality || '';
+        const bodyText = h('textarea', { class: 'mp-input', rows: '2', placeholder: '身高、体型、身上的特征' });
+        bodyText.value = me.body || '';
+        const family = h('input', { class: 'mp-input', type: 'text', value: me.family || '', placeholder: '家世、住在哪里、做什么' });
+        const likes = h('input', { class: 'mp-input', type: 'text', value: (me.likes || []).join('、'), placeholder: '用顿号或逗号分隔' });
+        const dislikes = h('input', { class: 'mp-input', type: 'text', value: (me.dislikes || []).join('、'), placeholder: '用顿号或逗号分隔' });
+        const custom = h('input', { class: 'mp-input', type: 'text', value: (me.custom || []).join('、'), placeholder: '自定义标签' });
+        const split = value => String(value || '').split(/[、,，\s]+/).map(item => item.trim()).filter(Boolean).slice(0, 12);
+        const dialog = sheet({
+            title: '编辑我自己',
+            content: h('div', { class: 'mp-field-list' },
+                h('div', {}, h('label', { text: '颜值' }), appearance),
+                h('div', {}, h('label', { text: '性格' }), personality),
+                h('div', {}, h('label', { text: '身体' }), bodyText),
+                h('div', {}, h('label', { text: '家世' }), family),
+                h('div', {}, h('label', { text: '喜爱' }), likes),
+                h('div', {}, h('label', { text: '厌恶' }), dislikes),
+                h('div', {}, h('label', { text: '自定义' }), custom),
+            ),
+            actions: h('button', {
+                class: 'mp-btn primary small', type: 'button', text: '保存',
+                onclick: () => {
+                    const data = getData();
+                    data.heartSelf = {
+                        appearance: appearance.value.trim().slice(0, 80),
+                        personality: personality.value.trim().slice(0, 300),
+                        body: bodyText.value.trim().slice(0, 200),
+                        family: family.value.trim().slice(0, 120),
+                        likes: split(likes.value), dislikes: split(dislikes.value), custom: split(custom.value),
+                    };
+                    saveNow('data');
+                    dialog.close();
+                    render();
+                },
+            }),
+        });
     }
 
     function persistProfiles(people) {
