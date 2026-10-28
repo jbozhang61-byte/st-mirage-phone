@@ -3,6 +3,7 @@
  */
 import { h, icon, avatar, toast } from '../render.js';
 import { loadFeed, refreshFeed, num, moodOf } from './feed-common.js';
+import { openPostPage } from './postpage.js';
 
 export function mountXhs(host, { nav }) {
     nav.setChrome?.('light');
