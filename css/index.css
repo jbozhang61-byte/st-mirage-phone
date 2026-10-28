@@ -2014,3 +2014,7 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
     height: 36px !important;
 }
 .mp-island.is-active .mp-island__text { max-width: 190px; font-size: 11.5px; }
+
+/* 鎸夊疄闄呮墜鏈鸿瀵燂紝鐏靛姩宀涙暣浣撳悜鍙冲井璋?*/
+.mp-island { left: calc(50% + 6px) !important; }
+.mp-island.is-active { left: calc(50% + 6px) !important; }
