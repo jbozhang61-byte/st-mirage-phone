@@ -92,7 +92,7 @@ export function mountDiscord(host, { nav }) {
         main.appendChild(h('div', { class: 'mp-dc__server' },
             h('span', { class: 'mp-dc__hash', text: '#' }), server.name,
             h('button', { type: 'button', class: 'mp-dc__addch', text: '+ 频道', onclick: () => addChannel(data, server) }),
-            h('span', { class: 'mp-dc__members', text: (server.channels?.length || 0) + ' 个频道' }),
+            h('span', { class: 'mp-dc__members', text: (server.channels?.length || 0) + ' 个频道' + (server.style ? ' · ' + server.style : '') }),
         ));
         (server.channels || []).forEach((item, index) => {
             main.appendChild(h('div', {
@@ -290,7 +290,7 @@ export function mountTelegram(host, { nav }) {
         const page = h('div', { class: 'mp-tg-page' },
             h('div', { class: 'mp-tg-page__bar' },
                 h('button', { type: 'button', class: 'mp-tg-page__back', onclick: close }, icon('back')),
-                h('div', { class: 'mp-tg-page__title', text: chat.name + (chat.group ? ' · ' + (chat.members || 0) + ' 人' : '') }),
+                h('div', { class: 'mp-tg-page__title', text: chat.name + (chat.group ? ' · ' + (chat.members || 0) + ' 人' : '') + (chat.style ? ' · ' + chat.style : '') }),
             ),
             h('div', { class: 'mp-tg-page__scroll' }, list),
             h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: send }, '发送')),

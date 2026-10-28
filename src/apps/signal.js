@@ -121,7 +121,7 @@ export function mountSignal(host, { nav }) {
         const page = h('div', { class: 'mp-sg-page' },
             h('div', { class: 'mp-sg-page__bar' },
                 h('button', { type: 'button', class: 'mp-sg-page__back', onclick: close }, icon('back')),
-                h('div', {}, h('div', { class: 'mp-sg-page__title', text: chat.name }), h('div', { class: 'mp-sg-page__sub', text: '端到端加密' })),
+                h('div', {}, h('div', { class: 'mp-sg-page__title', text: chat.name }), h('div', { class: 'mp-sg-page__sub', text: chat.group ? '端到端加密 · ' + (chat.style || '群组') : '端到端加密' })),
             ),
             h('div', { class: 'mp-sg-page__scroll' }, list),
             h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: send }, '发送')),
