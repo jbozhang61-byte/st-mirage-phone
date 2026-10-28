@@ -1945,3 +1945,5 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 
 .mp-heart__picker { touch-action: pan-x !important; overflow-x: auto !important; scrollbar-width: none; }
 .mp-heart__picker::-webkit-scrollbar { display: none; }
+
+.mp-heart__picker { touch-action: none !important; }
