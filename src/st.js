@@ -521,7 +521,10 @@ export function fillInput(text) {
  */
 export function isNarrow() {
     try {
-        return !!globalThis.matchMedia?.('(max-width: 760px)')?.matches;
+        const width = globalThis.innerWidth || 0;
+        const height = globalThis.innerHeight || 0;
+        // 竖屏手机：按宽度；横屏手机：按高度（平板横屏通常高度 > 520，不受影响）
+        return width <= 760 || (height <= 520 && width <= 940);
     } catch {
         return false;
     }

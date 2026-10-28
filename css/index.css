@@ -1853,3 +1853,20 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 
 .mp-conv .mp-time-mark { display: none !important; }
 .mp-screen.is-chatting .mp-status__time { opacity: 0 !important; }
+
+@media (max-height: 520px) and (max-width: 940px) {
+    .mp-shell:not(.is-closed) {
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100dvh !important;
+        transform: none !important;
+    }
+    .mp-shell:not(.is-closed) .mp-device {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+    }
+    .mp-shell .mp-screen { border-radius: 0 !important; }
+}

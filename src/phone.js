@@ -390,9 +390,20 @@ function applyLayout() {
     const narrow = isNarrow();
     if (narrow) document.documentElement.classList.remove('mp-mobile-float');
     const floating = document.documentElement.classList.contains('mp-mobile-float');
+    const vpGlobal = viewportMetrics();
+    const keyboardOpen = phoneInputFocused && vpGlobal.height < window.innerHeight - 100;
+    if (keyboardOpen && !narrow) {
+        // 平板 / 桌面软键盘：把悬浮窗整体贴到键盘上沿，并按可见高度缩放
+        const scale = Math.max(0.38, Math.min(1.12, (vpGlobal.width - 20) / 384, (vpGlobal.height - 20) / 812, Number(settings.scale) || 0.86));
+        shellEl.classList.add('mp-keyboard');
+        shellEl.style.setProperty('--mp-scale', String(scale));
+        const h = 812 * scale;
+        paintFloat(scale, { x: 0, y: (vpGlobal.height - h) / 2 - 8 });
+        return;
+    }
+    shellEl.classList.remove('mp-keyboard');
     if (narrow) {
-        const vp = viewportMetrics();
-        const keyboardOpen = phoneInputFocused && vp.height < window.innerHeight - 100;
+        const vp = vpGlobal;
         if (keyboardOpen) {
             // 键盘模式：手机变成键盘上方的整块面板，内容重新排版，不缩放、不裁切
             shellEl.classList.add('mp-keyboard');
@@ -416,7 +427,6 @@ function applyLayout() {
             if (screen) screen.style.setProperty('border-radius', '0', 'important');
             return;
         }
-        shellEl.classList.remove('mp-keyboard');
         document.documentElement.classList.remove('mp-keyboard-open');
         const deviceEl = shellEl.querySelector('.mp-device');
         if (deviceEl) {
