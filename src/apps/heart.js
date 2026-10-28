@@ -1,6 +1,6 @@
 /** 心：主要人物的关系、亲密偏好、穿着与边界。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
-import { getCast, getFeed, setFeed } from '../store.js';
+import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
 import { generateText, importantStoryContext, currentCharacter, personaDescription, userName } from '../st.js';
 import { extractJson } from '../prompts.js';
 
