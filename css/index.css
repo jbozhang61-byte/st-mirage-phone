@@ -1957,3 +1957,7 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
     box-shadow: 0 4px 18px rgba(0,0,0,.35) !important;
 }
 .mp-island.is-active .mp-island__inner { max-height: 34px; }
+
+.mp-status__right { transition: opacity .2s ease; }
+.mp-status.is-dim .mp-status__right { opacity: 0; pointer-events: none; }
+.mp-island.is-active { max-width: calc(100% - 150px); }

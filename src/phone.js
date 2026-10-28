@@ -928,6 +928,7 @@ export function islandShow({ text = '', avatarSrc = '', typing = false } = {}) {
     refs.islandText = h('span', { class: 'mp-island__text', text });
     refs.islandInner.appendChild(refs.islandText);
     islandEl.classList.add('is-active');
+    screenEl?.querySelector('.mp-status')?.classList.add('is-dim');
     islandEl.classList.toggle('is-typing', typing);
     if (!typing) islandTimer = setTimeout(() => islandHide(), 3200);
 }
@@ -936,6 +937,7 @@ export function islandHide() {
     if (!islandEl) return;
     clearTimeout(islandTimer);
     islandEl.classList.remove('is-active', 'is-typing');
+    screenEl?.querySelector('.mp-status')?.classList.remove('is-dim');
     setTimeout(() => { if (!islandEl.classList.contains('is-active')) refs.islandInner.innerHTML = ''; }, 300);
 }
 
