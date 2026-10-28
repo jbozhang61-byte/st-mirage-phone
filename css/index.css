@@ -2000,3 +2000,17 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-status__float,
 .mp-status__collapse *,
 .mp-status__float * { display: none !important; }
+
+/* 鐏靛姩宀涘湪 44px 鐘舵€佹爮鍐呭瀭鐩村眳涓?*/
+.mp-island {
+    top: 8px !important;
+    left: 50% !important;
+    margin-left: -48px !important;
+}
+.mp-island.is-active {
+    top: 4px !important;
+    left: 50% !important;
+    margin-left: -125px !important;
+    height: 36px !important;
+}
+.mp-island.is-active .mp-island__text { max-width: 190px; font-size: 11.5px; }
