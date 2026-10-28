@@ -203,17 +203,28 @@ export async function runProactive({ force = false } = {}) {
 }
 
 /** 把手机里的消息摘要注入正文。 */
+function relevantHearts(data) {
+    const all = getFeed('heart')?.items || [];
+    if (!all.length) return [];
+    const recent = storyContext(8, 320).map(line => line.text).join(' ');
+    const threads = (data.threads || []).slice(0, 4).flatMap(thread => thread.members || []);
+    const active = all.filter(person => person.name && (recent.includes(person.name) || threads.includes(person.name)));
+    if (active.length) return active.slice(0, 4);
+    // 最近剧情没提到任何人时，只带上好感最高的两个人，避免无关注入
+    return [...all].sort((a, b) => (Number(b.affection) || 0) - (Number(a.affection) || 0)).slice(0, 2);
+}
+
 export function refreshInjection() {
     const settings = getSettings();
     const data = getData();
-    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: getFeed('heart')?.items || [] });
+    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data) });
     setPhonePrompt(text, { depth: settings.inject.depth, enabled: settings.inject.enabled && !!text });
     return text;
 }
 
 export function previewInjection() {
     const data = getData();
-    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: getFeed('heart')?.items || [] });
+    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data) });
 }
 
 /**
