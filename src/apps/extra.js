@@ -1,7 +1,7 @@
 /** Discord / Telegram / Spotify / Gmail：打开先显示兜底内容，再让模型按世界生成。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { createMusicPlayer } from '../audio.js';
-import { getData, getCast, getFeed } from '../store.js';
+import { getData, getCast, getFeed, setFeed } from '../store.js';
 import { generateExtra, friendlyError } from '../ai.js';
 import { EXTRA } from '../extra.js';
 import { feedContext } from './feed-common.js';

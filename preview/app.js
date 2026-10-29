@@ -187,19 +187,3 @@ if (query.get('dragtest') === '1') setTimeout(async () => {
     document.body.dataset.dragtest = err || 'done';
 }, 1200);
 if (query.get('tiebadetail') === '1') setTimeout(() => document.querySelector('.mp-tb__post')?.click(), 1800);
-if (query.get('tgcreate') === '1') setTimeout(() => {
-  document.querySelector('.mp-tg__add')?.click();
-  setTimeout(() => {
-    const inputs = [...document.querySelectorAll('input.mp-input')];
-    if (inputs[0]) inputs[0].value = '测试群';
-    if (inputs[1]) inputs[1].value = '学生';
-    const btn = document.querySelector('.mp-sheet-head .mp-btn.primary');
-    btn?.click();
-    setTimeout(() => {
-      const pre = document.createElement('pre');
-      pre.id = 'mp-debug';
-      pre.textContent = 'BTN=' + !!btn + '|SHEET=' + (document.querySelector('.mp-sheet-title')?.textContent || '-') + '|TOAST=' + ([...document.querySelectorAll('.mp-toast, .toast')].map(x => x.textContent).join('~') || '-') + '|CHATS=' + [...document.querySelectorAll('.mp-tg__chat b')].map(x => x.textContent).join(',');
-      document.body.appendChild(pre);
-    }, 4000);
-  }, 500);
-}, 1200);

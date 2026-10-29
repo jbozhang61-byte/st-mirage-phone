@@ -106,9 +106,10 @@ export function openGroupCreate({ title = '新建群组', kind = 'telegram', onC
         ),
         actions: button,
     });
-    button.addEventListener('click', async () => {
+    const submit = async () => {
         const value = name.value.trim();
-        if (!value || button.disabled) return;
+        if (!value || button.dataset.busy === '1') return;
+        button.dataset.busy = '1';
         button.disabled = true;
         button.textContent = '生成中…';
         try {
@@ -125,11 +126,16 @@ export function openGroupCreate({ title = '新建群组', kind = 'telegram', onC
             dialog.close();
             toast('已创建');
         } catch (error) {
-            toast(String(error?.message || '创建失败'), 3000);
+            const message = String(error?.message || '创建失败');
+            console.warn('[幻镜手机] 新建群组失败', error);
+            toast(message, 3000);
         } finally {
+            button.dataset.busy = '';
             button.disabled = false;
             button.textContent = '创建';
         }
-    });
+    };
+    button.addEventListener('click', submit);
+    button.onclick = submit;
     return dialog;
 }
