@@ -2111,3 +2111,24 @@ html.mp-phone-open #toast-container { display: none !important; }
 
 .mp-fb__storyview { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 10px; text-align: center; }
 .mp-fb__storytext { font-size: 12px; line-height: 1.8; color: var(--mp-text); white-space: pre-wrap; }
+
+.mp-stk__tabs { display: flex; gap: 6px; padding: 0 14px 8px; }
+.mp-stk__tab { border: 1px solid var(--mp-line); background: transparent; color: var(--mp-text-3); font: inherit; font-size: 10px; padding: 5px 12px; border-radius: 10px; cursor: pointer; }
+.mp-stk__tab.on { background: var(--mp-accent); border-color: transparent; color: #1a1208; font-weight: 700; }
+.mp-stk__movers { margin-bottom: 10px; }
+.mp-stk__movers-title { font-size: 9.5px; color: var(--mp-text-3); margin-bottom: 5px; }
+.mp-stk__moverlist { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.mp-stk__mover { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 1px solid var(--mp-line); background: var(--mp-card); border-radius: 10px; padding: 7px 10px; font: inherit; cursor: pointer; }
+.mp-stk__mover b { font-size: 10px; font-weight: 600; }
+.mp-stk__mover span { font-size: 9.5px; }
+.mp-stk__star { width: 18px; height: 18px; display: grid; place-items: center; color: var(--mp-text-3); }
+.mp-stk__star .mp-ic { width: 13px; height: 13px; }
+.mp-stk__star.on { color: #f0b45e; }
+.mp-stk__holding { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 0; border-bottom: 1px solid var(--mp-line); background: transparent; padding: 10px 2px; font: inherit; color: var(--mp-text); cursor: pointer; text-align: left; }
+.mp-stk__empty { padding: 14px 2px; font-size: 10.5px; color: var(--mp-text-3); }
+.mp-stk__trade-row { display: flex; align-items: center; gap: 7px; padding: 6px 2px; font-size: 9.5px; color: var(--mp-text-3); border-bottom: 1px solid var(--mp-line); }
+.mp-stk__trade-row b { color: var(--mp-text); font-weight: 600; }
+.mp-stk__stats { display: flex; gap: 10px; font-size: 9.5px; color: var(--mp-text-3); margin: 4px 0 6px; }
+.mp-stk__qtyrow { display: flex; align-items: center; gap: 5px; }
+.mp-stk__quick { border: 1px solid var(--mp-line); background: transparent; color: var(--mp-text-2); font: inherit; font-size: 9.5px; border-radius: 8px; padding: 5px 8px; cursor: pointer; }
+.mp-stk__estimate { font-size: 9.5px; color: var(--mp-text-3); margin: 6px 0; }
