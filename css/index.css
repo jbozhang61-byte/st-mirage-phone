@@ -2093,3 +2093,8 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-tt__follow { margin-top: -7px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: #fe2c55; color: #fff; font-size: 13px; font-weight: 700; line-height: 1; display: grid; place-items: center; cursor: pointer; }
 .mp-tt__follow.on { width: auto; padding: 0 6px; border-radius: 9px; font-size: 8px; background: rgba(255,255,255,.18); }
 .mp-tt__notice { padding: 8px 2px; font-size: 11px; color: var(--mp-text-2); border-bottom: 1px solid var(--mp-line); }
+
+/* ST 鐨?.inline-drawer-content 榛樿鏄殣钘忕殑锛涙垜浠殑闈㈡澘鑷繁鎺у埗鏄剧ず */
+.mp-st-panel .mp-st-content { display: block !important; }
+.mp-st-panel.is-collapsed .mp-st-content { display: none !important; }
+.mp-st-panel .mp-st-drawer-head { position: relative; z-index: 1; }
