@@ -298,11 +298,15 @@ export function chatSystemPrompt({ thread, person = null, world = '', card = nul
     return lines.join('\n');
 }
 
-export function chatUserPrompt({ thread, user, limit = 24 }) {
+export function chatUserPrompt({ thread, user, limit = 24, story = [], memory = [] }) {
     const members = thread.members || [];
     const history = historyBlock(thread.msgs, { user, members, max: limit });
     const last = thread.msgs?.[thread.msgs.length - 1];
     const lines = [];
+    const storyText = storyBlock(story, { each: 500, max: 12 });
+    const memoryText = (memory || []).map(item => String(item.text || '').slice(0, 500)).filter(Boolean).join('\n');
+    if (storyText) lines.push('【正文里最近发生的事（只作背景，不要复述）】\n' + storyText + '\n');
+    if (memoryText) lines.push('【记忆库 / 摘要（只作背景，不要复述）】\n' + memoryText + '\n');
     lines.push('这是你们最近的聊天记录：');
     lines.push(history || '（还没有聊过）');
     if (last?.from === 'me') lines.push('\n' + user + '刚刚发完最后一条，等你的回复。');
@@ -388,7 +392,7 @@ export function proactivePrompt({ thread, user, story }) {
 }
 
 /** 注入正文的手机状态摘要。 */
-export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, extras = [], maxThreads = 12, maxMsgs = 8 }) {
+export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, extras = [], maxThreads = 20, maxMsgs = 10 }) {
     const lines = [];
     const sorted = [...(threads || [])].filter(t => t.msgs?.length).sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, maxThreads);
     for (const thread of sorted) {
