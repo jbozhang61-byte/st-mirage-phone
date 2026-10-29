@@ -116,8 +116,7 @@ export function mountHome(host, { nav }) {
             type: 'button', class: 'mp-home__search',
             onclick: () => openSearch(),
         }, icon('search'), h('span', { text: '搜索 App' }), h('span', { class: 'mp-home__search-mic' }, icon('mic')));
-        const dots = h('div', { class: 'mp-page-dots' }, h('i', { class: 'on' }), h('i'));
-        host.appendChild(dots);
+        host.appendChild(h('div', { class: 'mp-page-dots' }, h('i', { class: 'on' }), h('i')));
         host.appendChild(search);
         host.appendChild(dock);
     }
@@ -450,3 +449,98 @@ export function mountHome(host, { nav }) {
             }
             if (!list.children.length) list.appendChild(h('div', { class: 'mp-st-hint', text: '分组是空的。' }));
         };
+        draw();
+        const s = sheet({
+            title: '分组',
+            content: h('div', {}, titleEl, list, h('div', { class: 'mp-folder__actions' },
+                h('button', {
+                    type: 'button', class: 'mp-btn small', text: '重命名',
+                    onclick: () => {
+                        const f = current();
+                        if (!f) return;
+                        const input = h('input', { class: 'mp-input', value: f.name });
+                        const rename = sheet({
+                            title: '重命名分组',
+                            content: h('div', { class: 'mp-field-list' }, input),
+                            actions: h('button', {
+                                class: 'mp-btn primary small', type: 'button', text: '保存',
+                                onclick: () => {
+                                    f.name = input.value.trim() || f.name;
+                                    saveNow('settings');
+                                    rename.close();
+                                    render();
+                                    titleEl.textContent = f.name;
+                                },
+                            }),
+                        });
+                    },
+                }),
+                h('button', {
+                    type: 'button', class: 'mp-btn small', text: '解散',
+                    onclick: () => {
+                        const settings = getSettings();
+                        settings.home.folders = (settings.home.folders || []).filter(item => item.id !== folder.id);
+                        settings.home.order = (settings.home.order || []).filter(item => item !== 'folder:' + folder.id);
+                        saveNow('settings');
+                        s.close();
+                        render();
+                        toast('分组已解散');
+                    },
+                }),
+            )),
+        });
+    }
+
+    function openSearch() {
+        const input = h('input', { class: 'mp-input', type: 'text', placeholder: '搜索 App、联系人…' });
+        const list = h('div', { class: 'mp-home__results' });
+        const draw = () => {
+            const key = input.value.trim();
+            list.innerHTML = '';
+            for (const app of apps.filter(item => !key || item.name.includes(key) || (item.label || '').includes(key))) {
+                list.appendChild(h('button', {
+                    type: 'button', class: 'mp-home__result',
+                    onclick: () => { s.close(); nav.go(app.id); },
+                }, icon(app.icon), h('span', { text: app.name }), h('small', { text: '应用' })));
+            }
+            for (const person of getCast().filter(item => key && item.name.includes(key))) {
+                list.appendChild(h('button', {
+                    type: 'button', class: 'mp-home__result',
+                    onclick: () => { s.close(); nav.go('contacts'); },
+                }, icon('user'), h('span', { text: person.name }), h('small', { text: '联系人' })));
+            }
+        };
+        input.addEventListener('input', draw);
+        const s = sheet({ title: '搜索', content: h('div', { class: 'mp-home__searchbox' }, input, list) });
+        draw();
+        setTimeout(() => input.focus(), 150);
+    }
+
+    function previewText(msg) {
+        if (!msg) return '';
+        if (msg.type === 'voice') return '[语音]';
+        if (msg.type === 'photo') return '[图片]';
+        if (msg.type === 'sticker') return '[表情]';
+        if (msg.type === 'redpacket') return '[红包] ' + msg.text;
+        if (msg.type === 'transfer') return '[转账] ' + msg.text;
+        if (msg.type === 'location') return '[位置] ' + msg.text;
+        return msg.text;
+    }
+
+    function tick() {
+        if (!timeEl) return;
+        timeEl.textContent = clockText();
+    }
+
+    const timer = setInterval(tick, 20000);
+    render();
+    return {
+        refresh: render,
+        destroy() { clearInterval(timer); },
+    };
+}
+
+function hasNewMoments(data) {
+    const seen = Number(data.meta.momentsSeen) || 0;
+    return data.moments.some(m => m.ts > seen);
+}
