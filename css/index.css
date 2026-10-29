@@ -2722,3 +2722,5 @@ html.mp-phone-open #toast-container { display: none !important; }
 
 .mp-image-test { display: flex; flex-direction: column; gap: 7px; }
 .mp-image-test__preview { width: 132px; height: 96px; border-radius: 10px; background: var(--mp-field) center/cover no-repeat; border: 1px solid var(--mp-line); }
+.mp-shell.is-dragging { user-select: none; cursor: grabbing; }
+html:not(.mp-mobile-float) .mp-shell:not(.is-closed) { transition: none !important; }

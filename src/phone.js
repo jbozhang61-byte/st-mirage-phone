@@ -499,13 +499,19 @@ function applyLayout() {
     for (const prop of ['left', 'top', 'right', 'bottom', 'transform', 'transform-origin']) {
         shellEl.style.removeProperty(prop);
     }
-    const h = Math.max(560, window.innerHeight - 36);
-    const fit = Math.min(1, h / 832);
+    // 桌面 / 平板：统一用「视口中心 + 偏移」定位，拖动和缩放共用一套坐标
+    const vp = viewportMetrics();
+    const fit = Math.min(1, (vp.height - 36) / 832);
     const scale = Math.max(0.5, Math.min(1.7, fit * (settings.scale || 1)));
     shellEl.style.setProperty('--mp-scale', String(scale));
-    const pos = settings.pos || { x: 0, y: 0 };
-    shellEl.style.setProperty('--mp-x', (pos.x || 0) + 'px');
-    shellEl.style.setProperty('--mp-y', (pos.y || 0) + 'px');
+    const hasPos = settings.pos && settings.pos.x !== null && settings.pos.x !== undefined && Number.isFinite(Number(settings.pos.x));
+    const w = 384 * scale;
+    const h = 812 * scale;
+    const pos = hasPos
+        ? { x: Number(settings.pos.x) || 0, y: Number(settings.pos.y) || 0 }
+        : { x: Math.round((vp.width - w) / 2 - 22), y: Math.round((vp.height - h) / 2 - 22) };
+    settings.pos = pos;
+    paintFloat(scale, pos);
     requestAnimationFrame(() => clampIntoView());
 }
 
@@ -554,10 +560,9 @@ function bindDrag(device) {
     let last = null;
 
     const clampPos = (x, y, scale) => {
-        const rect = device.getBoundingClientRect();
         const vp = viewportMetrics();
-        const w = rect.width;
-        const h = rect.height;
+        const w = 384 * scale;
+        const h = 812 * scale;
         const margin = 18;
         const maxX = Math.max(0, (vp.width - w) / 2);
         const maxY = Math.max(0, (vp.height - h) / 2);
@@ -569,7 +574,7 @@ function bindDrag(device) {
 
     const applyPos = (x, y) => {
         const settings = getSettings();
-        const floating = document.documentElement.classList.contains('mp-mobile-float');
+        const floating = !isNarrow() || document.documentElement.classList.contains('mp-mobile-float');
         if (!floating) return;
         const scale = Number(getComputedStyle(shellEl).getPropertyValue('--mp-scale')) || 0.82;
         const clamped = clampPos(x, y, scale);
@@ -612,7 +617,7 @@ function bindDrag(device) {
         if (event.target.closest('button, input, textarea, .mp-island')) return;
         const rect = device.getBoundingClientRect();
         const edge = event.clientX < rect.left + 20 || event.clientX > rect.right - 20 || event.clientY > rect.bottom - 24;
-        if (event.clientY - rect.top > 60 && !edge) return;
+        if (event.clientY - rect.top > 110 && !edge) return;
         const settings = getSettings();
         drag = { id: event.pointerId, x: event.clientX, y: event.clientY, bx: Number(settings.pos?.x) || 0, by: Number(settings.pos?.y) || 0, t: performance.now(), vx: 0, vy: 0 };
         shellEl.classList.add('is-dragging');
@@ -656,8 +661,8 @@ function bindDrag(device) {
         if (!drag || (event && event.pointerId !== drag.id)) return;
         drag = null;
         shellEl.classList.remove('is-dragging');
-        if (last) inertia();
-        saveNow('settings');
+        if (last && event?.pointerType === 'touch') inertia();
+        else { last = null; saveNow('settings'); }
     };
     window.addEventListener('pointerup', finish);
     window.addEventListener('pointercancel', finish);
