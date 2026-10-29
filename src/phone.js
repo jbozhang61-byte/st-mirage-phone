@@ -504,7 +504,8 @@ function applyLayout() {
     const fit = Math.min(1, (vp.height - 36) / 832);
     const scale = Math.max(0.5, Math.min(1.7, fit * (settings.scale || 1)));
     shellEl.style.setProperty('--mp-scale', String(scale));
-    const hasPos = settings.pos && settings.pos.x !== null && settings.pos.x !== undefined && Number.isFinite(Number(settings.pos.x));
+    const hasPos = settings.pos && settings.pos.x !== null && settings.pos.x !== undefined && Number.isFinite(Number(settings.pos.x))
+        && (Math.abs(Number(settings.pos.x) || 0) > 1 || Math.abs(Number(settings.pos.y) || 0) > 1);
     const w = 384 * scale;
     const h = 812 * scale;
     const pos = hasPos
