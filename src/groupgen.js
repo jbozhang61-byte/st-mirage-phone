@@ -10,7 +10,7 @@ function storyText() {
     return [memory ? '记忆库 / 摘要：\n' + memory : '', story ? '最近剧情：\n' + story : ''].filter(Boolean).join('\n\n');
 }
 
-function fallback(kind, name, style) {
+export function groupFallback(kind, name, style) {
     const cast = getCast().map(person => person.name);
     const people = cast.length ? cast : ['旧城的人', '路过的人', '夜班的人'];
     const tone = style || '平常说话';
@@ -60,7 +60,7 @@ export async function generateGroup({ kind = 'telegram', name, style = '', note 
         if (kind === 'discord' && Array.isArray(json.channels) && json.channels.length) return json;
         if (Array.isArray(json.messages) && json.messages.length) return json;
     } catch { /* 用兜底 */ }
-    return fallback(kind, name, style);
+    return groupFallback(kind, name, style);
 }
 
 export async function generateMore({ kind = 'telegram', name, style = '', count = 4, note = '' } = {}) {
@@ -85,7 +85,7 @@ export async function generateMore({ kind = 'telegram', name, style = '', count 
         if (kind === 'tieba' && Array.isArray(json.posts) && json.posts.length) return { posts: json.posts.slice(0, count) };
         if (Array.isArray(json.messages) && json.messages.length) return { messages: json.messages.slice(0, count) };
     } catch { /* 用兜底 */ }
-    const base = fallback(kind, name, style);
+    const base = groupFallback(kind, name, style);
     if (kind === 'tieba') return { posts: (base.posts || []).slice(0, count) };
     const messages = base.messages || base.channels?.[0]?.messages || [];
     return { messages: messages.slice(0, count) };
@@ -112,10 +112,18 @@ export function openGroupCreate({ title = '新建群组', kind = 'telegram', onC
         button.disabled = true;
         button.textContent = '生成中…';
         try {
-            const data = await generateGroup({ kind, name: value, style: style.value.trim(), note: note.value.trim() });
-            await onCreate?.({ name: value, style: style.value.trim(), data });
+            const styleValue = style.value.trim();
+            let data = null;
+            try {
+                data = await Promise.race([
+                    generateGroup({ kind, name: value, style: styleValue, note: note.value.trim() }),
+                    new Promise(resolve => setTimeout(() => resolve(null), 8000)),
+                ]);
+            } catch { /* 用本地内容 */ }
+            if (!data) data = groupFallback(kind, value, styleValue);
+            await onCreate?.({ name: value, style: styleValue, data });
             dialog.close();
-            toast('已创建并生成内容');
+            toast('已创建');
         } catch (error) {
             toast(String(error?.message || '创建失败'), 3000);
         } finally {
