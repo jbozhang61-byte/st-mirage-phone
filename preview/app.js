@@ -35,6 +35,7 @@ const settings = getSettings();
 settings.firstRun = false;
 settings.autoOpen = false;
 settings.theme = query.get('theme') || 'dark';
+settings.skin = query.get('skin') || 'mirage';
 if (query.get('apps') === 'all') {
     settings.apps = ['plot', 'spark', 'maps', 'browser', 'x', 'instagram', 'reddit', 'zhihu', 'quora', 'youtube', 'discord', 'telegram', 'spotify', 'gmail', 'stocks', 'tiktok', 'weibo', 'xhs', 'bili', 'facebook', 'signal', 'tieba', 'heart', 'world', 'ai', 'deepseek', 'chatgpt', 'claude', 'gemini', 'pdd', 'taobao', 'jd', 'amazon', 'google', 'yandex', 'wiki', 'zlib'];
 }
