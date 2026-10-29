@@ -43,12 +43,41 @@ export function loadFeed(appId, onUpdate, onLoading) {
     return fallback;
 }
 
+function jitter(value) {
+    if (Array.isArray(value)) {
+        const list = value.map(jitter);
+        for (let i = list.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [list[i], list[j]] = [list[j], list[i]];
+        }
+        return list;
+    }
+    if (value && typeof value === 'object') {
+        const out = {};
+        for (const [key, item] of Object.entries(value)) {
+            if (typeof item === 'number' && /likes|comments|reposts|collects|views|heat|replies/i.test(key)) {
+                out[key] = Math.max(0, item + Math.floor(Math.random() * 40));
+            } else out[key] = jitter(item);
+        }
+        return out;
+    }
+    return value;
+}
+
 export function refreshFeed(appId, onUpdate, onLoading) {
     onLoading(true);
     toast('正在刷新…');
     generateFeed(appId)
         .then(items => { onUpdate(items); toast('刷新好了'); })
-        .catch(error => toast(friendlyError(error), 3200))
+        .catch(error => {
+            const fallback = fallbackFor(appId);
+            if (fallback) {
+                onUpdate(jitter(fallback));
+                toast('AI 这次没返回，先换一批本地内容', 2600);
+            } else {
+                toast(friendlyError(error), 3200);
+            }
+        })
         .finally(() => onLoading(false));
 }
 

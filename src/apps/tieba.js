@@ -166,11 +166,33 @@ export function mountTieba(host, { nav }) {
         }
     }
 
-    function refresh() {
-        toast('正在刷新贴吧…');
-        const cached = getFeed('tieba')?.items || [];
-        setFeed('tieba', cached.map(post => ({ ...post, replies: post.replies + Math.floor(Math.random() * 5) })));
-        render();
+    async function refresh() {
+        const target = selected || forums()[0] || '旧城吧';
+        toast('正在刷新 ' + target + '…');
+        try {
+            const result = await generateMore({ kind: 'tieba', name: target, style: forumStyle(target), count: 4 });
+            const cast = getCast();
+            const posts = (result.posts || []).map((post, index) => ({
+                id: 'tb-' + Date.now().toString(36) + index,
+                title: String(post.title || '无题').slice(0, 60),
+                text: String(post.text || '').slice(0, 400),
+                author: String(post.author || cast[index % Math.max(1, cast.length)]?.name || '旧城的人').slice(0, 24),
+                replies: Math.max(0, Number(post.replies) || 0),
+                likes: Math.max(0, Number(post.likes) || 0),
+                forum: target,
+                image: '',
+            }));
+            const cached = getFeed('tieba')?.items || [];
+            if (posts.length) setFeed('tieba', [...posts, ...cached]);
+            else setFeed('tieba', cached.map(post => ({ ...post, replies: post.replies + Math.floor(Math.random() * 5) })));
+            render();
+            toast('刷新好了');
+        } catch (error) {
+            const cached = getFeed('tieba')?.items || [];
+            setFeed('tieba', cached.map(post => ({ ...post, replies: post.replies + Math.floor(Math.random() * 9), likes: post.likes + Math.floor(Math.random() * 5) })));
+            render();
+            toast('AI 没返回，先更新了本地帖子', 2600);
+        }
     }
 
     paintForums();
