@@ -59,3 +59,23 @@ export async function generateSignal() {
         return [];
     }
 }
+export async function generateShoppingProducts(brandName) {
+    const prompt = [
+        context(),
+        '生成 8 个适合在「' + brandName + '」上卖的商品，要和最近剧情、人物生活有关。',
+        '只输出 JSON：{"products":[{"title":"商品名","price":59.9,"sold":1200,"category":"生活","desc":"一两句卖点"}]}',
+    ].filter(Boolean).join('\n');
+    try {
+        const raw = await generateText({ system: '你在为故事世界里的一个购物 App 生成商品列表。用中文，只输出 JSON。', prompt, length: 900, json: true });
+        const json = extractJson(raw) || {};
+        return (Array.isArray(json.products) ? json.products : []).map(item => ({
+            title: String(item.title || '').slice(0, 60),
+            price: Math.max(0.01, Number(item.price) || 9.9),
+            sold: Math.max(0, Number(item.sold) || 0),
+            category: String(item.category || '生活').slice(0, 12),
+            desc: String(item.desc || '').slice(0, 200),
+        })).filter(item => item.title);
+    } catch {
+        return [];
+    }
+}

@@ -152,6 +152,10 @@ const ICON_REDESIGN = {
     chatgpt: '<path d="M12 3.1c2.5 0 4.5 2 4.5 4.5v.8l.9.5c2 1.2 2.7 3.7 1.5 5.7-1.2 2-3.7 2.7-5.7 1.5l-.9-.5-.9.5c-2 1.2-4.5.5-5.7-1.5-1.2-2-.5-4.5 1.5-5.7l.9-.5v-.8C8.1 5.1 10 3.1 12 3.1Z"/><path d="M9.5 6.4 12 7.8l2.5-1.4M9.5 17.6 12 16.2l2.5 1.4M4.8 11.9l2.2 1.2M19.2 11.9l-2.2 1.2M8.4 4.9l1.1 2.2M15.6 19.1l-1.1-2.2M8.4 19.1l1.1-2.2M15.6 4.9l-1.1 2.2"/>',
     claude: '<path d="M12 4.4v15.2M4.4 12h15.2M6.6 6.6l10.8 10.8M17.4 6.6 6.6 17.4"/><path d="M12 8.1v7.8M8.1 12h7.8" opacity=".45"/>',
     gemini: '<path d="M12 2.8c.7 5.2 3.9 8.4 9.1 9.1-5.2.7-8.4 3.9-9.1 9.1-.7-5.2-3.9-8.4-9.1-9.1 5.2-.7 8.4-3.9 9.1-9.1Z" fill="currentColor" stroke="none"/>',
+    pdd: '<text x="12" y="16.8" text-anchor="middle" font-size="13" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-weight="700" fill="currentColor" stroke="none">拼</text>', 
+    taobao: '<text x="12" y="16.8" text-anchor="middle" font-size="13" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-weight="700" fill="currentColor" stroke="none">淘</text>',
+    jd: '<text x="12" y="16.8" text-anchor="middle" font-size="13" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-weight="700" fill="currentColor" stroke="none">京</text>',
+    amazon: '<text x="11" y="15.4" text-anchor="middle" font-size="13" font-family="Arial, sans-serif" font-weight="700" fill="currentColor" stroke="none">a</text><path d="M6.2 18.2c3.4 1.5 8 1.2 11.3-.8M15.4 16.5l2.4.6-.7 2.3"/>',
 };
 Object.assign(ICONS, ICON_REDESIGN);
 
