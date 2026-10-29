@@ -184,6 +184,38 @@ function mountConversation(host, nav, threadId) {
         statusEl.classList.toggle('is-typing', typing || generating);
     }
 
+    function jumpBottom() {
+        scroll.scrollTop = scroll.scrollHeight;
+        requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
+    }
+
+    function removeStarter() {
+        scroll.querySelector('.mp-starter')?.remove();
+    }
+
+    function removeTypingBubble() {
+        scroll.querySelectorAll('.mp-typing').forEach(el => el.remove());
+    }
+
+    function showTypingBubble() {
+        if (scroll.querySelector('.mp-typing')) return;
+        scroll.appendChild(h('div', { class: 'mp-typing' },
+            avatar({ name: thread.members[0], src: characterAvatar(thread.members[0]), size: 30 }),
+            h('div', { class: 'mp-typing__bubble' }, h('i'), h('i'), h('i')),
+        ));
+    }
+
+    function appendMessageToView(msg) {
+        if (!msg) return;
+        const all = Array.isArray(thread.msgs) ? thread.msgs : [];
+        const index = all.findIndex(item => item.id && item.id === msg.id);
+        const prev = index > 0 ? all[index - 1] : null;
+        const showName = thread.members.length > 1 && msg.from === 'them' && msg.sender !== prev?.sender;
+        const showAvatar = !(msg.from === prev?.from);
+        removeStarter();
+        scroll.appendChild(messageEl(msg, showName, showAvatar));
+    }
+
     function renderMessages() {
         const atBottom = isNearBottom();
         const prevTop = scroll.scrollTop;
@@ -515,10 +547,9 @@ function mountConversation(host, nav, threadId) {
             const msg = { id: uid(), from: 'me', type: payload.type || 'text', text: payload.text || '', meta: payload.meta || {}, ts: Date.now() };
             appendMessages(thread.id, msg);
             haptic(6);
-            renderMessages();
-            scroll.scrollTop = scroll.scrollHeight;
+            appendMessageToView(msg);
+            jumpBottom();
             scrollToBottom(false);
-            forceBottomBurst();
             return msg;
         }
 
@@ -527,9 +558,9 @@ function mountConversation(host, nav, threadId) {
             pinBottom = true;
             generating = true;
             typing = true;
-            forceBottomBurst();
             sendBtn.disabled = true;
-            renderMessages();
+            showTypingBubble();
+            jumpBottom();
             try {
                 const messages = await replyToThread(thread.id);
                 if (!messages.length) toast('TA 这次没有回复');
@@ -541,9 +572,10 @@ function mountConversation(host, nav, threadId) {
                 typing = false;
                 thread = findThread(thread.id) || thread;
                 markRead(threadId);
-                renderMessages();
+                removeTypingBubble();
+                renderHead();
+                jumpBottom();
                 scrollToBottom(false);
-                forceBottomBurst();
                 sendBtn.disabled = !input.value.trim();
             }
         }
@@ -716,7 +748,9 @@ function mountConversation(host, nav, threadId) {
         if (detail.threadId !== threadId) return;
         typing = !!detail.typing;
         renderHead();
-        if (typing) scrollToBottom(false);
+        if (typing) showTypingBubble();
+        else removeTypingBubble();
+        jumpBottom();
     };
     const onReply = event => {
         const detail = event.detail || {};
@@ -724,10 +758,11 @@ function mountConversation(host, nav, threadId) {
         thread = findThread(threadId) || thread;
         markRead(threadId);
         pinBottom = true;
-        renderMessages();
-        pinBottom = true;
+        removeTypingBubble();
+        for (const msg of (detail.messages || [])) appendMessageToView(msg);
+        renderHead();
+        jumpBottom();
         scrollToBottom(false);
-        forceBottomBurst();
         const tts = getSettings().tts;
         if (tts?.enabled && tts.auto) {
             const last = (detail.messages || [])[detail.messages.length - 1];
@@ -754,7 +789,9 @@ function mountConversation(host, nav, threadId) {
             if (id !== threadId) return;
             typing = value;
             renderHead();
-            renderMessages();
+            if (typing) showTypingBubble();
+            else removeTypingBubble();
+            jumpBottom();
         },
         destroy() {
             contentObserver?.disconnect();
