@@ -1055,6 +1055,7 @@ const api = {
     islandHide,
     refreshBadges,
     setEnabled,
+    refreshFab,
     isOpen: () => open,
     destroy: destroyPhone,
 };
