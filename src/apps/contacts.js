@@ -97,7 +97,7 @@ export function mountContacts(host, { nav }) {
 
         // 我的名片
         body.appendChild(h('div', { class: 'mp-me-card', onclick: () => avatarMenu(userName(), render) },
-            avatar({ name: userName(), src: '', size: 44 }),
+            avatar({ name: userName(), src: '', size: 44, link: false }),
             h('div', { class: 'mp-me-card__body' },
                 h('div', { class: 'mp-me-card__name', text: userName() }),
                 h('div', { class: 'mp-me-card__sig', text: '点一下换自己的头像' }),
@@ -207,7 +207,7 @@ export function mountContacts(host, { nav }) {
         const hasAvatar = !!avatarUrl(person.name);
         const s = sheet({ title: person.name, content: h('div', { class: 'mp-field-list' },
             h('div', { class: 'mp-avatar-edit' },
-                avatar({ name: person.name, size: 64 }),
+                avatar({ name: person.name, size: 64, link: false }),
                 h('div', { class: 'mp-avatar-edit__btns' },
                     h('button', { class: 'mp-chip', type: 'button', onclick: () => pickAvatar(person.name, () => { s.close(); refresh(); }) }, icon('camera'), '换头像'),
                     h('button', { class: 'mp-chip', type: 'button', onclick: () => { s.close(); avatarUrlSheet(person.name, refresh); } }, icon('link'), '链接'),

@@ -1,8 +1,8 @@
 /** 我：个人中心。资料、资产、世界、账号与快捷入口。 */
-import { h, icon, avatar, toast } from '../render.js';
+import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getData, getSettings, installedApps } from '../store.js';
 import { getCast } from '../store.js';
-import { changeAvatar } from '../avatars.js';
+import { changeAvatar, changeAvatarUrl, removeAvatar } from '../avatars.js';
 import { userName, personaAvatarUrl, currentCharacter, personaDescription } from '../st.js';
 
 
@@ -23,10 +23,10 @@ export function mountMe(host, { nav }) {
         const apps = installedApps();
         body.innerHTML = '';
 
-        const meAvatar = avatar({ name, size: 72, src: personaAvatarUrl() });
+        const meAvatar = avatar({ name, size: 72, src: personaAvatarUrl(), link: false });
         meAvatar.style.cursor = 'pointer';
         meAvatar.title = '点一下换头像';
-        meAvatar.addEventListener('click', () => uploadAvatar(name));
+        meAvatar.addEventListener('click', () => avatarSheet(name));
         body.appendChild(h('div', { class: 'mp-me-page__hero' },
             meAvatar,
             h('div', { class: 'mp-me-page__id' },
@@ -61,6 +61,29 @@ export function mountMe(host, { nav }) {
             row('版本', '幻镜手机 ' + (settings.version || '1.4.2'), 'info', () => toast('幻镜手机 · Mirage Phone')),
             row('设置', '外观、AI、数据', 'settings', () => nav.go('settings')),
         ]));
+    }
+
+    function avatarSheet(name) {
+        const s = sheet({
+            title: '我的头像',
+            content: h('div', { class: 'mp-field-list' },
+                h('button', { class: 'mp-chip', type: 'button', onclick: () => { s.close(); uploadAvatar(name); } }, icon('camera'), '上传图片'),
+                h('button', { class: 'mp-chip', type: 'button', onclick: () => { s.close(); urlAvatar(name); } }, icon('link'), '粘贴链接'),
+                h('button', { class: 'mp-chip', type: 'button', onclick: () => { removeAvatar(name); s.close(); render(); } }, icon('trash'), '恢复默认'),
+            ),
+        });
+    }
+
+    function urlAvatar(name) {
+        const input = h('input', { class: 'mp-input', type: 'text', placeholder: 'https://… 图片直链' });
+        const s = sheet({
+            title: '头像链接',
+            content: h('div', { class: 'mp-field-list' }, input, h('div', { class: 'mp-st-hint', text: '支持 Catbox / Picsum / 任意图片直链。' })),
+            actions: h('button', { class: 'mp-btn primary small', type: 'button', text: '保存', onclick: () => {
+                try { changeAvatarUrl(name, input.value); s.close(); toast('头像已更新'); render(); }
+                catch (error) { toast(String(error?.message || '链接不对'), 3000); }
+            } }),
+        });
     }
 
     function uploadAvatar(name) {
