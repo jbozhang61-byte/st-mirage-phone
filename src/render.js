@@ -201,3 +201,155 @@ export function gradientFor(name) {
     const [a, b] = GRADIENTS[hashOf(name) % GRADIENTS.length];
     return 'linear-gradient(145deg,' + a + ',' + b + ')';
 }
+
+export function avatar({ name = '', src = '', size = 44, cls = '', ring = false } = {}) {
+    const el = h('span', { class: 'mp-avatar ' + cls, style: { width: size + 'px', height: size + 'px' } });
+    if (ring) el.classList.add('is-ring');
+    const ch = String(name || '?').trim().charAt(0).toUpperCase();
+    if (src) {
+        const img = h('img', { src, alt: '', loading: 'lazy', draggable: 'false' });
+        img.addEventListener('error', () => { img.remove(); el.style.background = gradientFor(name); el.textContent = ch; });
+        el.appendChild(img);
+    } else {
+        el.style.background = gradientFor(name);
+        el.textContent = ch;
+    }
+    el.style.fontSize = Math.round(size * 0.38) + 'px';
+    return el;
+}
+
+/* -------------------------------- 时间 -------------------------------- */
+
+const pad = n => String(n).padStart(2, '0');
+
+export function clockText(date = new Date()) {
+    return pad(date.getHours()) + ':' + pad(date.getMinutes());
+}
+
+export function dayText(ts) {
+    const d = new Date(ts);
+    const now = new Date();
+    const same = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    if (same(d, now)) return '今天';
+    const y = new Date(now.getTime() - 86400000);
+    if (same(d, y)) return '昨天';
+    if (d.getFullYear() === now.getFullYear()) return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+    return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
+}
+
+export function timeText(ts) {
+    const d = new Date(ts);
+    return pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+export function relativeText(ts) {
+    const diff = Date.now() - Number(ts || 0);
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+    if (diff < 172800000) return '昨天';
+    if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
+    const d = new Date(ts);
+    return (d.getMonth() + 1) + '月' + d.getDate() + '日';
+}
+
+export function weekdayText(ts = Date.now()) {
+    return '日一二三四五六'[new Date(ts).getDay()];
+}
+
+/* ------------------------------ 手机内弹层 ------------------------------ */
+
+let layer = null;
+export function toast(text, ms = 1900) {
+    try {
+        if (globalThis.__mpIslandToast) {
+            globalThis.dispatchEvent(new CustomEvent('mp-island-toast', { detail: { text: String(text), ms } }));
+            return;
+        }
+    } catch { /* ignore */ }
+    if (!layer) return;
+    const el = h('div', { class: 'mp-toast', text: String(text) });
+    layer.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('in'));
+    setTimeout(() => {
+        el.classList.remove('in');
+        setTimeout(() => el.remove(), 260);
+    }, ms);
+}
+
+/** 底部弹层：返回一个 Promise，点遮罩或关闭按钮 resolve。 */
+export function sheet({ title = '', content = null, actions = null, height = 'auto' } = {}) {
+    const host = layer || document.body;
+    const panel = h('div', { class: 'mp-sheet-panel', style: { maxHeight: height } });
+    const head = h('div', { class: 'mp-sheet-head' },
+        h('div', { class: 'mp-sheet-title', text: title }),
+        h('button', { class: 'mp-sheet-close', type: 'button', 'aria-label': '关闭', onclick: () => close() }, icon('close', '', 18)),
+    );
+    if (actions) head.appendChild(actions);
+    panel.appendChild(head);
+    if (content) panel.appendChild(content);
+
+    const mask = h('div', { class: 'mp-sheet-mask' });
+    const wrap = h('div', { class: 'mp-sheet' }, mask, panel);
+    host.appendChild(wrap);
+    requestAnimationFrame(() => wrap.classList.add('in'));
+
+    let resolveFn;
+    const done = new Promise(resolve => { resolveFn = resolve; });
+    function onKey(e) {
+        if (e.key === 'Escape') close();
+    }
+    function close(value) {
+        document.removeEventListener('keydown', onKey);
+        wrap.classList.remove('in');
+        setTimeout(() => wrap.remove(), 220);
+        resolveFn(value);
+    }
+    mask.addEventListener('click', () => close());
+    document.addEventListener('keydown', onKey);
+    return { el: panel, close, done };
+}
+
+export function confirmSheet(text, { ok = '确定', cancel = '取消', danger = false } = {}) {
+    return new Promise(resolve => {
+        const body = h('div', { class: 'mp-confirm-body', text });
+        const buttons = h('div', { class: 'mp-confirm-actions' },
+            h('button', { class: 'mp-btn ghost', type: 'button', onclick: () => { s.close(); resolve(false); }, text: cancel }),
+            h('button', { class: 'mp-btn ' + (danger ? 'danger' : 'primary'), type: 'button', onclick: () => { s.close(); resolve(true); }, text: ok }),
+        );
+        const s = sheet({ title: '', content: frag(body, buttons) });
+        s.done.then(() => resolve(false));
+    });
+}
+
+export function setLayer(el) {
+    layer = el;
+}
+
+export function haptic(ms = 8) {
+    try {
+        if (globalThis.matchMedia?.('(pointer: coarse)')?.matches) globalThis.navigator?.vibrate?.(ms);
+    } catch { /* ignore */ }
+}
+
+/** 输入框防抖 */
+export function debounce(fn, wait = 200) {
+    let timer = 0;
+    return function debounced(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), wait);
+    };
+}
+
+export function until(condition, timeout = 15000, step = 120) {
+    const start = Date.now();
+    return new Promise((resolve, reject) => {
+        (function tick() {
+            let ok = false;
+            try { ok = condition(); } catch { ok = false; }
+            if (ok) return resolve(true);
+            if (Date.now() - start > timeout) return reject(new Error('等待超时'));
+            setTimeout(tick, step);
+        })();
+    });
+}
