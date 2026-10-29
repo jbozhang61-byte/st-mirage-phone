@@ -2095,6 +2095,7 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-tt__notice { padding: 8px 2px; font-size: 11px; color: var(--mp-text-2); border-bottom: 1px solid var(--mp-line); }
 
 /* ST 鐨?.inline-drawer-content 榛樿鏄殣钘忕殑锛涙垜浠殑闈㈡澘鑷繁鎺у埗鏄剧ず */
-.mp-st-panel .mp-st-content { display: block !important; }
-.mp-st-panel.is-collapsed .mp-st-content { display: none !important; }
-.mp-st-panel .mp-st-drawer-head { position: relative; z-index: 1; }
+/* 使用酒馆原生 inline-drawer，标题和展开由酒馆统一处理 */
+.mp-st-panel .inline-drawer-header { display: flex !important; align-items: center; gap: 8px; }
+.mp-st-panel .mp-st-title { flex: 1 1 auto; font-size: 1em; }
+.mp-st-panel .inline-drawer-content { padding: 2px 2px 8px; }

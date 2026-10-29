@@ -220,15 +220,16 @@ function buildSettingsPanel() {
 
     const settings = getSettings();
     const root = document.createElement('div');
-    root.className = 'mp-st-panel';
+    root.className = 'inline-drawer mp-st-panel';
     root.id = 'mp_st_panel';
 
     const content = document.createElement('div');
     content.className = 'inline-drawer-content mp-st-content';
 
     const head = document.createElement('div');
-    head.className = 'mp-st-drawer-head';
-    const title = document.createElement('h4');
+    head.className = 'inline-drawer-toggle inline-drawer-header';
+    const title = document.createElement('b');
+    title.className = 'mp-st-title';
     title.textContent = '幻镜手机 · Mirage Phone';
     const badge = document.createElement('span');
     badge.className = 'mp-st-badge';
@@ -236,11 +237,6 @@ function buildSettingsPanel() {
     const chevron = document.createElement('div');
     chevron.className = 'inline-drawer-icon fa-solid fa-circle-chevron-down down';
     head.append(title, badge, chevron);
-    head.addEventListener('click', () => {
-        root.classList.toggle('is-collapsed');
-        chevron.classList.toggle('fa-circle-chevron-down', !root.classList.contains('is-collapsed'));
-        chevron.classList.toggle('fa-circle-chevron-up', root.classList.contains('is-collapsed'));
-    });
     root.append(head, content);
 
     const hint = document.createElement('div');
