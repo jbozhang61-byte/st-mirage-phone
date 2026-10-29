@@ -5,5 +5,5 @@ const make = brand => (host, ctx) => mountAssistant(host, ctx, brand);
 
 export const mountDeepSeek = make({ id: 'deepseek', name: 'DeepSeek', sub: 'DEEPSEEK', provider: 'deepseek', icon: 'sparkle' });
 export const mountChatGPT = make({ id: 'chatgpt', name: 'ChatGPT', sub: 'OPENAI', provider: 'openai', icon: 'message' });
-export const mountClaude = make({ id: 'claude', name: 'Claude', sub: 'ANTHROPIC', provider: 'custom', icon: 'star' });
-export const mountGemini = make({ id: 'gemini', name: 'Gemini', sub: 'GOOGLE', provider: 'custom', icon: 'globe' });
+export const mountClaude = make({ id: 'claude', name: 'Claude', sub: 'ANTHROPIC', provider: 'claude', icon: 'star' });
+export const mountGemini = make({ id: 'gemini', name: 'Gemini', sub: 'GOOGLE', provider: 'gemini', icon: 'globe' });

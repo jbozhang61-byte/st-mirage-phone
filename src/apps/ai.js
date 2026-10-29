@@ -11,6 +11,8 @@ const PROVIDERS = {
     openai: { name: 'OpenAI', baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
     moonshot: { name: 'Moonshot / Kimi', baseUrl: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k' },
     zhipu: { name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
+    gemini: { name: 'Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.0-flash' },
+    claude: { name: 'Claude', baseUrl: 'https://api.anthropic.com/v1', model: 'claude-3-5-haiku-latest' },
     custom: { name: '自定义', baseUrl: '', model: '' },
 };
 
@@ -135,6 +137,32 @@ export function mountAssistant(host, { nav }, brand = {}) {
         const baseUrl = String(config.baseUrl || preset.baseUrl).replace(/\/$/, '');
         const model = String(config.model || preset.model);
         if (!baseUrl || !model) throw new Error('先在模型设置里填接口地址和模型');
+        if (provider === 'claude') {
+            const response = await fetch(baseUrl + '/messages', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': config.apiKey || '',
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true',
+                },
+                body: JSON.stringify({
+                    model,
+                    max_tokens: Math.max(128, Math.round(length)),
+                    system,
+                    messages: [{ role: 'user', content: prompt }],
+                }),
+            });
+            if (!response.ok) {
+                let detail = '';
+                try { detail = (await response.text()).slice(0, 200); } catch { /* ignore */ }
+                throw new Error('Claude 返回 ' + response.status + (detail ? '：' + detail : ''));
+            }
+            const json = await response.json();
+            const answer = (json?.content || []).map(part => part?.text || '').join('').trim();
+            if (!answer) throw new Error('Claude 没有返回内容');
+            return answer;
+        }
         const response = await fetch(baseUrl + '/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (config.apiKey || '') },
