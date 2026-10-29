@@ -6,7 +6,7 @@ import { h, icon, avatar, sheet, confirmSheet, toast } from '../render.js';
 import { getData, getCast, upsertPerson, removePerson, ensureThread } from '../store.js';
 import { characterAvatar, userName, personaDescription, currentCharacter } from '../st.js';
 import { extractCast } from '../ai.js';
-import { changeAvatar, removeAvatar, avatarUrl } from '../avatars.js';
+import { changeAvatar, changeAvatarUrl, removeAvatar, avatarUrl } from '../avatars.js';
 
 export function mountContacts(host, { nav }) {
     const body = h('div', { class: 'mp-body' });
@@ -96,7 +96,7 @@ export function mountContacts(host, { nav }) {
         }
 
         // 我的名片
-        body.appendChild(h('div', { class: 'mp-me-card', onclick: () => pickAvatar(userName(), render) },
+        body.appendChild(h('div', { class: 'mp-me-card', onclick: () => avatarMenu(userName(), render) },
             avatar({ name: userName(), src: '', size: 44 }),
             h('div', { class: 'mp-me-card__body' },
                 h('div', { class: 'mp-me-card__name', text: userName() }),
@@ -173,6 +173,36 @@ export function mountContacts(host, { nav }) {
         file.click();
     }
 
+    function avatarUrlSheet(name, done) {
+        const input = h('input', { class: 'mp-input', type: 'text', placeholder: 'https://… 图片直链' });
+        const s = sheet({
+            title: '用图片链接做头像',
+            content: h('div', { class: 'mp-field-list' },
+                input,
+                h('div', { class: 'mp-st-hint', text: '支持 Catbox、Picsum 或任意图片直链；只存在本地。' }),
+            ),
+            actions: h('button', { class: 'mp-btn primary small', type: 'button', text: '保存', onclick: () => {
+                try {
+                    changeAvatarUrl(name, input.value);
+                    s.close();
+                    toast('头像已更新');
+                    done?.();
+                } catch (error) { toast(String(error?.message || '链接不对'), 3000); }
+            } }),
+        });
+    }
+
+    function avatarMenu(name, done) {
+        const s = sheet({
+            title: '头像',
+            content: h('div', { class: 'mp-field-list' },
+                h('button', { class: 'mp-chip', type: 'button', onclick: () => { s.close(); pickAvatar(name, done); } }, icon('camera'), '上传图片'),
+                h('button', { class: 'mp-chip', type: 'button', onclick: () => { s.close(); avatarUrlSheet(name, done); } }, icon('link'), '粘贴链接'),
+                h('button', { class: 'mp-chip', type: 'button', onclick: () => { removeAvatar(name); s.close(); done?.(); } }, icon('trash'), '恢复默认'),
+            ),
+        });
+    }
+
     function personMenu(person, refresh) {
         const hasAvatar = !!avatarUrl(person.name);
         const s = sheet({ title: person.name, content: h('div', { class: 'mp-field-list' },
@@ -180,6 +210,7 @@ export function mountContacts(host, { nav }) {
                 avatar({ name: person.name, size: 64 }),
                 h('div', { class: 'mp-avatar-edit__btns' },
                     h('button', { class: 'mp-chip', type: 'button', onclick: () => pickAvatar(person.name, () => { s.close(); refresh(); }) }, icon('camera'), '换头像'),
+                    h('button', { class: 'mp-chip', type: 'button', onclick: () => { s.close(); avatarUrlSheet(person.name, refresh); } }, icon('link'), '链接'),
                     hasAvatar ? h('button', { class: 'mp-chip', type: 'button', onclick: () => { removeAvatar(person.name); s.close(); refresh(); } }, icon('trash'), '恢复默认') : null,
                 ),
             ),

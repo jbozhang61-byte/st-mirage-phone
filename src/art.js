@@ -197,7 +197,9 @@ export function artFor(seedText, mood = 'night') {
     if (cache.has(key)) return cache.get(key);
     const data = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(artSvg(seedText, mood)) + '")';
     const pack = libraryUrl(seedText);
-    const url = pack ? pack + ', ' + data : data;
+    const real = globalThis.__mpRealPhotos === false ? '' : 'url("https://picsum.photos/seed/' + encodeURIComponent(seedText + '|' + mood) + '/600/900")';
+    const layers = [real, pack, data].filter(Boolean);
+    const url = layers.join(', ');
     if (cache.size > 400) cache.clear();
     cache.set(key, url);
     return url;

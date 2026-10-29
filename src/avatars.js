@@ -5,7 +5,7 @@ import { storeImage, resolveImage } from './images.js';
 export function avatarUrl(name) {
     try {
         const item = getData()?.avatars?.[String(name || '')];
-        return item?.id ? resolveImage(item.id) : '';
+        return item?.url ? item.url : (item?.id ? resolveImage(item.id) : '');
     } catch {
         return '';
     }
@@ -19,6 +19,16 @@ export async function changeAvatar(name, file) {
     data.avatars[name] = { id: stored.id, ts: Date.now() };
     saveNow('data');
     return stored;
+}
+
+export function changeAvatarUrl(name, url) {
+    if (!name) throw new Error('没有名字');
+    const clean = String(url || '').trim();
+    if (!/^(https?:\/\/|data:image\/)/i.test(clean)) throw new Error('请填 http(s) 或 data:image 链接');
+    const data = getData();
+    data.avatars = data.avatars && typeof data.avatars === 'object' ? data.avatars : {};
+    data.avatars[name] = { url: clean.slice(0, 2000), ts: Date.now() };
+    saveNow('data');
 }
 
 export function removeAvatar(name) {

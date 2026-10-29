@@ -216,6 +216,9 @@ export function avatar({ name = '', src = '', size = 44, cls = '', ring = false 
         const custom = globalThis.__mpAvatarUrl?.(name);
         if (custom) src = custom;
     } catch { /* ignore */ }
+    if (!src && name && !String(name).includes('、') && !String(name).includes('群') && globalThis.__mpRealPhotos !== false) {
+        src = 'https://picsum.photos/seed/' + encodeURIComponent(String(name)) + '/150/150';
+    }
     const el = h('span', { class: 'mp-avatar ' + cls, style: { width: size + 'px', height: size + 'px' } });
     if (ring) el.classList.add('is-ring');
     const ch = String(name || '?').trim().charAt(0).toUpperCase();
