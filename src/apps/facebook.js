@@ -5,6 +5,7 @@ import { userName, storyContext } from '../st.js';
 import { artFor } from '../art.js';
 import { openPostPage } from './postpage.js';
 import { openSearchSheet } from './search-sheet.js';
+import { generateFacebook } from '../storyseed.js';
 
 const SEED = [
     ['今天旧城的雨停得很晚，路灯下面全是水光。', '刚刚'],
@@ -26,6 +27,12 @@ export function mountFacebook(host, { nav }) {
         body,
     );
     host.appendChild(el);
+    const hadCache = !!getFeed('facebook')?.items;
+    if (!hadCache) {
+        generateFacebook().then(posts => {
+            if (posts.length) { setFeed('facebook', posts); render(); }
+        }).catch(() => {});
+    }
 
     function load() {
         const cached = getFeed('facebook')?.items;

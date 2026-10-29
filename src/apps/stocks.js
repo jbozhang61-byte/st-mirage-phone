@@ -345,6 +345,26 @@ export function mountStocks(host, { nav }) {
 
     tick();
     render();
+    const bootStock = ensure();
+    if (!bootStock.storySynced) {
+        bootStock.storySynced = true;
+        saveNow('data');
+        setTimeout(() => {
+            extractCompanies().then(names => {
+                const stock = ensure();
+                let added = 0;
+                for (const name of names) {
+                    if (!name || stock.companies.some(item => item.name === name)) continue;
+                    const company = makeCompany(name, currentCharacter()?.name || '');
+                    if (!company) continue;
+                    company.history = [company.price];
+                    stock.companies.push(company);
+                    added++;
+                }
+                if (added) { saveNow('data'); render(); }
+            }).catch(() => {});
+        }, 900);
+    }
     return { refresh: render };
 }
 

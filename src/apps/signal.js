@@ -3,6 +3,7 @@ import { h, icon, avatar } from '../render.js';
 import { getCast, getFeed, setFeed } from '../store.js';
 import { characterAvatar } from '../st.js';
 import { openGroupCreate, generateMore } from '../groupgen.js';
+import { generateSignal } from '../storyseed.js';
 
 export function mountSignal(host, { nav }) {
     const body = h('div', { class: 'mp-sg__body' });
@@ -16,6 +17,12 @@ export function mountSignal(host, { nav }) {
         body,
     );
     host.appendChild(el);
+    const hadCache = !!getFeed('signal')?.items;
+    if (!hadCache) {
+        generateSignal().then(chats => {
+            if (chats.length) { setFeed('signal', chats); render(); }
+        }).catch(() => {});
+    }
 
     function load() {
         const cached = getFeed('signal')?.items;

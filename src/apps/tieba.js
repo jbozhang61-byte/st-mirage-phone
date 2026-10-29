@@ -195,7 +195,27 @@ export function mountTieba(host, { nav }) {
         }
     }
 
+    const hadCache = !!getFeed('tieba')?.items;
     paintForums();
     render();
+    if (!hadCache) {
+        generateMore({ kind: 'tieba', name: FORUMS[0], style: '', count: 4 }).then(result => {
+            const cast = getCast();
+            const posts = (result.posts || []).map((post, index) => ({
+                id: 'tb-seed-' + Date.now().toString(36) + index,
+                title: String(post.title || '无题').slice(0, 60),
+                text: String(post.text || '').slice(0, 400),
+                author: String(post.author || cast[index % Math.max(1, cast.length)]?.name || '旧城的人').slice(0, 24),
+                replies: Math.max(0, Number(post.replies) || 0),
+                likes: Math.max(0, Number(post.likes) || 0),
+                forum: FORUMS[0],
+                image: '',
+            }));
+            if (posts.length) {
+                setFeed('tieba', [...posts, ...(getFeed('tieba')?.items || [])]);
+                render();
+            }
+        }).catch(() => {});
+    }
     return { refresh: render };
 }
