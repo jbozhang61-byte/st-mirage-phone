@@ -187,7 +187,3 @@ if (query.get('dragtest') === '1') setTimeout(async () => {
     document.body.dataset.dragtest = err || 'done';
 }, 1200);
 if (query.get('tiebadetail') === '1') setTimeout(() => document.querySelector('.mp-tb__post')?.click(), 1800);
-window.__smoke = '';
-window.addEventListener('error', event => { window.__smoke += 'ERR:' + (event.message || '') + '|'; });
-window.addEventListener('unhandledrejection', event => { window.__smoke += 'REJ:' + (event.reason?.message || event.reason || '') + '|'; });
-setTimeout(() => { document.body.dataset.smoke = window.__smoke; }, 2200);

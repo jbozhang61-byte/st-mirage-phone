@@ -3,7 +3,7 @@ import { h, icon, avatar, sheet, toast } from '../render.js';
 import { num, moodOf, feedContext } from './feed-common.js';
 import { SOCIAL } from '../social.js';
 import { generateSocial, friendlyError } from '../ai.js';
-import { getCast, getFeed, setFeed, saveNow } from '../store.js';
+import { getCast, getFeed, setFeed, saveNow, getData } from '../store.js';
 import { openProfile } from './profile.js';
 import { userName, personaAvatarUrl } from '../st.js';
 import { artFor } from '../art.js';
@@ -77,15 +77,48 @@ function mount(host, nav, appId) {
         return wrap;
     }
 
+    function addStory() {
+        const input = h('textarea', { class: 'mp-input', rows: '3', placeholder: '发一张今天的照片…' });
+        const dialog = sheet({
+            title: '你的故事',
+            content: h('div', { class: 'mp-field-list' }, input),
+            actions: h('button', {
+                class: 'mp-btn primary small', type: 'button', text: '发布',
+                onclick: () => {
+                    const text = input.value.trim();
+                    if (!text) { toast('写点什么'); return; }
+                    const data = getData();
+                    data.socialStories = data.socialStories || {};
+                    data.socialStories[appId] = [...(data.socialStories[appId] || []), { text: text.slice(0, 300), ts: Date.now() }].slice(-20);
+                    saveNow('data');
+                    dialog.close();
+                    toast('故事已发布');
+                },
+            }),
+        });
+    }
+
+    function viewStory(person) {
+        const story = (getData().socialStories?.[appId] || []).slice(-1)[0];
+        sheet({
+            title: person?.name + ' 的故事',
+            content: h('div', { class: 'mp-fb__storyview' },
+                avatar({ name: person?.name || '某人', size: 54 }),
+                h('div', { class: 'mp-fb__storytext', text: story?.text || '今天的光很好，拍下来给你看。' }),
+                h('div', { class: 'mp-st-hint', text: '24 小时后消失' }),
+            ),
+        });
+    }
+
     function gallery() {
         // 单列大卡片：比三列图墙省性能，也更像 Instagram 的时间线
         const wrap = h('div', { class: 'mp-soc__igfeed' });
         const cast = getCast();
         const stories = h('div', { class: 'mp-soc__stories' });
-        stories.appendChild(h('div', { class: 'mp-soc__story', onclick: () => toast('发一张照片还没做') },
+        stories.appendChild(h('div', { class: 'mp-soc__story', onclick: () => addStory() },
             avatar({ name: userName() || '我', size: 52 }), h('span', { text: '你的故事' })));
         for (const person of cast.slice(0, 6)) {
-            stories.appendChild(h('div', { class: 'mp-soc__story', onclick: () => toast('看 ' + person.name + ' 的故事还没做') },
+            stories.appendChild(h('div', { class: 'mp-soc__story', onclick: () => viewStory(person) },
                 h('span', { class: 'mp-soc__ring' }, avatar({ name: person.name, size: 52 })), h('span', { text: person.name })));
         }
         wrap.appendChild(stories);

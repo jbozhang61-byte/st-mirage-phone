@@ -1,6 +1,6 @@
 /** Facebook：蓝色信息流，整页详情 + API 评论。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
-import { getCast, getFeed, setFeed } from '../store.js';
+import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
 import { userName, storyContext } from '../st.js';
 import { artFor } from '../art.js';
 import { openPostPage } from './postpage.js';
@@ -46,6 +46,41 @@ export function mountFacebook(host, { nav }) {
         return { posts };
     }
 
+    function addStory() {
+        const input = h('textarea', { class: 'mp-input', rows: '3', placeholder: '这一刻想说什么…' });
+        const s = sheet({
+            title: '创建故事',
+            content: h('div', { class: 'mp-field-list' }, input),
+            actions: h('button', {
+                class: 'mp-btn primary small', type: 'button', text: '发布',
+                onclick: () => {
+                    const text = input.value.trim();
+                    if (!text) { toast('写点什么'); return; }
+                    const data = getData();
+                    data.fbStory = { text: text.slice(0, 300), ts: Date.now() };
+                    saveNow('data');
+                    s.close();
+                    render();
+                    toast('故事已发布');
+                },
+            }),
+        });
+    }
+
+    function viewStory(person) {
+        const data = getData();
+        const mine = person?.name === (userName() || '我');
+        const text = mine ? data.fbStory?.text : getCast().find(p => p.name === person?.name)?.desc;
+        sheet({
+            title: (person?.name || '我') + ' 的故事',
+            content: h('div', { class: 'mp-fb__storyview' },
+                avatar({ name: person?.name || userName() || '我', size: 54 }),
+                h('div', { class: 'mp-fb__storytext', text: text || '今天在旧城走了很久，路边的灯一盏一盏亮起来。' }),
+                h('div', { class: 'mp-st-hint', text: '24 小时后消失' }),
+            ),
+        });
+    }
+
     function openMessenger() {
         const cast = getCast();
         const rows = cast.slice(0, 8).map(person => h('div', { class: 'mp-fb__msgrow' },
@@ -76,10 +111,10 @@ export function mountFacebook(host, { nav }) {
         // 故事栏
         const cast = getCast();
         const stories = h('div', { class: 'mp-fb__stories' });
-        stories.appendChild(h('button', { type: 'button', class: 'mp-fb__story', onclick: () => toast('发故事还没做') },
+        stories.appendChild(h('button', { type: 'button', class: 'mp-fb__story', onclick: () => addStory() },
             h('span', { class: 'mp-fb__storyplus' }, icon('plus')), h('span', { text: '创建故事' })));
         for (const person of cast.slice(0, 6)) {
-            stories.appendChild(h('button', { type: 'button', class: 'mp-fb__story', onclick: () => toast('看 ' + person.name + ' 的故事') },
+            stories.appendChild(h('button', { type: 'button', class: 'mp-fb__story', onclick: () => viewStory(person) },
                 h('span', { class: 'mp-fb__storyring' }, avatar({ name: person.name, size: 46 })), h('span', { text: person.name })));
         }
         body.appendChild(stories);
