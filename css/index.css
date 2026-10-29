@@ -2080,3 +2080,12 @@ html.mp-phone-open #toast-container { display: none !important; }
 }
 
 .mp-gm-page__composer .mp-btn { flex: 0 0 auto; min-width: 58px; white-space: nowrap; }
+
+.mp-st-panel .mp-st-drawer-head { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px 2px; user-select: none; }
+.mp-st-panel .mp-st-drawer-head h4 { flex: 1 1 auto; margin: 0; font-size: 1em; }
+.mp-st-panel .mp-st-drawer-head .inline-drawer-icon { width: 16px; height: 16px; opacity: .7; transition: transform .2s ease; }
+.mp-st-panel.is-collapsed .mp-st-content { display: none !important; }
+.mp-st-panel .mp-st-actions { display: flex; gap: 8px; flex-wrap: nowrap; margin-top: 10px; }
+.mp-st-panel .mp-st-actions .menu_button { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-status__close { width: 26px; height: 26px; border: 0; border-radius: 8px; background: rgba(255,255,255,.1); color: var(--mp-text); display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; }
+.mp-status__close .mp-ic { width: 13px; height: 13px; }

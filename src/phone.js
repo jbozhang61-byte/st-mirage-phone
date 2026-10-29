@@ -136,8 +136,12 @@ export function createPhone(onOpenChange) {
         type: 'button', class: 'mp-status__collapse', 'aria-label': '收起小手机', title: '收起小手机',
         onclick: event => { event.stopPropagation(); closePhone(); },
     }, icon('down'));
+    const closeBtn = h('button', {
+        type: 'button', class: 'mp-status__close', 'aria-label': '关闭小手机', title: '关闭小手机',
+        onclick: event => { event.stopPropagation(); closePhone(); },
+    }, icon('close'));
     const statusEl = h('div', { class: 'mp-status' }, timeEl,
-        h('div', { class: 'mp-status__right' }, collapseBtn, floatBtn, signal, icon('wifi'), batt));
+        h('div', { class: 'mp-status__right' }, closeBtn, collapseBtn, floatBtn, signal, icon('wifi'), batt));
 
     const wallEl = h('div', { class: 'mp-wallpaper', 'data-wall': 'aurora' });
     refs.wall = wallEl;
@@ -751,8 +755,9 @@ export function closePhone() {
 function setFab(isOpen) {
     if (!fabEl) return;
     const narrow = isNarrow();
-    fabEl.classList.toggle('is-hidden', isOpen && !narrow);
-    fabEl.classList.toggle('is-open', isOpen && narrow);
+    const hideFab = !!getSettings().hideFab;
+    fabEl.classList.toggle('is-hidden', hideFab || (isOpen && !narrow));
+    fabEl.classList.toggle('is-open', !hideFab && isOpen && narrow);
     const next = icon(isOpen && narrow ? 'down' : 'phone', 'mp-fab__icon');
     const old = fabEl.querySelector('.mp-ic');
     if (old) old.replaceWith(next);
@@ -1014,7 +1019,11 @@ export function setEnabled(value) {
     if (!rootEl) return;
     if (!value) closePhone();
     rootEl.style.display = value ? '' : 'none';
-    fabEl.classList.toggle('is-hidden', value ? open : true);
+    fabEl.classList.toggle('is-hidden', value ? (!!getSettings().hideFab || open) : true);
+}
+
+export function refreshFab() {
+    setFab(open);
 }
 
 export function destroyPhone() {

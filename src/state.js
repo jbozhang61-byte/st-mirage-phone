@@ -57,6 +57,7 @@ export function defaultSettings() {
         haptics: true,
         island: true,
         sound: false,
+        hideFab: false,
         apps: ['plot', 'spark'],  // 已安装的商店应用 id
         perf: 'auto',             // auto | lite | full
         autoOpen: false,          // 打开酒馆时是否自动弹出手机

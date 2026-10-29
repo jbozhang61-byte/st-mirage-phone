@@ -223,22 +223,30 @@ function buildSettingsPanel() {
     root.className = 'mp-st-panel';
     root.id = 'mp_st_panel';
 
+    const content = document.createElement('div');
+    content.className = 'inline-drawer-content mp-st-content';
+
     const head = document.createElement('div');
-    head.className = 'mp-st-row';
+    head.className = 'mp-st-drawer-head';
     const title = document.createElement('h4');
     title.textContent = '幻镜手机 · Mirage Phone';
-    title.style.margin = '0';
-    title.style.flex = '1';
     const badge = document.createElement('span');
     badge.className = 'mp-st-badge';
     badge.textContent = 'v' + VERSION;
-    head.append(title, badge);
-    root.appendChild(head);
+    const chevron = document.createElement('div');
+    chevron.className = 'inline-drawer-icon fa-solid fa-circle-chevron-down down';
+    head.append(title, badge, chevron);
+    head.addEventListener('click', () => {
+        root.classList.toggle('is-collapsed');
+        chevron.classList.toggle('fa-circle-chevron-down', !root.classList.contains('is-collapsed'));
+        chevron.classList.toggle('fa-circle-chevron-up', root.classList.contains('is-collapsed'));
+    });
+    root.append(head, content);
 
     const hint = document.createElement('div');
     hint.className = 'mp-st-hint';
-    hint.textContent = '点右下角的手机图标，或输入框左边的魔杖菜单里的「小手机」。悬浮窗可以拖动，Alt+P 也能打开。';
-    root.appendChild(hint);
+    hint.textContent = '点右下角手机图标，或输入框左边的魔杖菜单「小手机」。Alt+P 也能打开，手机里右上角可以关闭。';
+    content.appendChild(hint);
 
     const enabled = checkRow('启用小手机', settings.enabled, value => {
         getSettings().enabled = value;
@@ -255,6 +263,11 @@ function buildSettingsPanel() {
         getSettings().proactive.enabled = value;
         saveNow('settings');
         syncPanel();
+    });
+    const hideFab = checkRow('隐藏悬浮球（用魔杖打开）', settings.hideFab, value => {
+        getSettings().hideFab = value;
+        saveNow('settings');
+        phone?.refreshFab?.();
     });
 
     const roundsRow = document.createElement('div');
@@ -329,19 +342,9 @@ function buildSettingsPanel() {
     openBtn.className = 'menu_button';
     openBtn.id = 'mp_st_open';
     openBtn.textContent = '打开小手机';
-    openBtn.addEventListener('click', () => {
-        const current = getSettings();
-        if (current.enabled === false) {
-            current.enabled = true;
-            saveNow('settings');
-            phone?.setEnabled(true);
-            syncPanel();
-        }
-        openPhone();
-    });
     const clearBtn = document.createElement('button');
     clearBtn.className = 'menu_button';
-    clearBtn.textContent = '清空本聊天手机数据';
+    clearBtn.textContent = '清空数据';
     clearBtn.addEventListener('click', async () => {
         let ok = false;
         if (typeof globalThis.callGenericPopup === 'function') {
@@ -359,7 +362,7 @@ function buildSettingsPanel() {
     });
     actions.append(openBtn, clearBtn);
 
-    root.append(enabled, inject, proactive, roundsRow, themeRow, accentRow, actions);
+    content.append(enabled, inject, proactive, hideFab, roundsRow, themeRow, accentRow, actions);
     host.appendChild(root);
     panel = root;
     syncPanel();
@@ -392,12 +395,22 @@ function syncPanel() {
     if (panelRefs.theme) panelRefs.theme.value = settings.theme;
     if (panelRefs.accent) panelRefs.accent.value = settings.accent;
     if (openBtn) openBtn.textContent = phone?.isOpen?.() ? '收起小手机' : '打开小手机';
-    if (openBtn) openBtn.onclick = () => (phone?.isOpen?.() ? phone.close() : openPhone());
+    if (openBtn) openBtn.onclick = () => {
+        if (phone?.isOpen?.()) { phone.close(); return; }
+        const current = getSettings();
+        if (current.enabled === false) {
+            current.enabled = true;
+            saveNow('settings');
+            phone?.setEnabled(true);
+        }
+        openPhone();
+    };
     if (panel) {
         const boxes = panel.querySelectorAll('input[type="checkbox"]');
         if (boxes[0]) boxes[0].checked = settings.enabled;
         if (boxes[1]) boxes[1].checked = settings.inject.enabled;
         if (boxes[2]) boxes[2].checked = settings.proactive.enabled;
+        if (boxes[3]) boxes[3].checked = settings.hideFab;
         if (panelRefs.rounds) panelRefs.rounds.value = String(Number(settings.proactive.rounds) || 1);
     }
 }
