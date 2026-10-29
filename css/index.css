@@ -2618,3 +2618,8 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-page-dots { display: flex; justify-content: center; gap: 5px; padding: 4px 0 7px; }
 .mp-page-dots i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.32); }
 .mp-page-dots i.on { background: rgba(255,255,255,.9); }
+
+.mp-root[data-skin="paper"] .mp-page-dots i { background: rgba(58,43,29,.28); }
+.mp-root[data-skin="paper"] .mp-page-dots i.on { background: #3a2b1d; }
+.mp-root[data-skin="neon"] .mp-page-dots i { background: rgba(0,240,255,.22); }
+.mp-root[data-skin="neon"] .mp-page-dots i.on { background: #00f0ff; box-shadow: 0 0 8px rgba(0,240,255,.7); }
