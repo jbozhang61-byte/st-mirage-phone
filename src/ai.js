@@ -30,6 +30,7 @@ export function friendlyError(error) {
     if (/\b429\b|rate limit/i.test(raw)) return '请求太频繁，等一会儿再试';
     if (/\b403\b|forbidden/i.test(raw)) return '这个 Key 没有权限，或者接口被挡住了';
     if (/timeout|超时/i.test(raw)) return raw || '生成超时了，再试一次';
+    if (/未知错误|unknown error/i.test(raw)) return '酒馆接口返回未知错误：检查 API 地址/模型，或换一个模型再试';
     return raw || '生成失败';
 }
 export const aiEvents = new EventTarget();
@@ -76,7 +77,7 @@ export async function replyToThread(threadId, { proactive = false } = {}) {
         const settings = getSettings();
         const user = userName();
         const story = storyContext(6, 320);
-        const memory = memoryContext(10);
+        const memory = memoryContext(6);
         const members = thread.members;
         const worldCard = currentCharacter();
         const world = worldCard?.group ? worldCard.name : (worldCard?.name || '');
@@ -97,7 +98,18 @@ export async function replyToThread(threadId, { proactive = false } = {}) {
         const prompt = proactive
             ? proactivePrompt({ thread, user, story })
             : chatUserPrompt({ thread, user, limit: 24 });
-        const raw = await generateText({ system, prompt, length: proactive ? Math.min(220, settings.ai.length) : settings.ai.length });
+        let raw = '';
+        try {
+            raw = await generateText({ system, prompt, length: proactive ? Math.min(220, settings.ai.length) : settings.ai.length });
+        } catch (error) {
+            if (proactive) return [];
+            console.warn('[幻镜手机] 生成失败，使用本地回复', error);
+            const last = [...(thread.msgs || [])].reverse().find(msg => msg.from === 'me')?.text || '';
+            const fallback = localReply(thread, last);
+            const saved = appendMessages(threadId, fallback.map(m => ({ ...m, from: 'them' })), { unread: true });
+            emit('reply', { threadId, messages: saved });
+            return saved;
+        }
         const messages = parseChatReply(raw, {
             members,
             fallbackSender: members[0],
@@ -114,6 +126,17 @@ export async function replyToThread(threadId, { proactive = false } = {}) {
         busy.delete(threadId);
         emit('typing', { threadId, typing: false });
     }
+}
+
+function localReply(thread, lastText = '') {
+    const name = thread.members?.[0] || '对方';
+    const text = String(lastText || '');
+    const asks = /[?？]|吗|呢|怎么|什么|哪|谁/.test(text);
+    const lines = asks
+        ? ['我在。刚刚没顾上看手机。', '嗯，看到了。等我一会儿。']
+        : ['好，我知道了。', '刚看到，晚点和你细说。'];
+    const pick = lines[Math.floor(Math.random() * lines.length)];
+    return [{ sender: name, type: 'text', text: pick, ts: Date.now() }];
 }
 
 /** 生成朋友圈。 */
