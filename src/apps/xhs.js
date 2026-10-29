@@ -82,7 +82,6 @@ export function mountXhs(host, { nav }) {
     }
 
     function refresh() {
-        if (loading) return;
         loading = true;
         toast('正在刷新笔记…');
         refreshFeed('xhs', render, value => { loading = value; });

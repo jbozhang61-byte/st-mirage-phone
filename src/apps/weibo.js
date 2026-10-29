@@ -107,7 +107,6 @@ export function mountWeibo(host, { nav }) {
     }
 
     function refresh() {
-        if (loading) return;
         loading = true;
         toast('正在刷新热搜…');
         refreshFeed('weibo', render, value => { loading = value; });
