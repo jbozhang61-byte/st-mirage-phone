@@ -156,7 +156,7 @@ export function mountAI(host, { nav }) {
         for (const [id, preset] of Object.entries(PROVIDERS)) {
             choices.appendChild(h('button', {
                 type: 'button', class: 'mp-aiapp__chip' + (provider === id ? ' is-on' : ''), text: preset.name,
-                onclick: () => {
+                onclick: event => {
                     provider = id;
                     [...choices.children].forEach(btn => btn.classList.toggle('is-on', btn === event.currentTarget));
                     const item = PROVIDERS[id];
