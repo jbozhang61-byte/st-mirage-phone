@@ -1070,7 +1070,8 @@ onChange(kind => {
     if (kind === 'data' || kind === 'init') {
         refreshBadges();
         homeView?.refresh?.();
-        if (current?.id === 'chat' && !typingThreads.size) current.view?.refresh?.();
+        // 聊天页自己处理消息追加；这里再整页重渲染会把滚动位置清掉
+        if (current?.id !== 'chat' && !typingThreads.size) current.view?.refresh?.();
     }
     if (kind === 'settings') {
         refreshTheme();
