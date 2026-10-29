@@ -322,10 +322,17 @@ async function customGenerate(config, system, prompt, length) {
                 temperature: 0.9,
             }),
         });
-        if (!response.ok) throw new Error('接口返回 ' + response.status);
+        if (!response.ok) {
+            let detail = '';
+            try { detail = (await response.text()).slice(0, 160); } catch { /* ignore */ }
+            throw new Error('独立 API 返回 ' + response.status + (detail ? '：' + detail : ''));
+        }
         const data = await response.json();
+        if (data?.error) throw new Error('独立 API 报错：' + String(data.error?.message || data.error).slice(0, 180));
         const choice = data?.choices?.[0];
-        return String(choice?.message?.content || choice?.text || '').trim();
+        const text = String(choice?.message?.content || choice?.text || '').trim();
+        if (!text) throw new Error('独立 API 没有返回内容');
+        return text;
     } finally {
         clearTimeout(timer);
     }
@@ -368,10 +375,8 @@ export async function generateText({ system = '', prompt = '', length = 320, jso
     async function attempt() {
         const custom = customAI();
         if (custom) {
-            try {
-                const raw = await customGenerate(custom, String(system || '').trim(), cleanPrompt, request.responseLength);
-                if (raw) return raw;
-            } catch { /* 失败退回主 API */ }
+            // 设置里选了独立 API 就只走独立 API，不再偷偷回退主 API
+            return await customGenerate(custom, String(system || '').trim(), cleanPrompt, request.responseLength);
         }
         if (typeof c.generateRawData === 'function') {
             const data = await c.generateRawData(request);
