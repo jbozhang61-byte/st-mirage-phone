@@ -211,7 +211,7 @@ export function gradientFor(name) {
     return 'linear-gradient(145deg,' + a + ',' + b + ')';
 }
 
-export function avatar({ name = '', src = '', size = 44, cls = '', ring = false } = {}) {
+export function avatar({ name = '', src = '', size = 44, cls = '', ring = false, link = true } = {}) {
     try {
         const custom = globalThis.__mpAvatarUrl?.(name);
         if (custom) src = custom;
@@ -231,6 +231,13 @@ export function avatar({ name = '', src = '', size = 44, cls = '', ring = false 
         el.textContent = ch;
     }
     el.style.fontSize = Math.round(size * 0.38) + 'px';
+    if (link && name && !String(name).includes('、') && globalThis.__mpOpenProfile) {
+        el.classList.add('is-profile-link');
+        el.setAttribute('role', 'button');
+        el.tabIndex = 0;
+        el.title = '查看 ' + name + ' 的主页';
+        el.addEventListener('click', event => { event.stopPropagation(); globalThis.__mpOpenProfile(name); });
+    }
     return el;
 }
 

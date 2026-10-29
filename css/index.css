@@ -2724,3 +2724,28 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-image-test__preview { width: 132px; height: 96px; border-radius: 10px; background: var(--mp-field) center/cover no-repeat; border: 1px solid var(--mp-line); }
 .mp-shell.is-dragging { user-select: none; cursor: grabbing; }
 html:not(.mp-mobile-float) .mp-shell:not(.is-closed) { transition: none !important; }
+
+.mp-avatar.is-profile-link { cursor: pointer; }
+.mp-avatar.is-profile-link:active { transform: scale(.94); }
+.mp-avatar { transition: transform .15s ease; }
+.mp-person { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; z-index: 90; display: flex; flex-direction: column; background: var(--mp-screen-bg); color: var(--mp-text); overflow-y: auto; }
+.mp-person.is-closing { animation: mp-app-out .22s ease forwards; }
+.mp-person__cover { height: 180px; background-size: cover; background-position: center; position: relative; flex: 0 0 auto; }
+.mp-person__bar { position: absolute; inset: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: linear-gradient(180deg, rgba(0,0,0,.35), transparent); }
+.mp-person__title { flex: 1 1 auto; text-align: center; font-size: 12px; font-weight: 600; color: #fff; }
+.mp-person__body { flex: 1 1 auto; padding: 0 16px 20px; margin-top: -36px; }
+.mp-person__head { display: flex; align-items: flex-end; gap: 12px; }
+.mp-person__avatar { border-radius: 50%; box-shadow: 0 8px 24px -10px #000; }
+.mp-person__id { padding-bottom: 5px; }
+.mp-person__name { font-size: 20px; font-weight: 750; }
+.mp-person__role { font-size: 10px; color: var(--mp-text-3); margin-top: 2px; }
+.mp-person__bio { margin-top: 14px; font-size: 11.5px; line-height: 1.75; color: var(--mp-text-2); }
+.mp-person__style { margin-top: 6px; font-size: 10px; color: var(--mp-text-3); }
+.mp-person__section { margin-top: 16px; }
+.mp-person__label { font-size: 9.5px; color: var(--mp-text-3); margin-bottom: 5px; }
+.mp-person__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mp-person__chip { border: 1px solid var(--mp-line); background: var(--mp-field); border-radius: 10px; padding: 4px 8px; font-size: 10px; color: var(--mp-text-2); }
+.mp-person__moment { font-size: 10.5px; line-height: 1.65; color: var(--mp-text-2); padding: 7px 0; border-bottom: 1px solid var(--mp-line); }
+.mp-person__world { margin-top: 16px; font-size: 9px; color: var(--mp-text-3); }
+.mp-person__actions { position: sticky; bottom: 0; padding: 8px 14px 14px; background: linear-gradient(180deg, transparent, var(--mp-screen-bg) 35%); }
+.mp-person__actions .mp-btn { width: 100%; }

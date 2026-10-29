@@ -4,10 +4,10 @@
  */
 import { h, icon, avatar, clockText, toast as rawToast, sheet, confirmSheet, setLayer, haptic, ensureSprite } from './render.js';
 import {
-    getSettings, getData, onChange, markRead, findThread, saveNow,
+    getSettings, getData, onChange, markRead, findThread, ensureThread, saveNow,
 } from './store.js';
 import { totalUnread } from './state.js';
-import { isNarrow, loadPersonaAvatar } from './st.js';
+import { isNarrow, loadPersonaAvatar, userName } from './st.js';
 import { applyThemeVars, isLite } from './theme.js';
 import { mountHome } from './apps/home.js';
 import { mountChat } from './apps/chat.js';
@@ -37,6 +37,7 @@ import { mountTieba } from './apps/tieba.js';
 import { mountHeart } from './apps/heart.js';
 import { mountWorld } from './apps/world.js';
 import { mountAI } from './apps/ai.js';
+import { openPersonProfile } from './apps/person.js';
 import { mountDeepSeek, mountChatGPT, mountClaude, mountGemini } from './apps/ai-brands.js';
 import { mountShop } from './apps/shopping.js';
 import { mountWebApp } from './apps/webapps.js';
@@ -218,6 +219,17 @@ export function createPhone(onOpenChange) {
     } catch { /* ignore */ }
     setLayer(portalLayer);
     applyThemeVars(rootEl, getSettings());
+
+    globalThis.__mpOpenProfile = name => {
+        if (name === userName()) { openApp('me'); return; }
+        if (!name || name === 'AI') return;
+        openPersonProfile(name, {
+            onChat: () => {
+                const thread = ensureThread([name]);
+                if (thread) openApp('chat', { threadId: thread.id });
+            },
+        });
+    };
 
     homeView = mountHome(homeHost, { nav: makeNav() });
     viewEl.appendChild(homeHost);
