@@ -363,3 +363,6 @@ export function until(condition, timeout = 15000, step = 120) {
             if (ok) return resolve(true);
             if (Date.now() - start > timeout) return reject(new Error('等待超时'));
             setTimeout(tick, step);
+        })();
+    });
+}
