@@ -14,13 +14,21 @@ const PROVIDERS = {
     custom: { name: '自定义', baseUrl: '', model: '' },
 };
 
-export function mountAI(host, { nav }) {
+export function mountAI(host, ctx) {
+    return mountAssistant(host, ctx, {});
+}
+
+export function mountAssistant(host, { nav }, brand = {}) {
     nav.setChrome?.('dark');
+    const appId = brand.id || 'ai';
+    const appName = brand.name || 'AI';
+    const appSub = brand.sub || 'ASSISTANT';
+    const fixedProvider = brand.provider || '';
     const body = h('div', { class: 'mp-aiapp__body' });
     const el = h('div', { class: 'mp-aiapp' },
         h('div', { class: 'mp-nav' },
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
-            h('div', { class: 'mp-nav__title' }, 'AI', h('small', { text: 'ASSISTANT' })),
+            h('div', { class: 'mp-nav__title' }, appName, h('small', { text: appSub })),
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '模型设置', onclick: () => providerSheet() }, icon('settings')),
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '新对话', onclick: () => reset() }, icon('plus')),
         ),
@@ -29,11 +37,24 @@ export function mountAI(host, { nav }) {
     host.appendChild(el);
     let busy = false;
 
+    function appConfig() {
+        const settings = getSettings();
+        settings.aiApps = settings.aiApps && typeof settings.aiApps === 'object' ? settings.aiApps : {};
+        const config = settings.aiApps[appId] && typeof settings.aiApps[appId] === 'object' ? settings.aiApps[appId] : {};
+        return {
+            provider: fixedProvider || config.provider || settings.aiApp?.provider || 'inherit',
+            baseUrl: config.baseUrl || '',
+            apiKey: config.apiKey || '',
+            model: config.model || '',
+        };
+    }
+
     function data() {
         const current = getData();
-        current.aiApp = current.aiApp && typeof current.aiApp === 'object' ? current.aiApp : { messages: [] };
-        current.aiApp.messages = Array.isArray(current.aiApp.messages) ? current.aiApp.messages : [];
-        return current.aiApp;
+        current.aiApps = current.aiApps && typeof current.aiApps === 'object' ? current.aiApps : {};
+        current.aiApps[appId] = current.aiApps[appId] && typeof current.aiApps[appId] === 'object' ? current.aiApps[appId] : { messages: [] };
+        current.aiApps[appId].messages = Array.isArray(current.aiApps[appId].messages) ? current.aiApps[appId].messages : [];
+        return current.aiApps[appId];
     }
 
     function context() {
@@ -77,7 +98,7 @@ export function mountAI(host, { nav }) {
         body.innerHTML = '';
         if (!app.messages.length) {
             body.appendChild(h('div', { class: 'mp-aiapp__hello' },
-                h('div', { class: 'mp-aiapp__logo' }, icon('sparkle')),
+                h('div', { class: 'mp-aiapp__logo' }, icon(brand.icon || 'sparkle')),
                 h('div', { class: 'mp-aiapp__title', text: '我知道这部手机和最近的故事' }),
                 h('div', { class: 'mp-aiapp__sub', text: '可以问剧情、谁在聊什么、谁对你有好感，或者让我帮你理一理。' }),
                 h('div', { class: 'mp-aiapp__chips' },
@@ -105,9 +126,9 @@ export function mountAI(host, { nav }) {
     }
 
     async function callModel({ system, prompt, length }) {
-        const config = getSettings().aiApp || {};
+        const config = appConfig();
         const provider = PROVIDERS[config.provider] ? config.provider : 'inherit';
-        if (provider === 'inherit') {
+        if (provider === 'inherit' || !config.apiKey) {
             return generateText({ system, prompt, length });
         }
         const preset = PROVIDERS[provider];
@@ -136,8 +157,8 @@ export function mountAI(host, { nav }) {
     }
 
     function providerSheet() {
-        const config = getSettings().aiApp || { provider: 'inherit', baseUrl: '', apiKey: '', model: '' };
-        let provider = config.provider || 'inherit';
+        const config = appConfig();
+        let provider = fixedProvider || config.provider || 'inherit';
         const baseInput = h('input', { class: 'mp-input', type: 'text', value: config.baseUrl || '', placeholder: '接口地址，例如 https://api.deepseek.com/v1' });
         const modelInput = h('input', { class: 'mp-input', type: 'text', value: config.model || '', placeholder: '模型名，例如 deepseek-chat' });
         const keyInput = h('input', { class: 'mp-input', type: 'password', value: config.apiKey || '', placeholder: 'API Key（只存在本地设置）' });
@@ -153,7 +174,7 @@ export function mountAI(host, { nav }) {
         };
         applyPreset();
         const choices = h('div', { class: 'mp-aiapp__chips' });
-        for (const [id, preset] of Object.entries(PROVIDERS)) {
+        if (!fixedProvider) for (const [id, preset] of Object.entries(PROVIDERS)) {
             choices.appendChild(h('button', {
                 type: 'button', class: 'mp-aiapp__chip' + (provider === id ? ' is-on' : ''), text: preset.name,
                 onclick: event => {
@@ -167,7 +188,7 @@ export function mountAI(host, { nav }) {
             }));
         }
         const dialog = sheet({
-            title: 'AI 模型',
+            title: appName + ' 模型',
             content: h('div', { class: 'mp-field-list' },
                 h('div', { class: 'mp-aiapp__chips' }, choices),
                 h('div', {}, h('label', { text: '接口地址' }), baseInput),
@@ -179,7 +200,8 @@ export function mountAI(host, { nav }) {
                 class: 'mp-btn primary small', type: 'button', text: '保存',
                 onclick: () => {
                     const current = getSettings();
-                    current.aiApp = {
+                    current.aiApps = current.aiApps && typeof current.aiApps === 'object' ? current.aiApps : {};
+                    current.aiApps[appId] = {
                         provider,
                         baseUrl: baseInput.value.trim(),
                         model: modelInput.value.trim(),

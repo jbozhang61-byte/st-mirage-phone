@@ -2158,3 +2158,12 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-as__icon.g-ai { background: linear-gradient(150deg, #9aa5ff, #4f57c9); }
 
 .mp-aiapp__chip.is-on { background: rgba(143,155,255,.28); border-color: rgba(143,155,255,.6); color: #fff; }
+
+.mp-appicon__glyph.g-deepseek { background: linear-gradient(160deg, #7fb4ff, #2d6fd6 58%, #16386e); }
+.mp-as__icon.g-deepseek { background: linear-gradient(150deg, #7fb4ff, #2d6fd6); }
+.mp-appicon__glyph.g-chatgpt { background: linear-gradient(160deg, #8ff0c8, #2e9f78 58%, #174d3b); }
+.mp-as__icon.g-chatgpt { background: linear-gradient(150deg, #8ff0c8, #2e9f78); }
+.mp-appicon__glyph.g-claude { background: linear-gradient(160deg, #ffc9a0, #d97a45 58%, #6b3520); }
+.mp-as__icon.g-claude { background: linear-gradient(150deg, #ffc9a0, #d97a45); }
+.mp-appicon__glyph.g-gemini { background: linear-gradient(160deg, #c9c2ff, #6d63e8 58%, #36307e); }
+.mp-as__icon.g-gemini { background: linear-gradient(150deg, #c9c2ff, #6d63e8); }

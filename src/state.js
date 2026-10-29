@@ -67,6 +67,7 @@ export function defaultSettings() {
         proactive: { enabled: false, cooldown: 120, perHour: 4, rounds: 1 },
         tts: { enabled: false, auto: false, rate: 1, voice: '' },
         aiApp: { provider: 'inherit', baseUrl: '', apiKey: '', model: '' },
+        aiApps: {},
         ai: {
             useMain: true, baseUrl: '', apiKey: '', model: '', commentStyle: '真实网友', length: 320, style: DEFAULT_STYLE },
         replyInGroup: true,
@@ -116,6 +117,7 @@ export function normalizeSettings(raw) {
     s.aiApp.baseUrl = String(s.aiApp.baseUrl || '').slice(0, 200);
     s.aiApp.apiKey = String(s.aiApp.apiKey || '').slice(0, 300);
     s.aiApp.model = String(s.aiApp.model || '').slice(0, 80);
+    s.aiApps = s.aiApps && typeof s.aiApps === 'object' ? s.aiApps : {};
     s.ai.length = clamp(Math.round(Number(s.ai.length) || 320), 120, 1200);
     if (typeof s.ai.style !== 'string' || !s.ai.style.trim()) s.ai.style = DEFAULT_STYLE;
     s.ai.style = s.ai.style.slice(0, 4000);

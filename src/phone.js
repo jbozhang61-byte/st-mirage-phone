@@ -37,6 +37,7 @@ import { mountTieba } from './apps/tieba.js';
 import { mountHeart } from './apps/heart.js';
 import { mountWorld } from './apps/world.js';
 import { mountAI } from './apps/ai.js';
+import { mountDeepSeek, mountChatGPT, mountClaude, mountGemini } from './apps/ai-brands.js';
 
 const APPS = {
     chat: { mount: mountChat },
@@ -74,6 +75,10 @@ const APPS = {
     heart: { mount: mountHeart },
     world: { mount: mountWorld },
     ai: { mount: mountAI },
+    deepseek: { mount: mountDeepSeek },
+    chatgpt: { mount: mountChatGPT },
+    claude: { mount: mountClaude },
+    gemini: { mount: mountGemini },
 };
 
 let rootEl = null;
