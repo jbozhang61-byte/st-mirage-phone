@@ -388,7 +388,7 @@ export function proactivePrompt({ thread, user, story }) {
 }
 
 /** 注入正文的手机状态摘要。 */
-export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, extras = [], maxThreads = 5, maxMsgs = 4 }) {
+export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, extras = [], maxThreads = 12, maxMsgs = 8 }) {
     const lines = [];
     const sorted = [...(threads || [])].filter(t => t.msgs?.length).sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, maxThreads);
     for (const thread of sorted) {
@@ -407,12 +407,13 @@ export function phoneStateSummary({ threads, user, hearts = [], selfProfile = nu
         parts.push('【手机里的最近消息】');
         parts.push('以下只是手机聊天里已经发生的事实（发生在剧情里，你是知道的）：');
         parts.push(...lines);
-        parts.push('把聊天内容当作已经发生的事来理解，可以自然体现；但正文里不要引用、复述或粘贴聊天原文，不要写「手机里说」「聊天记录」之类的话，也不要出现聊天界面。');
+        parts.push('把聊天内容当作已经发生的事来理解，可以自然承接、回应、提起；但正文里不要引用、复述或粘贴聊天原文，不要写「手机里说」「聊天记录」之类的话，也不要出现聊天界面。');
     }
     if (extras.length) {
         parts.push('【手机聊天里已经发生的事实】');
-        parts.push('以下同样是剧情里发生过的事，只提取事实（谁做了什么、约定了什么），不要让正文出现聊天原文、聊天记录或「手机里说」之类表述：');
+        parts.push('以下同样是剧情里发生过的事，只提取事实（谁做了什么、约定了什么、约了什么事），不要让正文出现聊天原文、聊天记录或「手机里说」之类表述：');
         parts.push(...extras);
+        parts.push('这些手机里的约定和正文里的剧情是同一个世界线：正文可以承接手机里刚发生的事，手机里也可以提到正文里刚发生的事。');
     }
     const heartLines = [];
     for (const person of hearts.slice(0, 6)) {

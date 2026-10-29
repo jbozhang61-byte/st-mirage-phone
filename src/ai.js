@@ -76,8 +76,8 @@ export async function replyToThread(threadId, { proactive = false } = {}) {
     try {
         const settings = getSettings();
         const user = userName();
-        const story = storyContext(6, 320);
-        const memory = memoryContext(6);
+        const story = importantStoryContext(40, 480);
+        const memory = memoryContext(12);
         const members = thread.members;
         const worldCard = currentCharacter();
         const world = worldCard?.group ? worldCard.name : (worldCard?.name || '');
@@ -245,7 +245,7 @@ function recentOtherChats() {
 
     const telegram = getFeed('telegram')?.chats || [];
     for (const chat of telegram.slice(0, 4)) {
-        const msgs = (chat.messages || []).slice(-3);
+        const msgs = (chat.messages || []).slice(-4);
         if (!msgs.length) continue;
         const body = msgs.map(msg => (msg.mine || msg.name === userName() ? userName() : (msg.name || chat.name)) + '：' + clean(msg.text)).join(' / ');
         lines.push('· Telegram「' + chat.name + '」' + (chat.style ? '（' + chat.style + '）' : '') + '：' + body);
@@ -253,7 +253,7 @@ function recentOtherChats() {
 
     const signal = getFeed('signal')?.items || [];
     for (const chat of (Array.isArray(signal) ? signal : []).slice(0, 4)) {
-        const msgs = (chat.messages || []).slice(-3);
+        const msgs = (chat.messages || []).slice(-4);
         if (!msgs.length) continue;
         const body = msgs.map(msg => (msg.mine ? userName() : (msg.name || chat.name)) + '：' + clean(msg.text)).join(' / ');
         lines.push('· Signal「' + chat.name + '」' + (chat.style ? '（' + chat.style + '）' : '') + '：' + body);
@@ -274,7 +274,7 @@ function recentOtherChats() {
         const body = mail.replies.slice(-2).map(reply => (reply.mine ? userName() : (reply.from || mail.from)) + '：' + clean(reply.text)).join(' / ');
         lines.push('· Gmail「' + mail.subject + '」：' + body);
     }
-    return lines.slice(0, 10);
+    return lines.slice(0, 15);
 }
 
 export function refreshInjection() {
