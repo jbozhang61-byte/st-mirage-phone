@@ -308,7 +308,7 @@ export function mountHeart(host, { nav }) {
         toast('正在重新感受…');
         try {
             const memory = memoryContext(12).map(item => String(item.text || '').slice(0, 600)).filter(Boolean).join('\n');
-            const story = importantStoryContext(40, 420).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
+            const story = importantStoryContext(80, 420).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
             const list = cast.map(person => '- ' + person.name + '：' + [person.role, person.relation, person.desc].filter(Boolean).join(' / ')).join('\n');
             const raw = await generateText({
                 system: '你在整理一段故事里主要人物和用户的关系与亲密偏好。只输出 JSON，克制、不写露骨内容。',

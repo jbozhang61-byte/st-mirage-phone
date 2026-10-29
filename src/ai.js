@@ -76,7 +76,7 @@ export async function replyToThread(threadId, { proactive = false } = {}) {
     try {
         const settings = getSettings();
         const user = userName();
-        const story = importantStoryContext(50, 500);
+        const story = importantStoryContext(80, 500);
         const memory = memoryContext(12);
         const members = thread.members;
         const worldCard = currentCharacter();
@@ -146,7 +146,7 @@ export async function generateMoments(count = 4) {
     const user = userName();
     const contacts = allContactCandidates();
     if (!contacts.length) throw new Error('先在酒馆里打开一个角色，或者去「通讯录」加一个人');
-    const story = storyContext(40, 340);
+    const story = storyContext(80, 340);
     const memory = memoryContext(12);
     const recent = data.moments.slice(0, 6).map(m => m.text);
     const system = momentsSystemPrompt({ contacts, user, story, memory });
@@ -301,7 +301,7 @@ export async function extractCast() {
     const user = userName();
     const card = findCharacter(current.name) || current;
     const memory = memoryContext(12);
-    const story = importantStoryContext(48, 840);
+    const story = importantStoryContext(80, 840);
     const raw = await generateText({
         system: castSystemPrompt({ user }),
         prompt: castUserPrompt({ card, story, memory, user }),
@@ -333,7 +333,7 @@ export async function generateFeed(appId) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
-    const story = storyContext(40, 340);
+    const story = storyContext(80, 340);
     const memory = memoryContext(12);
     const system = config.system({ world, people, user, story, memory });
     const prompt = config.prompt({ count: config.count, people });
@@ -439,7 +439,7 @@ export async function browse(query) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
-    const story = storyContext(40, 320);
+    const story = storyContext(80, 320);
     const memory = memoryContext(12);
     try {
         const raw = await generateText({
@@ -477,7 +477,7 @@ export async function generateSocial(appId) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
-    const story = storyContext(3, 160);
+    const story = storyContext(80, 340);
     const raw = await generateText({
         system: config.system({ world, people, user, story }),
         prompt: config.prompt({ count: config.count }),
@@ -498,7 +498,7 @@ export async function generateExtra(appId) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
-    const story = storyContext(40, 340);
+    const story = storyContext(80, 340);
     const memory = memoryContext(12);
     const raw = await generateText({ system: config.system({ world, people, user, story, memory }), prompt: config.prompt(), length: 1300, json: true });
     const parsed = config.parse(extractJson(raw) || {});
@@ -513,7 +513,7 @@ export async function extractCompanies() {
     const user = userName();
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
-    const story = storyContext(20, 300);
+    const story = storyContext(80, 300);
     const memory = memoryContext(8).map(item => String(item.text || '').slice(0, 400)).filter(Boolean).join('\n');
     const text = [memory, ...story.map(line => (line.isUser ? '用户' : line.name) + '：' + line.text)].join('\n');
     if (!text) return [];
@@ -539,7 +539,7 @@ export async function generateComments(item, app = '内容') {
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
     const style = getSettings().ai?.commentStyle || '真实网友';
-    const story = storyContext(40, 340).map(line => (line.isUser ? user : line.name) + '：' + line.text).join('\n');
+    const story = storyContext(80, 340).map(line => (line.isUser ? user : line.name) + '：' + line.text).join('\n');
     const memory = memoryContext(12).map(entry => String(entry.text || '').slice(0, 500)).filter(Boolean).join('\n');
     const raw = await generateText({
         system: [
@@ -570,7 +570,7 @@ export async function generateComments(item, app = '内容') {
 /** 备忘录里的「今天的日记」：用当前角色的口吻写最近发生的事。 */
 export async function writeDiary() {
     const user = userName();
-    const story = storyContext(12, 360);
+    const story = storyContext(80, 360);
     const memory = memoryContext(12).map(item => String(item.text || '').slice(0, 600)).filter(Boolean).join('\n');
     const current = currentCharacter();
     const who = current?.name || '我';

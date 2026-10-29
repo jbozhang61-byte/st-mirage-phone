@@ -6,7 +6,7 @@ import { extractJson } from './prompts.js';
 
 function storyText() {
     const memory = memoryContext(12).map(item => String(item.text || '').slice(0, 600)).filter(Boolean).join('\n');
-    const story = importantStoryContext(40, 340).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
+    const story = importantStoryContext(80, 340).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
     return [memory ? '记忆库 / 摘要：\n' + memory : '', story ? '最近剧情：\n' + story : ''].filter(Boolean).join('\n\n');
 }
 

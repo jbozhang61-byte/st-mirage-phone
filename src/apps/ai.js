@@ -62,7 +62,7 @@ export function mountAssistant(host, { nav }, brand = {}) {
     function context() {
         const current = getData();
         const memory = memoryContext(12).map(item => String(item.text || '').slice(0, 500)).filter(Boolean).join('\n');
-        const story = importantStoryContext(40, 360).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
+        const story = importantStoryContext(80, 360).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
         const phone = phoneStateSummary({
             threads: current.threads,
             user: userName(),

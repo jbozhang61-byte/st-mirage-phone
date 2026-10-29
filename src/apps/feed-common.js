@@ -13,7 +13,7 @@ export function feedContext() {
         world: currentCharacter()?.name || '',
         people: (data.world?.cast || []).map(person => person.name),
         user: userName(),
-        story: storyContext(40, 340),
+        story: storyContext(80, 340),
         memory: memoryContext(12),
     };
 }

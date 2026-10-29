@@ -2,7 +2,7 @@
 import { generateText, importantStoryContext, memoryContext, userName } from './st.js';
 
 export async function generateMailReply({ mail }) {
-    const story = importantStoryContext(40, 320).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
+    const story = importantStoryContext(80, 320).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
     const memory = memoryContext(12).map(item => String(item.text || '').slice(0, 500)).filter(Boolean).join('\n');
     const replies = (mail.replies || []).slice(-4).map(item => (item.mine ? userName() : mail.from) + '：' + item.text).join('\n');
     const system = '你在写一封故事世界里的邮件回信。用中文，口语但像邮件，2 到 4 段，不要写旁白和标题。';
