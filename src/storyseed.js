@@ -162,3 +162,83 @@ export async function generateBooks(query) {
         return [];
     }
 }
+async function askJson(prompt, system) {
+    try {
+        const raw = await generateText({ system, prompt, length: 1000, json: true });
+        return extractJson(raw) || {};
+    } catch {
+        return {};
+    }
+}
+
+export async function generateCalendarEvents() {
+    const today = new Date().toISOString().slice(0, 10);
+    const json = await askJson([
+        context(),
+        '今天是 ' + today + '。从最近的正文里提取接下来会发生的事：约会、考试、见面、生日、纪念日。',
+        '没有具体日期就按剧情合理估计；最多 6 条。',
+        '只输出 JSON：{"events":[{"title":"事件","date":"YYYY-MM-DD","time":"19:30","note":"和谁、在哪"}]}',
+    ].filter(Boolean).join('\n'), '你在整理故事里的日程。用中文，只输出 JSON。');
+    return (Array.isArray(json.events) ? json.events : []).slice(0, 6).map(item => ({
+        title: String(item.title || '').slice(0, 50),
+        date: String(item.date || '').slice(0, 10),
+        time: String(item.time || '').slice(0, 5),
+        note: String(item.note || '').slice(0, 120),
+    })).filter(item => item.title && /^\d{4}-\d{2}-\d{2}$/.test(item.date));
+}
+
+export async function generateLiveRooms() {
+    const cast = getCast().map(person => person.name);
+    const json = await askJson([
+        context(),
+        cast.length ? '世界里的人：' + cast.join('、') : '',
+        '生成 4 个正在直播的房间：主播、标题、观众数、直播内容、几条弹幕。内容要和最近剧情有关。',
+        '只输出 JSON：{"rooms":[{"title":"直播标题","streamer":"主播","viewers":1200,"category":"聊天","messages":[{"name":"观众","text":"弹幕"}]}]}',
+    ].filter(Boolean).join('\n'), '你在生成故事世界里的直播平台。用中文，只输出 JSON。');
+    return (Array.isArray(json.rooms) ? json.rooms : []).slice(0, 6).map(room => ({
+        title: String(room.title || '').slice(0, 60),
+        streamer: String(room.streamer || cast[0] || '主播').slice(0, 24),
+        viewers: Math.max(0, Number(room.viewers) || 0),
+        category: String(room.category || '聊天').slice(0, 12),
+        messages: (Array.isArray(room.messages) ? room.messages : []).slice(0, 5).map(message => ({
+            name: String(message.name || '观众').slice(0, 20),
+            text: String(message.text || '').slice(0, 100),
+        })).filter(message => message.text),
+    })).filter(room => room.title);
+}
+
+export async function generateDouban(kind = '书') {
+    const cast = getCast().map(person => person.name);
+    const json = await askJson([
+        context(),
+        cast.length ? '世界里的人：' + cast.join('、') : '',
+        '生成 5 条豆瓣「' + kind + '」条目，每条带一个世界里的人写的短评，评语要符合他的性格和立场。',
+        '只输出 JSON：{"items":[{"title":"名称","creator":"作者/导演/音乐人","rating":4.2,"review":"短评","reviewer":"谁写的","year":2024}]}',
+    ].filter(Boolean).join('\n'), '你在为故事世界生成豆瓣书影音。用中文，只输出 JSON。');
+    return (Array.isArray(json.items) ? json.items : []).slice(0, 8).map(item => ({
+        title: String(item.title || '').slice(0, 80),
+        creator: String(item.creator || '').slice(0, 50),
+        rating: Math.max(0, Math.min(5, Number(item.rating) || 4)),
+        review: String(item.review || '').slice(0, 400),
+        reviewer: String(item.reviewer || cast[0] || '网友').slice(0, 24),
+        year: Math.max(0, Number(item.year) || 0),
+    })).filter(item => item.title);
+}
+
+export async function generateXianyu() {
+    const cast = getCast().map(person => person.name);
+    const json = await askJson([
+        context(),
+        cast.length ? '世界里的人：' + cast.join('、') : '',
+        '生成 6 个闲鱼二手商品：旧物、礼物、书、电子产品，要有使用痕迹和卖家故事。',
+        '只输出 JSON：{"items":[{"title":"商品","price":88,"condition":"几成新","seller":"卖家","desc":"为什么卖","category":"数码"}]}',
+    ].filter(Boolean).join('\n'), '你在生成故事世界里的二手市场。用中文，只输出 JSON。');
+    return (Array.isArray(json.items) ? json.items : []).slice(0, 8).map(item => ({
+        title: String(item.title || '').slice(0, 60),
+        price: Math.max(1, Number(item.price) || 20),
+        condition: String(item.condition || '八成新').slice(0, 20),
+        seller: String(item.seller || cast[0] || '旧城的人').slice(0, 24),
+        desc: String(item.desc || '').slice(0, 300),
+        category: String(item.category || '生活').slice(0, 12),
+    })).filter(item => item.title);
+}

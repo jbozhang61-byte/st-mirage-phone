@@ -40,6 +40,7 @@ import { mountAI } from './apps/ai.js';
 import { mountDeepSeek, mountChatGPT, mountClaude, mountGemini } from './apps/ai-brands.js';
 import { mountShop } from './apps/shopping.js';
 import { mountWebApp } from './apps/webapps.js';
+import { mountCalendar, mountLive, mountDouban, mountXianyu, mountTravel } from './apps/daily.js';
 
 const APPS = {
     chat: { mount: mountChat },
@@ -89,6 +90,11 @@ const APPS = {
     yandex: { mount: mountWebApp('yandex') },
     wiki: { mount: mountWebApp('wiki') },
     zlib: { mount: mountWebApp('zlib') },
+    calendar: { mount: mountCalendar },
+    live: { mount: mountLive },
+    douban: { mount: mountDouban },
+    xianyu: { mount: mountXianyu },
+    travel: { mount: mountTravel },
 };
 
 let rootEl = null;

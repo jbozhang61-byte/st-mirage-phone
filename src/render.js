@@ -156,6 +156,11 @@ const ICON_REDESIGN = {
     taobao: '<text x="12" y="16.8" text-anchor="middle" font-size="13" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-weight="700" fill="currentColor" stroke="none">淘</text>',
     jd: '<text x="12" y="16.8" text-anchor="middle" font-size="13" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-weight="700" fill="currentColor" stroke="none">京</text>',
     amazon: '<text x="11" y="15.4" text-anchor="middle" font-size="13" font-family="Arial, sans-serif" font-weight="700" fill="currentColor" stroke="none">a</text><path d="M6.2 18.2c3.4 1.5 8 1.2 11.3-.8M15.4 16.5l2.4.6-.7 2.3"/>',
+    calendar: '<rect x="3.8" y="5.2" width="16.4" height="15" rx="3"/><path d="M3.8 9.6h16.4M8.2 3.4v3.4M15.8 3.4v3.4"/><circle cx="8.4" cy="13.4" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="13.4" r="1" fill="currentColor" stroke="none"/><circle cx="8.4" cy="17" r="1" fill="currentColor" stroke="none"/>',
+    live: '<circle cx="12" cy="12" r="2.4"/><path d="M8.2 8.2a5.4 5.4 0 0 0 0 7.6M15.8 8.2a5.4 5.4 0 0 1 0 7.6M5.4 5.4a9.4 9.4 0 0 0 0 13.2M18.6 5.4a9.4 9.4 0 0 1 0 13.2"/>',
+    douban: '<text x="12" y="16.8" text-anchor="middle" font-size="13" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-weight="700" fill="currentColor" stroke="none">豆</text>',
+    xianyu: '<text x="12" y="16.8" text-anchor="middle" font-size="13" font-family="Microsoft YaHei, PingFang SC, sans-serif" font-weight="700" fill="currentColor" stroke="none">闲</text>',
+    train: '<rect x="5.4" y="3.6" width="13.2" height="14.4" rx="3"/><path d="M5.4 10.4h13.2M8.4 21l2-3M15.6 21l-2-3"/><circle cx="8.8" cy="14.4" r="1" fill="currentColor" stroke="none"/><circle cx="15.2" cy="14.4" r="1" fill="currentColor" stroke="none"/>',
 };
 Object.assign(ICONS, ICON_REDESIGN);
 
@@ -358,6 +363,3 @@ export function until(condition, timeout = 15000, step = 120) {
             if (ok) return resolve(true);
             if (Date.now() - start > timeout) return reject(new Error('等待超时'));
             setTimeout(tick, step);
-        })();
-    });
-}

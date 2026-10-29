@@ -37,7 +37,7 @@ settings.autoOpen = false;
 settings.theme = query.get('theme') || 'dark';
 settings.skin = query.get('skin') || 'mirage';
 if (query.get('apps') === 'all') {
-    settings.apps = ['plot', 'spark', 'maps', 'browser', 'x', 'instagram', 'reddit', 'zhihu', 'quora', 'youtube', 'discord', 'telegram', 'spotify', 'gmail', 'stocks', 'tiktok', 'weibo', 'xhs', 'bili', 'facebook', 'signal', 'tieba', 'heart', 'world', 'ai', 'deepseek', 'chatgpt', 'claude', 'gemini', 'pdd', 'taobao', 'jd', 'amazon', 'google', 'yandex', 'wiki', 'zlib'];
+    settings.apps = ['plot', 'spark', 'maps', 'browser', 'x', 'instagram', 'reddit', 'zhihu', 'quora', 'youtube', 'discord', 'telegram', 'spotify', 'gmail', 'stocks', 'tiktok', 'weibo', 'xhs', 'bili', 'facebook', 'signal', 'tieba', 'heart', 'world', 'ai', 'deepseek', 'chatgpt', 'claude', 'gemini', 'pdd', 'taobao', 'jd', 'amazon', 'google', 'yandex', 'wiki', 'zlib', 'calendar', 'live', 'douban', 'xianyu', 'travel'];
 }
 if (query.get('folder') === '1') {
     settings.home = { order: ['folder:test'], folders: [{ id: 'test', name: '分组 1', apps: ['weather', 'settings'] }] };
