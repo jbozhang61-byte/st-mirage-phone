@@ -1,6 +1,6 @@
 /** Google / Yandex / Wikipedia / Z-Library：和正文连动的搜索与资料。 */
-import { h, icon, sheet, toast } from '../render.js';
-import { getData, saveNow } from '../store.js';
+import { h, icon, avatar, sheet, toast } from '../render.js';
+import { getData, saveNow, getCast } from '../store.js';
 import { openPostPage } from './postpage.js';
 import { generateSearchResults, generateWikiArticle, generateBooks } from '../storyseed.js';
 
@@ -78,8 +78,18 @@ function mount(host, nav, kind) {
                 body.appendChild(h('div', { class: 'mp-webapp__hero' },
                     h('div', { class: 'mp-webapp__logo' }, icon('book')),
                     h('div', { class: 'mp-webapp__title', text: query ? '没有找到「' + query + '」' : '找一本书' }),
-                    h('div', { class: 'mp-webapp__sub', text: '书库会按正文里提到的人和事生成。' }),
+                    h('div', { class: 'mp-webapp__sub', text: '书库会按正文、记忆库和角色的性格、阶级、立场生成。' }),
                 ));
+                const cast = getCast();
+                if (!query && cast.length) {
+                    body.appendChild(h('div', { class: 'mp-zlib__shelf-title', text: '角色书架' }));
+                    body.appendChild(h('div', { class: 'mp-zlib__shelf' },
+                        ...cast.slice(0, 8).map(person => h('button', {
+                            type: 'button', class: 'mp-zlib__shelf-item',
+                            onclick: () => { input.value = person.name; search(); },
+                        }, avatar({ name: person.name, size: 42 }), h('span', { text: person.name }))),
+                    ));
+                }
                 return;
             }
             for (const book of books) {
@@ -88,6 +98,7 @@ function mount(host, nav, kind) {
                     h('div', { class: 'mp-zlib__main' },
                         h('div', { class: 'mp-zlib__title', text: book.title }),
                         h('div', { class: 'mp-zlib__meta', text: [book.author, book.year ? book.year + ' 年' : '', book.format].filter(Boolean).join(' · ') }),
+                        book.owner ? h('div', { class: 'mp-zlib__why', text: '适合 ' + book.owner }) : null,
                         h('div', { class: 'mp-zlib__desc', text: book.desc }),
                     ),
                 ));
@@ -121,6 +132,7 @@ function mount(host, nav, kind) {
             title: book.title,
             content: h('div', { class: 'mp-field-list' },
                 h('div', { class: 'mp-zlib__detailmeta', text: [book.author, book.year ? book.year + ' 年' : '', book.format].filter(Boolean).join(' · ') }),
+                book.owner ? h('div', { class: 'mp-zlib__why', text: '适合 ' + book.owner + (book.why ? '：' + book.why : '') }) : null,
                 h('div', { class: 'mp-zlib__desc', text: book.desc || '没有更多简介。' }),
                 h('div', { class: 'mp-st-hint', text: '下载会保存到手机书库。' }),
             ),

@@ -2315,3 +2315,9 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-as__icon.g-wiki { background: linear-gradient(150deg, #f4f4f4, #b8b8b8); }
 .mp-appicon__glyph.g-zlib { background: linear-gradient(160deg, #d59a7f, #8a4a34 55%, #3d2118); }
 .mp-as__icon.g-zlib { background: linear-gradient(150deg, #d59a7f, #8a4a34); }
+
+.mp-zlib__shelf-title { font-size: 10px; color: var(--mp-text-3); letter-spacing: .5px; margin: 12px 0 7px; }
+.mp-zlib__shelf { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+.mp-zlib__shelf::-webkit-scrollbar { display: none; }
+.mp-zlib__shelf-item { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--mp-text-2); font: inherit; font-size: 9px; cursor: pointer; }
+.mp-zlib__why { font-size: 9px; line-height: 1.5; color: #c98b6e; margin: 2px 0 3px; }

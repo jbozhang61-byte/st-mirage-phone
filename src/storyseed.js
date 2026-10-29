@@ -1,6 +1,6 @@
 /** 把正文和记忆库变成各 App 的第一批内容。 */
 import { generateText, importantStoryContext, memoryContext, userName } from './st.js';
-import { getCast } from './store.js';
+import { getCast, getFeed } from './store.js';
 import { extractJson } from './prompts.js';
 
 function context() {
@@ -123,11 +123,28 @@ export async function generateWikiArticle(query) {
 }
 
 export async function generateBooks(query) {
+    const cast = getCast();
+    const hearts = getFeed('heart')?.items || [];
+    const characters = cast.map(person => {
+        const heart = hearts.find(item => item.name === person.name);
+        return '- ' + person.name + '：' + [
+            person.role && '身份 ' + person.role,
+            person.relation && '关系 ' + person.relation,
+            person.desc && person.desc.slice(0, 160),
+            person.style && '说话方式 ' + person.style,
+            heart?.stage && '关系阶段 ' + heart.stage,
+            heart?.likes?.length && '喜欢 ' + heart.likes.join('、'),
+            heart?.boundaries?.length && '边界 ' + heart.boundaries.join('、'),
+        ].filter(Boolean).join('；');
+    }).join('\n');
     const prompt = [
         context(),
+        characters ? '这个世界里的人：\n' + characters : '',
         '在 Z-Library 搜索：' + (query || '旧城'),
-        '生成 6 本电子书，书名、作者、年份、简介要和这个故事世界有关。',
-        '只输出 JSON：{"books":[{"title":"书名","author":"作者","year":2024,"desc":"简介","format":"EPUB"}]}',
+        '如果搜索词是某个角色的名字，就生成这个角色会读、会收藏、或者自己写的书；否则生成这个世界里流通的书。',
+        '每本书都要符合角色的性格、观念、文化背景、立场和阶级，不要只换标题。',
+        '至少 2 本标明是某个角色写的/读的。',
+        '只输出 JSON：{"books":[{"title":"书名","author":"作者","owner":"适合谁/谁写的","why":"为什么这个人会读或写，和性格、阶级、立场、文化的关系","year":2024,"desc":"简介","format":"EPUB"}]}',
     ].filter(Boolean).join('\n');
     try {
         const raw = await generateText({ system: '你在为故事世界里的电子书库生成搜索结果。用中文，只输出 JSON。', prompt, length: 700, json: true });
@@ -138,6 +155,8 @@ export async function generateBooks(query) {
             year: Math.max(0, Number(item.year) || 0),
             desc: String(item.desc || '').slice(0, 300),
             format: String(item.format || 'EPUB').slice(0, 8),
+            owner: String(item.owner || '').slice(0, 40),
+            why: String(item.why || '').slice(0, 300),
         })).filter(item => item.title);
     } catch {
         return [];
