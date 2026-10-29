@@ -34,7 +34,14 @@ export async function generateImage(prompt) {
         const response = await fetch(endpoint + '/sdapi/v1/txt2img', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, width: 768, height: 1024, steps: 24, cfg_scale: 6 }),
+            body: JSON.stringify({
+                prompt,
+                negative_prompt: config.negative || '',
+                width: 768,
+                height: 1024,
+                steps: Math.max(1, Math.min(150, Number(config.steps) || 24)),
+                cfg_scale: Math.max(1, Math.min(30, Number(config.cfg) || 6)),
+            }),
         });
         if (!response.ok) throw new Error('生图接口返回 ' + response.status);
         const data = await response.json();
@@ -45,7 +52,14 @@ export async function generateImage(prompt) {
     const response = await fetch(endpoint + '/images/generations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (config.apiKey || '') },
-        body: JSON.stringify({ model: config.model || 'gpt-image-1', prompt, n: 1, size: config.size || '1024x1024', response_format: 'b64_json' }),
+        body: JSON.stringify({
+            model: config.model || 'gpt-image-1',
+            prompt,
+            n: 1,
+            size: config.size || '1024x1024',
+            quality: config.quality || 'auto',
+            response_format: 'b64_json',
+        }),
     });
     if (!response.ok) throw new Error('生图接口返回 ' + response.status);
     const data = await response.json();
@@ -74,12 +88,15 @@ function comfyWorkflow(config, prompt, negative) {
         return fillComfy(parsed, prompt, negative);
     }
     const checkpoint = config.comfyCheckpoint || 'sd_xl_base_1.0.safetensors';
+    const steps = Math.max(1, Math.min(150, Number(config.steps) || 24));
+    const cfg = Math.max(1, Math.min(30, Number(config.cfg) || 6));
+    const negative = config.negative || 'low quality, blurry, text, watermark';
     return {
-        '3': { class_type: 'KSampler', inputs: { seed: Math.floor(Math.random() * 1000000000), steps: 24, cfg: 6, sampler_name: 'euler', scheduler: 'normal', denoise: 1, model: ['4', 0], positive: ['6', 0], negative: ['7', 0], latent_image: ['5', 0] } },
+        '3': { class_type: 'KSampler', inputs: { seed: Math.floor(Math.random() * 1000000000), steps, cfg, sampler_name: 'euler', scheduler: 'normal', denoise: 1, model: ['4', 0], positive: ['6', 0], negative: ['7', 0], latent_image: ['5', 0] } },
         '4': { class_type: 'CheckpointLoaderSimple', inputs: { ckpt_name: checkpoint } },
         '5': { class_type: 'EmptyLatentImage', inputs: { width: 768, height: 1024, batch_size: 1 } },
         '6': { class_type: 'CLIPTextEncode', inputs: { text: prompt, clip: ['4', 1] } },
-        '7': { class_type: 'CLIPTextEncode', inputs: { text: negative || 'low quality, blurry, text, watermark', clip: ['4', 1] } },
+        '7': { class_type: 'CLIPTextEncode', inputs: { text: negative, clip: ['4', 1] } },
         '8': { class_type: 'VAEDecode', inputs: { samples: ['3', 0], vae: ['4', 2] } },
         '9': { class_type: 'SaveImage', inputs: { filename_prefix: 'mirage', images: ['8', 0] } },
     };

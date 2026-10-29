@@ -1,9 +1,10 @@
 /**
  * 相册：收藏的图片 + 从剧情里扫到的画面。
  */
-import { h, icon, toast } from '../render.js';
+import { h, icon, sheet, toast } from '../render.js';
 import { getData, addPhoto, removePhoto } from '../store.js';
 import { ctx } from '../st.js';
+import { generateImage, imageConfig } from '../imagegen.js';
 
 export function mountPhotos(host, { nav }) {
     const body = h('div', { class: 'mp-body' });
@@ -11,6 +12,10 @@ export function mountPhotos(host, { nav }) {
         h('div', { class: 'mp-nav' },
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
             h('div', { class: 'mp-nav__title' }, '相册', h('small', { text: 'PHOTOS' })),
+            h('button', {
+                class: 'mp-nav__btn', type: 'button', 'aria-label': 'AI 生图',
+                onclick: () => generatePhoto(),
+            }, icon('sparkle')),
             h('button', {
                 class: 'mp-nav__btn', type: 'button', 'aria-label': '选择',
                 onclick: () => { selecting = !selecting; selected.clear(); render(); },
@@ -70,6 +75,41 @@ export function mountPhotos(host, { nav }) {
                 },
             }),
         );
+    }
+
+    function generatePhoto() {
+        if (!imageConfig().enabled) { toast('先在设置里启用 AI 配图并填接口'); return; }
+        const prompt = h('textarea', { class: 'mp-input', rows: '3', placeholder: '描述你想生成的照片，例如：雪夜里的旧城街道' });
+        const style = h('input', { class: 'mp-input', type: 'text', value: '电影质感照片，真实光线，不要文字', placeholder: '风格' });
+        const button = h('button', { class: 'mp-btn primary small', type: 'button', text: '生成' });
+        const s = sheet({
+            title: 'AI 生图',
+            content: h('div', { class: 'mp-field-list' },
+                h('div', {}, h('label', { text: '画面' }), prompt),
+                h('div', {}, h('label', { text: '风格' }), style),
+                h('div', { class: 'mp-st-hint', text: '会保存到相册里。' }),
+            ),
+            actions: button,
+        });
+        button.addEventListener('click', async () => {
+            const text = prompt.value.trim();
+            if (!text || button.disabled) return;
+            button.disabled = true;
+            button.textContent = '生成中…';
+            try {
+                const url = await generateImage(text + '，' + (style.value.trim() || '电影质感照片'));
+                addPhoto(url, text);
+                s.close();
+                tab = 'saved';
+                render();
+                toast('已生成并保存到相册');
+            } catch (error) {
+                toast(String(error?.message || '生成失败'), 3200);
+            } finally {
+                button.disabled = false;
+                button.textContent = '生成';
+            }
+        });
     }
 
     function render() {

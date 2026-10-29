@@ -8,7 +8,7 @@ import { storeImage } from '../images.js';
 import { previewInjection } from '../ai.js';
 import { isNarrow } from '../st.js';
 import { generateImage } from '../imagegen.js';
-import { ttsVoices, ttsSupported } from '../tts.js';
+import { ttsVoices, ttsSupported, speak } from '../tts.js';
 
 export function mountSettings(host, { nav }) {
     const body = h('div', { class: 'mp-body' });
@@ -182,6 +182,15 @@ export function mountSettings(host, { nav }) {
                         patchImage({ model: model || 'gpt-image-1', size: size || '1024x1024' });
                     },
                 }))) : null,
+            settings.image?.enabled && (settings.image?.provider || 'openai') !== 'openai' ? row({ icon: 'edit', label: '负面词 / 步数 / CFG', hint: '用逗号分隔，例如：低质量, 模糊 / 24 / 6' },
+                h('div', { class: 'mp-field' }, h('input', {
+                    type: 'text', value: (settings.image?.negative || '') + ' / ' + (settings.image?.steps || 24) + ' / ' + (settings.image?.cfg || 6),
+                    placeholder: '低质量, 模糊 / 24 / 6',
+                    onchange: event => {
+                        const [negative = '', steps = '24', cfg = '6'] = event.target.value.split('/').map(part => part.trim());
+                        patchImage({ negative, steps: Number(steps) || 24, cfg: Number(cfg) || 6 });
+                    },
+                }))) : null,
             settings.image?.enabled && (settings.image?.provider || 'openai') === 'comfyui' ? row({ icon: 'grid', label: '模型文件名', hint: 'ComfyUI 的 CheckpointLoaderSimple 里填的 ckpt 名' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'text', value: settings.image?.comfyCheckpoint || '', placeholder: 'sd_xl_base_1.0.safetensors',
@@ -208,14 +217,33 @@ export function mountSettings(host, { nav }) {
 
         /* ---------------- 语音 ---------------- */
         const voices = ttsVoices();
+        const ttsProvider = settings.tts?.provider || 'browser';
         wrap.appendChild(section('语音朗读', [
-            row({ icon: 'volume', label: '启用 TTS', hint: ttsSupported() ? '用系统语音朗读手机消息' : '当前浏览器不支持语音合成' },
+            row({ icon: 'volume', label: '启用 TTS', hint: ttsSupported() ? '用系统语音或接口朗读手机消息' : '当前浏览器不支持系统语音，可改用接口 TTS' },
                 toggle(settings.tts?.enabled, value => patchTTS({ enabled: value }))),
             settings.tts?.enabled ? row({ icon: 'bell', label: '自动朗读', hint: '手机收到新回复时自动读出来' },
                 toggle(settings.tts?.auto, value => patchTTS({ auto: value }))) : null,
-            settings.tts?.enabled ? row({ icon: 'music', label: '语速', hint: '0.6 慢 – 1.6 快' },
-                slider(0.6, 1.6, 0.1, Number(settings.tts?.rate) || 1, v => Number(v).toFixed(1) + '×', value => patchTTS({ rate: Number(value) }))) : null,
-            settings.tts?.enabled ? row({ icon: 'user', label: '声音', hint: voices.length ? '系统里可用的语音' : '系统没有返回语音包' },
+            settings.tts?.enabled ? row({ icon: 'globe', label: '语音来源', hint: '系统语音免费；接口 TTS 需要 OpenAI 兼容的 /audio/speech' },
+                choices([['browser', '系统语音'], ['openai', '接口 TTS']], ttsProvider, value => patchTTS({ provider: value }))) : null,
+            settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'link', label: 'TTS 接口', hint: '例如 https://api.openai.com/v1' },
+                h('div', { class: 'mp-field' }, h('input', {
+                    type: 'text', value: settings.tts?.baseUrl || '', placeholder: 'https://…/v1',
+                    onchange: event => patchTTS({ baseUrl: event.target.value.trim() }),
+                }))) : null,
+            settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'key', label: 'TTS Key', hint: '只存在本地设置里' },
+                h('div', { class: 'mp-field' }, h('input', {
+                    type: 'password', value: settings.tts?.apiKey || '', placeholder: 'sk-…',
+                    onchange: event => patchTTS({ apiKey: event.target.value.trim() }),
+                }))) : null,
+            settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'grid', label: '模型 / 声音', hint: '例如 tts-1 · alloy' },
+                h('div', { class: 'mp-field' }, h('input', {
+                    type: 'text', value: (settings.tts?.model || 'tts-1') + ' ' + (settings.tts?.apiVoice || 'alloy'),
+                    onchange: event => {
+                        const [model, voice] = event.target.value.trim().split(/\s+/);
+                        patchTTS({ model: model || 'tts-1', apiVoice: voice || 'alloy' });
+                    },
+                }))) : null,
+            settings.tts?.enabled && ttsProvider === 'browser' ? row({ icon: 'user', label: '声音', hint: voices.length ? '系统里可用的语音' : '系统没有返回语音包' },
                 h('select', {
                     class: 'text_pole',
                     onchange: event => patchTTS({ voice: event.target.value }),
@@ -223,6 +251,16 @@ export function mountSettings(host, { nav }) {
                     value: voice.name, selected: settings.tts?.voice === voice.name,
                     text: voice.name + (voice.lang ? ' · ' + voice.lang : ''),
                 })))) : null,
+            settings.tts?.enabled ? row({ icon: 'music', label: '语速 / 音调 / 音量', hint: '用逗号分隔，例如 1.0 / 1.0 / 0.9' },
+                h('div', { class: 'mp-field' }, h('input', {
+                    type: 'text', value: (settings.tts?.rate || 1) + ' / ' + (settings.tts?.pitch || 1) + ' / ' + (settings.tts?.volume ?? 1),
+                    onchange: event => {
+                        const [rate = '1', pitch = '1', volume = '1'] = event.target.value.split('/').map(x => x.trim());
+                        patchTTS({ rate: Number(rate) || 1, pitch: Number(pitch) || 1, volume: Number(volume) });
+                    },
+                }))) : null,
+            settings.tts?.enabled ? row({ icon: 'play', label: '试听', hint: '用当前设置读一句' },
+                h('button', { class: 'mp-btn small', type: 'button', text: '读一句', onclick: () => speak('这是幻镜手机的语音测试。') })) : null,
         ]));
 
         /* ---------------- 数据 ---------------- */

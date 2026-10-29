@@ -63,10 +63,10 @@ export function defaultSettings() {
         perf: 'auto',             // auto | lite | full
         autoOpen: false,          // 打开酒馆时是否自动弹出手机
         home: { order: [], folders: [] },
-        image: { enabled: false, provider: 'openai', endpoint: '', apiKey: '', model: 'gpt-image-1', size: '1024x1024' },
+        image: { enabled: false, provider: 'openai', endpoint: '', apiKey: '', model: 'gpt-image-1', size: '1024x1024', quality: 'auto', negative: '', steps: 24, cfg: 6 },
         inject: { enabled: true, depth: 2 },
         proactive: { enabled: false, cooldown: 120, perHour: 4, rounds: 1 },
-        tts: { enabled: false, auto: false, rate: 1, voice: '' },
+        tts: { enabled: false, auto: false, rate: 1, pitch: 1, volume: 1, voice: '', provider: 'browser', baseUrl: '', apiKey: '', model: 'tts-1', apiVoice: 'alloy' },
         aiApp: { provider: 'inherit', baseUrl: '', apiKey: '', model: '' },
         aiApps: {},
         ai: {
@@ -111,7 +111,14 @@ export function normalizeSettings(raw) {
     s.proactive.cooldown = clamp(Math.round(Number(s.proactive.cooldown) || 0), 30, 3600);
     s.proactive.perHour = clamp(Math.round(Number(s.proactive.perHour) || 0), 1, 20);
     s.proactive.rounds = clamp(Math.round(Number(s.proactive.rounds) || 1), 1, 20);
-    s.tts = s.tts && typeof s.tts === 'object' ? s.tts : { enabled: false, auto: false, rate: 1, voice: '' };
+    s.tts = s.tts && typeof s.tts === 'object' ? s.tts : {};
+    s.tts.provider = s.tts.provider === 'openai' ? 'openai' : 'browser';
+    s.tts.baseUrl = String(s.tts.baseUrl || '').slice(0, 200);
+    s.tts.apiKey = String(s.tts.apiKey || '').slice(0, 300);
+    s.tts.model = String(s.tts.model || 'tts-1').slice(0, 60);
+    s.tts.apiVoice = String(s.tts.apiVoice || 'alloy').slice(0, 40);
+    s.tts.pitch = Math.max(0.5, Math.min(2, Number(s.tts.pitch) || 1));
+    s.tts.volume = Math.max(0, Math.min(1, Number(s.tts.volume) || 1));
     s.tts.rate = Math.max(0.5, Math.min(2, Number(s.tts.rate) || 1));
     s.tts.voice = String(s.tts.voice || '').slice(0, 80);
     s.aiApp = s.aiApp && typeof s.aiApp === 'object' ? s.aiApp : { provider: 'inherit', baseUrl: '', apiKey: '', model: '' };
