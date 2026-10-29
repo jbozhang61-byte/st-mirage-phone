@@ -1,7 +1,7 @@
 /** 视频播放页：整页打开，带播放进度、弹幕和评论区。 */
 import { h, icon, toast } from '../render.js';
 import { artFor } from '../art.js';
-import { cachedImage } from '../imagegen.js';
+import { cachedImage, generateImage, imageConfig } from '../imagegen.js';
 import { moodOf } from './feed-common.js';
 import { setOneShot } from '../st.js';
 import { createComments } from './comments.js';
@@ -27,6 +27,20 @@ export function openVideo(item, options = {}) {
     const bar = h('i', { style: { width: '0%' } });
     const timeLabel = h('span', { class: 'mp-vid__time', text: '00:00 / ' + duration });
     const stage = h('div', { class: 'mp-vid__stage', style: { backgroundImage: cover } }, h('span', { class: 'mp-vid__badge', text: app }));
+    let coverSeed = 0;
+    function offlineCover() {
+        coverSeed += 1;
+        stage.style.backgroundImage = artFor(key + (item.title || '') + '#offline' + coverSeed, moodOf(item));
+    }
+    async function aiCover() {
+        if (!imageConfig().enabled) { toast('先在设置里启用 AI 配图并填接口'); return; }
+        toast('正在生成封面…');
+        try {
+            const url = await generateImage((item.title || item.text || '') + '，电影感画面，不要文字');
+            stage.style.backgroundImage = 'url("' + url + '")';
+            toast('封面已生成');
+        } catch (error) { toast(String(error?.message || '生成失败'), 3200); }
+    }
     const play = h('button', { type: 'button', class: 'mp-vid__play', 'aria-label': '播放' }, icon('play', '', 26));
     stage.appendChild(play);
     if (String(app).includes('哔哩')) {
@@ -49,6 +63,8 @@ export function openVideo(item, options = {}) {
             h('div', { class: 'mp-vid__acts' },
                 h('button', { type: 'button', class: 'mp-vid__act', onclick: () => toast('已点赞') }, icon('heart'), '点赞'),
                 h('button', { type: 'button', class: 'mp-vid__act', onclick: () => comments.refresh() }, icon('refresh'), '换评论'),
+                h('button', { type: 'button', class: 'mp-vid__act', onclick: offlineCover }, icon('image'), '换一张'),
+                h('button', { type: 'button', class: 'mp-vid__act', onclick: aiCover }, icon('sparkle'), 'AI 封面'),
                 h('button', { type: 'button', class: 'mp-vid__act', onclick: () => { setOneShot('【我在' + app + '上看到一个视频】\n' + (item.title || item.text || '')); toast('已带进正文'); } }, icon('send'), '带进正文'),
             ),
             comments.el,
