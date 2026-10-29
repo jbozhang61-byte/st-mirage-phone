@@ -139,7 +139,7 @@ export function mountTikTok(host, { nav }) {
                 }),
                 heart,
                 h('button', { type: 'button', class: 'mp-tt__act', onclick: () => openVideo(item, { app: '抖音' }) }, icon('comment'), h('span', { class: 'mp-tt__count', text: num(item.comments) })),
-                h('button', { type: 'button', class: 'mp-tt__act', onclick: () => toast('分享要长按，这里先记下') }, icon('share'), h('span', { class: 'mp-tt__count', text: num(item.shares) })),
+                h('button', { type: 'button', class: 'mp-tt__act', onclick: () => share(item) }, icon('share'), h('span', { class: 'mp-tt__count', text: num(item.shares) })),
                 h('span', { class: 'mp-tt__disc' }, icon('music')),
             ),
             h('div', { class: 'mp-tt__meta' },
@@ -150,6 +150,26 @@ export function mountTikTok(host, { nav }) {
                 h('div', { class: 'mp-tt__music' }, icon('music'), h('span', { text: '原声 · ' + item.music })),
             ),
         );
+    }
+
+    function share(item) {
+        const text = [item.title, item.desc, (item.tags || []).map(tag => '#' + tag).join(' ')].filter(Boolean).join('\n');
+        sheet({
+            title: '分享视频',
+            content: h('div', { class: 'mp-field-list' },
+                h('div', { class: 'mp-tt__notice', text: '「' + (item.title || item.desc) + '」' }),
+                h('div', { class: 'mp-st-hint', text: text }),
+            ),
+            actions: h('div', { class: 'mp-st-row' },
+                h('button', {
+                    class: 'mp-btn primary small', type: 'button', text: '复制文案',
+                    onclick: async () => {
+                        try { await navigator.clipboard?.writeText(text); toast('已复制'); }
+                        catch { toast('复制失败，长按文字复制'); }
+                    },
+                }),
+            ),
+        });
     }
 
     function openSearch() {

@@ -2,7 +2,9 @@
  * 小红书：双列瀑布流笔记。
  */
 import { h, icon, avatar, toast } from '../render.js';
+import { getCast } from '../store.js';
 import { loadFeed, refreshFeed, num, moodOf } from './feed-common.js';
+import { openSearchSheet } from './search-sheet.js';
 import { openPostPage } from './postpage.js';
 
 export function mountXhs(host, { nav }) {
@@ -16,14 +18,14 @@ export function mountXhs(host, { nav }) {
     const body = h('div', { class: 'mp-xhs__body' });
     const head = h('div', { class: 'mp-xhs__head' },
         h('div', { class: 'mp-xhs__brand', text: '小红书' }),
-        h('button', { type: 'button', class: 'mp-xhs__search', onclick: () => toast('搜索还没做，先看发现页') }, icon('search'), h('span', { text: '搜点什么' })),
+        h('button', { type: 'button', class: 'mp-xhs__search', onclick: () => openSearch() }, icon('search'), h('span', { text: '搜点什么' })),
         h('button', { type: 'button', class: 'mp-xhs__refresh', 'aria-label': '刷新', onclick: () => refresh() }, icon('sparkle')),
     );
     const tabs = h('div', { class: 'mp-xhs__tabs' });
     for (const name of ['关注', '发现', '附近']) {
         tabs.appendChild(h('button', {
             type: 'button', class: 'mp-xhs__tab' + (tab === name ? ' on' : ''), text: name,
-            onclick: () => { tab = name; renderTabs(); if (name !== '发现') toast(name + '的内容还没接上'); },
+            onclick: () => { tab = name; renderTabs(); render(items); },
         }));
     }
     el.append(head, tabs, body);
@@ -33,13 +35,23 @@ export function mountXhs(host, { nav }) {
         [...tabs.children].forEach(button => button.classList.toggle('on', button.textContent === tab));
     }
 
+    function visibleItems() {
+        const all = items;
+        if (tab === '关注') {
+            const names = new Set(getCast().map(person => person.name));
+            return all.filter(item => names.has(item.author));
+        }
+        if (tab === '附近') return [...all].reverse();
+        return all;
+    }
+
     function render(list) {
         items = Array.isArray(list) ? list : [];
         body.innerHTML = '';
         const columns = [h('div', { class: 'mp-xhs__col' }), h('div', { class: 'mp-xhs__col' })];
-        items.forEach((item, index) => columns[index % 2].appendChild(noteCard(item)));
+        visibleItems().forEach((item, index) => columns[index % 2].appendChild(noteCard(item)));
         body.append(...columns);
-        if (!items.length) body.appendChild(h('div', { class: 'mp-xhs__empty', text: '这里还空着，点右上角刷新。' }));
+        if (!visibleItems().length) body.appendChild(h('div', { class: 'mp-xhs__empty', text: tab === '关注' ? '关注的人还没有发笔记。' : '这里还空着，点右上角刷新。' }));
     }
 
     function noteCard(item) {
@@ -78,6 +90,16 @@ export function mountXhs(host, { nav }) {
             item, app: '小红书', title: item.title, body: item.text,
             meta: '@' + item.author + ' · ♥ ' + num(item.likes) + '   ☆ ' + num(item.collects),
             image: artFor(item.id + item.title, moodOf(item)),
+        });
+    }
+
+    function openSearch() {
+        openSearchSheet({
+            title: '搜索笔记',
+            placeholder: '搜标题、正文、作者、话题',
+            items,
+            textOf: item => [item.title, item.text, item.author, ...(item.tags || [])].join(' '),
+            onPick: item => openNote(item),
         });
     }
 

@@ -4,6 +4,7 @@ import { getCast, getFeed, setFeed } from '../store.js';
 import { userName, storyContext } from '../st.js';
 import { artFor } from '../art.js';
 import { openPostPage } from './postpage.js';
+import { openSearchSheet } from './search-sheet.js';
 
 const SEED = [
     ['今天旧城的雨停得很晚，路灯下面全是水光。', '刚刚'],
@@ -19,8 +20,8 @@ export function mountFacebook(host, { nav }) {
         h('div', { class: 'mp-fb__bar' },
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
             h('div', { class: 'mp-fb__logo', text: 'facebook' }),
-            h('button', { class: 'mp-fb__topbtn', type: 'button', 'aria-label': '搜索', onclick: () => toast('搜索还没做') }, icon('search')),
-            h('button', { class: 'mp-fb__topbtn', type: 'button', 'aria-label': '消息', onclick: () => toast('Messenger 还没做') }, icon('message')),
+            h('button', { class: 'mp-fb__topbtn', type: 'button', 'aria-label': '搜索', onclick: () => openFbSearch() }, icon('search')),
+            h('button', { class: 'mp-fb__topbtn', type: 'button', 'aria-label': '消息', onclick: () => openMessenger() }, icon('message')),
         ),
         body,
     );
@@ -43,6 +44,29 @@ export function mountFacebook(host, { nav }) {
         }));
         setFeed('facebook', posts);
         return { posts };
+    }
+
+    function openMessenger() {
+        const cast = getCast();
+        const rows = cast.slice(0, 8).map(person => h('div', { class: 'mp-fb__msgrow' },
+            avatar({ name: person.name, size: 36 }),
+            h('div', {}, h('b', { text: person.name }), h('div', { class: 'mp-fb__msgsub', text: '在 Messenger 上联系' })),
+        ));
+        sheet({
+            title: 'Messenger',
+            content: h('div', { class: 'mp-fb__msgs' }, rows.length ? rows : h('div', { class: 'mp-st-hint', text: '通讯录里还没有人。' })),
+        });
+    }
+
+    function openFbSearch() {
+        const data = load();
+        openSearchSheet({
+            title: '搜索 Facebook',
+            placeholder: '搜动态、作者',
+            items: data.posts || [],
+            textOf: post => [post.author, post.text].join(' '),
+            onPick: post => openPostPage({ item: post, app: 'Facebook', title: post.author, body: post.text, meta: post.time + ' · ' + post.likes + ' 个赞' }),
+        });
     }
 
     function render() {

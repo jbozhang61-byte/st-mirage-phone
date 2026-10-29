@@ -4,6 +4,7 @@
 import { h, icon, avatar, toast } from '../render.js';
 import { openVideo } from './video.js';
 import { loadFeed, refreshFeed, moodOf } from './feed-common.js';
+import { openSearchSheet } from './search-sheet.js';
 
 export function mountBili(host, { nav }) {
     nav.setChrome?.('light');
@@ -15,26 +16,33 @@ export function mountBili(host, { nav }) {
     const body = h('div', { class: 'mp-bl__body' });
     const head = h('div', { class: 'mp-bl__head' },
         h('div', { class: 'mp-bl__brand', text: '哔哩哔哩' }),
-        h('button', { type: 'button', class: 'mp-bl__search', onclick: () => toast('想搜什么？搜索还没做') }, icon('search'), h('span', { text: '搜索' })),
+        h('button', { type: 'button', class: 'mp-bl__search', onclick: () => openSearch() }, icon('search'), h('span', { text: '搜索' })),
         h('button', { type: 'button', class: 'mp-bl__refresh', 'aria-label': '刷新', onclick: () => refresh() }, icon('refresh')),
     );
     const tabs = h('div', { class: 'mp-bl__tabs' });
     for (const name of ['推荐', '热门', '影视', '知识']) {
         tabs.appendChild(h('button', {
             type: 'button', class: 'mp-bl__tab' + (tab === name ? ' on' : ''), text: name,
-            onclick: () => { tab = name; [...tabs.children].forEach(b => b.classList.toggle('on', b.textContent === tab)); if (name !== '推荐') toast(name + '分区的内容还没接上'); },
+            onclick: () => { tab = name; [...tabs.children].forEach(b => b.classList.toggle('on', b.textContent === tab)); render(items); },
         }));
     }
     el.append(head, tabs, body);
     host.appendChild(el);
 
+    function visibleItems() {
+        if (tab === '热门') return [...items].sort((a, b) => (parseInt(String(b.views).replace(/\D/g, ''), 10) || 0) - (parseInt(String(a.views).replace(/\D/g, ''), 10) || 0));
+        if (tab === '影视') return items.filter(item => /电影|剧|预告|动画|番|片/.test([item.title, item.desc, ...(item.tags || [])].join(' ')));
+        if (tab === '知识') return items.filter(item => /知识|教|讲|历史|科学|科普|课/.test([item.title, item.desc, ...(item.tags || [])].join(' ')));
+        return items;
+    }
+
     function render(list) {
         items = Array.isArray(list) ? list : [];
         body.innerHTML = '';
         const grid = h('div', { class: 'mp-bl__grid' });
-        items.forEach(item => grid.appendChild(card(item)));
+        visibleItems().forEach(item => grid.appendChild(card(item)));
         body.appendChild(grid);
-        if (!items.length) body.appendChild(h('div', { class: 'mp-bl__empty', text: '还没有视频，点右上角刷新。' }));
+        if (!visibleItems().length) body.appendChild(h('div', { class: 'mp-bl__empty', text: tab === '推荐' ? '还没有视频，点右上角刷新。' : '这个分区暂时没有视频。' }));
     }
 
     function card(item) {
@@ -52,6 +60,16 @@ export function mountBili(host, { nav }) {
                 h('span', { class: 'mp-bl__views', text: item.views + ' 播放' }),
             ),
         );
+    }
+
+    function openSearch() {
+        openSearchSheet({
+            title: '搜索视频',
+            placeholder: '搜标题、UP 主',
+            items,
+            textOf: item => [item.title, item.author, item.desc].join(' '),
+            onPick: item => openVideo(item, { app: '哔哩哔哩' }),
+        });
     }
 
     function refresh() {

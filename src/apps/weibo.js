@@ -5,6 +5,7 @@ import { h, icon, avatar, sheet, toast } from '../render.js';
 import { openComments } from './comments.js';
 import { openPostPage } from './postpage.js';
 import { loadFeed, refreshFeed, num } from './feed-common.js';
+import { openSearchSheet } from './search-sheet.js';
 
 export function mountWeibo(host, { nav }) {
     nav.setChrome?.('light');
@@ -16,7 +17,7 @@ export function mountWeibo(host, { nav }) {
     const body = h('div', { class: 'mp-wb__body' });
     const head = h('div', { class: 'mp-wb__head' },
         h('div', { class: 'mp-wb__brand' }, h('span', { text: '微博' })),
-        h('button', { type: 'button', class: 'mp-wb__search', onclick: () => toast('热搜就在下面，先看看这个') },
+        h('button', { type: 'button', class: 'mp-wb__search', onclick: () => openSearch() },
             icon('search'), h('span', { text: '大家都在搜' })),
         h('button', { type: 'button', class: 'mp-wb__refresh', 'aria-label': '刷新', onclick: () => refresh() }, icon('refresh')),
     );
@@ -32,7 +33,7 @@ export function mountWeibo(host, { nav }) {
                 h('div', { class: 'mp-wb__hot-title' }, icon('flame'), h('span', { text: '微博热搜' })),
             );
             data.hot.forEach((item, index) => {
-                hot.appendChild(h('div', { class: 'mp-wb__hot-row', onclick: () => toast('这条热搜还没写完') },
+                hot.appendChild(h('div', { class: 'mp-wb__hot-row', onclick: () => openSearch(item.title) },
                     h('span', { class: 'mp-wb__rank' + (index < 3 ? ' top' : ''), text: String(index + 1) }),
                     h('span', { class: 'mp-wb__hot-name', text: item.title }),
                     item.tag ? h('span', { class: 'mp-wb__tag ' + item.tag, text: item.tag }) : null,
@@ -103,6 +104,17 @@ export function mountWeibo(host, { nav }) {
                     render(items);
                 },
             }),
+        });
+    }
+
+    function openSearch(initial = '') {
+        openSearchSheet({
+            title: '搜索微博',
+            placeholder: '搜动态、作者、话题',
+            items: data.posts || [],
+            initial,
+            textOf: item => [item.author, item.text, item.topic].join(' '),
+            onPick: post => openPostPage({ item: post, app: '微博', title: '@' + post.author, body: post.text + (post.topic ? '\n\n' + post.topic : ''), meta: (post.time || '刚刚') + ' · ' + num(post.comments || 0) + ' 条评论' }),
         });
     }
 
