@@ -39,6 +39,7 @@ import { mountWorld } from './apps/world.js';
 import { mountAI } from './apps/ai.js';
 import { mountDeepSeek, mountChatGPT, mountClaude, mountGemini } from './apps/ai-brands.js';
 import { mountShop } from './apps/shopping.js';
+import { mountWebApp } from './apps/webapps.js';
 
 const APPS = {
     chat: { mount: mountChat },
@@ -84,6 +85,10 @@ const APPS = {
     taobao: { mount: mountShop('taobao') },
     jd: { mount: mountShop('jd') },
     amazon: { mount: mountShop('amazon') },
+    google: { mount: mountWebApp('google') },
+    yandex: { mount: mountWebApp('yandex') },
+    wiki: { mount: mountWebApp('wiki') },
+    zlib: { mount: mountWebApp('zlib') },
 };
 
 let rootEl = null;

@@ -79,3 +79,67 @@ export async function generateShoppingProducts(brandName) {
         return [];
     }
 }
+export async function generateSearchResults({ engine = 'Google', query = '' } = {}) {
+    const prompt = [
+        context(),
+        '用「' + engine + '」搜索：' + query,
+        '生成 4 条搜索结果，标题和摘要要和这个世界、最近剧情有关。',
+        '只输出 JSON：{"results":[{"title":"标题","url":"example.com/xxx","snippet":"两行摘要"}]}',
+    ].filter(Boolean).join('\n');
+    try {
+        const raw = await generateText({ system: '你在为故事世界里的搜索引擎生成结果。用中文，只输出 JSON。', prompt, length: 800, json: true });
+        const json = extractJson(raw) || {};
+        return (Array.isArray(json.results) ? json.results : []).slice(0, 6).map(item => ({
+            title: String(item.title || '').slice(0, 100),
+            url: String(item.url || 'example.com').slice(0, 120),
+            snippet: String(item.snippet || '').slice(0, 300),
+        })).filter(item => item.title);
+    } catch {
+        return [];
+    }
+}
+
+export async function generateWikiArticle(query) {
+    const prompt = [
+        context(),
+        '生成一条「' + query + '」的百科条目，像维基百科：定义、历史、和这个世界的关系。',
+        '只输出 JSON：{"title":"条目名","summary":"一句定义","sections":[{"h":"小标题","p":"正文"}]}',
+    ].filter(Boolean).join('\n');
+    try {
+        const raw = await generateText({ system: '你在写故事世界里的百科条目。用中文，客观，只输出 JSON。', prompt, length: 900, json: true });
+        const json = extractJson(raw) || {};
+        if (!json.title) return null;
+        return {
+            title: String(json.title).slice(0, 80),
+            summary: String(json.summary || '').slice(0, 300),
+            sections: (Array.isArray(json.sections) ? json.sections : []).slice(0, 6).map(section => ({
+                h: String(section.h || '').slice(0, 60),
+                p: String(section.p || '').slice(0, 800),
+            })).filter(section => section.p),
+        };
+    } catch {
+        return null;
+    }
+}
+
+export async function generateBooks(query) {
+    const prompt = [
+        context(),
+        '在 Z-Library 搜索：' + (query || '旧城'),
+        '生成 6 本电子书，书名、作者、年份、简介要和这个故事世界有关。',
+        '只输出 JSON：{"books":[{"title":"书名","author":"作者","year":2024,"desc":"简介","format":"EPUB"}]}',
+    ].filter(Boolean).join('\n');
+    try {
+        const raw = await generateText({ system: '你在为故事世界里的电子书库生成搜索结果。用中文，只输出 JSON。', prompt, length: 700, json: true });
+        const json = extractJson(raw) || {};
+        return (Array.isArray(json.books) ? json.books : []).slice(0, 10).map(item => ({
+            title: String(item.title || '').slice(0, 100),
+            author: String(item.author || '').slice(0, 60),
+            year: Math.max(0, Number(item.year) || 0),
+            desc: String(item.desc || '').slice(0, 300),
+            format: String(item.format || 'EPUB').slice(0, 8),
+        })).filter(item => item.title);
+    } catch {
+        return [];
+    }
+}
