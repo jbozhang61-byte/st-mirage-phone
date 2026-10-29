@@ -61,6 +61,7 @@ export function mountShop(brandId) {
 
 function mount(host, nav, brandId) {
     const brand = BRANDS[brandId] || BRANDS.taobao;
+    const hadCache = (getData().shopping?.[brandId]?.products || []).length > 0;
     nav.setChrome?.(brandId === 'amazon' ? 'dark' : 'light');
     let keyword = '';
     let category = '全部';
@@ -250,7 +251,6 @@ function mount(host, nav, brandId) {
 
     paintTabs();
     render();
-    const hadCache = (getData().shopping?.[brandId]?.products || []).length > 0;
     if (!hadCache) setTimeout(() => refresh(), 600);
     return { refresh: render };
 }

@@ -2,6 +2,7 @@
 import { h, icon, avatar, toast } from '../render.js';
 import { getData, getSettings, installedApps } from '../store.js';
 import { getCast } from '../store.js';
+import { changeAvatar } from '../avatars.js';
 import { userName, personaAvatarUrl, currentCharacter, personaDescription } from '../st.js';
 
 
@@ -22,8 +23,12 @@ export function mountMe(host, { nav }) {
         const apps = installedApps();
         body.innerHTML = '';
 
+        const meAvatar = avatar({ name, size: 72, src: personaAvatarUrl() });
+        meAvatar.style.cursor = 'pointer';
+        meAvatar.title = '点一下换头像';
+        meAvatar.addEventListener('click', () => uploadAvatar(name));
         body.appendChild(h('div', { class: 'mp-me-page__hero' },
-            avatar({ name, size: 72, src: personaAvatarUrl() }),
+            meAvatar,
             h('div', { class: 'mp-me-page__id' },
                 h('div', { class: 'mp-me-page__name', text: name }),
                 h('div', { class: 'mp-me-page__sub', text: world }),
@@ -56,6 +61,24 @@ export function mountMe(host, { nav }) {
             row('版本', '幻镜手机 ' + (settings.version || '1.4.2'), 'info', () => toast('幻镜手机 · Mirage Phone')),
             row('设置', '外观、AI、数据', 'settings', () => nav.go('settings')),
         ]));
+    }
+
+    function uploadAvatar(name) {
+        const file = h('input', { type: 'file', accept: 'image/*', style: { display: 'none' } });
+        file.addEventListener('change', async () => {
+            const picked = file.files?.[0];
+            file.remove();
+            if (!picked) return;
+            try {
+                await changeAvatar(name, picked);
+                toast('头像已更新');
+                render();
+            } catch (error) {
+                toast(String(error?.message || '换头像失败'), 3000);
+            }
+        });
+        document.body.appendChild(file);
+        file.click();
     }
 
     function stat(label, value) {
