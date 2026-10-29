@@ -81,22 +81,22 @@ function fillComfy(node, prompt, negative) {
     return node;
 }
 
-function comfyWorkflow(config, prompt, negative) {
+function comfyWorkflow(config, prompt, negativePrompt) {
     if (config.comfyWorkflow && String(config.comfyWorkflow).trim()) {
         let parsed;
         try { parsed = JSON.parse(config.comfyWorkflow); } catch { throw new Error('ComfyUI 工作流不是合法 JSON'); }
-        return fillComfy(parsed, prompt, negative);
+        return fillComfy(parsed, prompt, negativePrompt);
     }
     const checkpoint = config.comfyCheckpoint || 'sd_xl_base_1.0.safetensors';
     const steps = Math.max(1, Math.min(150, Number(config.steps) || 24));
     const cfg = Math.max(1, Math.min(30, Number(config.cfg) || 6));
-    const negative = config.negative || 'low quality, blurry, text, watermark';
+    const negativeText = config.negative || negativePrompt || 'low quality, blurry, text, watermark';
     return {
         '3': { class_type: 'KSampler', inputs: { seed: Math.floor(Math.random() * 1000000000), steps, cfg, sampler_name: 'euler', scheduler: 'normal', denoise: 1, model: ['4', 0], positive: ['6', 0], negative: ['7', 0], latent_image: ['5', 0] } },
         '4': { class_type: 'CheckpointLoaderSimple', inputs: { ckpt_name: checkpoint } },
         '5': { class_type: 'EmptyLatentImage', inputs: { width: 768, height: 1024, batch_size: 1 } },
         '6': { class_type: 'CLIPTextEncode', inputs: { text: prompt, clip: ['4', 1] } },
-        '7': { class_type: 'CLIPTextEncode', inputs: { text: negative, clip: ['4', 1] } },
+        '7': { class_type: 'CLIPTextEncode', inputs: { text: negativeText, clip: ['4', 1] } },
         '8': { class_type: 'VAEDecode', inputs: { samples: ['3', 0], vae: ['4', 2] } },
         '9': { class_type: 'SaveImage', inputs: { filename_prefix: 'mirage', images: ['8', 0] } },
     };
