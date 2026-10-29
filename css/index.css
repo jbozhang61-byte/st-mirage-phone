@@ -2089,3 +2089,7 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-st-panel .mp-st-actions .menu_button { flex: 1 1 0; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mp-status__close { width: 26px; height: 26px; border: 0; border-radius: 8px; background: rgba(255,255,255,.1); color: var(--mp-text); display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; }
 .mp-status__close .mp-ic { width: 13px; height: 13px; }
+
+.mp-tt__follow { margin-top: -7px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: #fe2c55; color: #fff; font-size: 13px; font-weight: 700; line-height: 1; display: grid; place-items: center; cursor: pointer; }
+.mp-tt__follow.on { width: auto; padding: 0 6px; border-radius: 9px; font-size: 8px; background: rgba(255,255,255,.18); }
+.mp-tt__notice { padding: 8px 2px; font-size: 11px; color: var(--mp-text-2); border-bottom: 1px solid var(--mp-line); }
