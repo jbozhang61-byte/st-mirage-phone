@@ -5,6 +5,8 @@ export function webSystemPrompt({ world, people, user }) {
         '世界：' + (world || '一个普通的城市'),
         people.length ? '相关的人：' + people.join('、') : '',
         '用户：' + user,
+        memoryText ? '记忆库 / 摘要：\n' + memoryText : '',
+        storyText ? '最近剧情：\n' + storyText : '',
         '网页要像真的：有标题、有正文、有一点广告或无关信息，但不要低俗。',
         '只输出 JSON：',
         '{"title":"网页标题","summary":"一句话摘要","sections":[{"h":"小标题","p":"一段正文"}],"links":[{"title":"相关链接","url":"example.com/xxx"}]}',

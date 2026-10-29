@@ -439,9 +439,11 @@ export async function browse(query) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
+    const story = storyContext(40, 320);
+    const memory = memoryContext(12);
     try {
         const raw = await generateText({
-            system: webSystemPrompt({ world, people, user }),
+            system: webSystemPrompt({ world, people, user, story, memory }),
             prompt: webUserPrompt(query),
             length: 1200,
             json: true,
