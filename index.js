@@ -71,6 +71,7 @@ function boot() {
     started = true;
     initStore();
     globalThis.__mpAvatarUrl = name => avatarUrl(name);
+    globalThis.__mpArtPack = getSettings().artPack !== false;
     lastChatId = chatId();
     ensureCity();
     phone = createPhone(openState => {

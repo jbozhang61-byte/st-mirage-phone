@@ -51,6 +51,8 @@ export function mountSettings(host, { nav }) {
                     nav.applyTheme();
                     render();
                 })),
+            row({ icon: 'image', label: '预存图片包', hint: '240 张离线封面，关闭后只用即时生成的图' },
+                toggle(settings.artPack !== false, value => { patchSettings('artPack', value); globalThis.__mpArtPack = value; nav.applyTheme(); })),
             row({ icon: 'image', label: '壁纸', hint: '点一下换一张' },
                 h('div', { class: 'mp-wallpapers' },
                     ...Object.entries(WALLPAPERS).filter(([id]) => id !== 'custom').map(([id, wall]) =>

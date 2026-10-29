@@ -162,16 +162,14 @@ const SCENE_SETS = {
     paper: [sceneBook, sceneProduct, sceneFood, sceneAbstract],
 };
 
-export function artFor(seedText, mood = 'night') {
-    const key = mood + '|' + seedText;
-    if (cache.has(key)) return cache.get(key);
+export function artSvg(seedText, mood = 'night') {
     const moodKey = PALETTES[mood] ? mood : 'night';
     const p = PALETTES[moodKey];
     const seed = hash(seedText || 'mirage');
     const rand = random(seed);
     const set = SCENE_SETS[moodKey] || SCENES;
     const scene = MOOD_SCENE[mood] || set[seed % set.length];
-    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">' +
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="900" viewBox="0 0 600 900">' +
         '<defs>' +
         '<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + p.sky[0] + '"/><stop offset="1" stop-color="' + p.sky[1] + '"/></linearGradient>' +
         '<radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="' + p.glow + '" stop-opacity=".9"/><stop offset="1" stop-color="' + p.glow + '" stop-opacity="0"/></radialGradient>' +
@@ -182,7 +180,24 @@ export function artFor(seedText, mood = 'night') {
         '<rect width="600" height="900" fill="url(#vig)"/>' +
         '<rect width="600" height="900" fill="' + p.ink + '" opacity="' + (0.03 + rand() * 0.05).toFixed(2) + '"/>' +
         '</svg>';
-    const url = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")';
+}
+
+const LIB_COUNT = 240;
+let libBase = '';
+try { libBase = new URL('../assets/library/', import.meta.url).href; } catch { libBase = ''; }
+
+function libraryUrl(seedText) {
+    if (!libBase || globalThis.__mpArtPack === false) return '';
+    const index = (hash(seedText || 'mirage') % LIB_COUNT) + 1;
+    return 'url("' + libBase + 'art-' + String(index).padStart(3, '0') + '.svg")';
+}
+
+export function artFor(seedText, mood = 'night') {
+    const key = mood + '|' + seedText;
+    if (cache.has(key)) return cache.get(key);
+    const data = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(artSvg(seedText, mood)) + '")';
+    const pack = libraryUrl(seedText);
+    const url = pack ? pack + ', ' + data : data;
     if (cache.size > 400) cache.clear();
     cache.set(key, url);
     return url;

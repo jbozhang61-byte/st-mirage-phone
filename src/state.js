@@ -46,6 +46,7 @@ export function defaultSettings() {
         enabled: true,
         theme: 'dark',            // dark | light | auto
         skin: 'mirage',           // mirage | paper | neon
+        artPack: true,            // 使用 240 张离线图片包
         accent: 'amber',
         glass: 1,                 // 0 .. 1.4
         wallpaper: 'aurora',
