@@ -80,6 +80,7 @@ function boot() {
     if (getSettings().enabled === false) phone.setEnabled(false);
     buildSettingsPanel();
     addMenuEntry();
+    watchMenu();
     wireEvents();
     refreshInjection();
     console.info('[幻镜手机] v' + VERSION + ' 已加载');
@@ -413,21 +414,38 @@ function syncPanel() {
 
 /* -------------------------------- 魔杖菜单 -------------------------------- */
 
+let menuObserver = null;
 function addMenuEntry(attempt = 0) {
     const menu = document.getElementById('extensionsMenu');
     if (!menu) {
-        if (attempt < 8) setTimeout(() => addMenuEntry(attempt + 1), 500);
+        if (attempt < 40) setTimeout(() => addMenuEntry(attempt + 1), 500);
         return;
     }
+    if (!document.getElementById('mp_menu_item')) {
+        const item = document.createElement('div');
+        item.id = 'mp_menu_item';
+        item.className = 'list-group-item flex-container flexGap5 interactable';
+        item.tabIndex = 0;
+        item.title = '打开小手机';
+        item.style.display = 'flex';
+        item.innerHTML = '<div class="fa-solid fa-mobile-screen extensionsMenuExtensionButton"></div><span>小手机</span>';
+        item.addEventListener('click', () => openPhone());
+        item.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openPhone(); } });
+        menu.appendChild(item);
+    }
+    // 魔杖菜单按钮在“没有任何菜单项”时会被酒馆隐藏；补一个可见项后强制显示
+    try { globalThis.jQuery?.('#extensionsMenuButton').css('display', 'flex'); } catch { /* ignore */ }
+    try { menuObserver?.disconnect(); } catch { /* ignore */ }
+    menuObserver = null;
+}
+
+function watchMenu() {
     if (document.getElementById('mp_menu_item')) return;
-    const item = document.createElement('div');
-    item.id = 'mp_menu_item';
-    item.className = 'list-group-item flex-container flexGap5 interactable';
-    item.tabIndex = 0;
-    item.title = '打开小手机';
-    item.innerHTML = '<div class="fa-solid fa-mobile-screen extensionsMenuExtensionButton"></div><span>小手机</span>';
-    item.addEventListener('click', () => openPhone());
-    menu.appendChild(item);
+    if (typeof MutationObserver !== 'function') return;
+    menuObserver = new MutationObserver(() => {
+        if (document.getElementById('extensionsMenu')) addMenuEntry(0);
+    });
+    menuObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 /* --------------------------------- 入口 --------------------------------- */
