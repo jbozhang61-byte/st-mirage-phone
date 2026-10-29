@@ -30,6 +30,15 @@ export function mountSettings(host, { nav }) {
 
         /* ---------------- 外观 ---------------- */
         wrap.appendChild(section('外观', [
+            row({ icon: 'grid', label: '界面风格', hint: '整套换掉布局、字体和组件，不只是换色' },
+                h('div', { class: 'mp-skins' },
+                    ...[['mirage', '默认', '霓虹玻璃与渐变'], ['paper', '纸墨', '纸张、衬线、硬边'], ['neon', '霓虹', '终端、霓虹、切角']].map(([id, name, hint]) =>
+                        h('button', {
+                            type: 'button', class: 'mp-skin is-' + id + (settings.skin === id ? ' on' : ''),
+                            onclick: () => { patchSettings('skin', id); nav.applyTheme(); render(); },
+                        }, h('span', { class: 'mp-skin__preview' }), h('b', { text: name }), h('small', { text: hint })),
+                    ),
+                )),
             row({ icon: 'sun', label: '主题', hint: '跟随系统时会随酒馆所在设备切换' },
                 choices([['auto', '跟随'], ['light', '浅色'], ['dark', '深色']], settings.theme, value => {
                     patchSettings('theme', value);

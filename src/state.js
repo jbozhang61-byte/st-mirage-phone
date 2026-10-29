@@ -45,6 +45,7 @@ export function defaultSettings() {
         v: 1,
         enabled: true,
         theme: 'dark',            // dark | light | auto
+        skin: 'mirage',           // mirage | paper | neon
         accent: 'amber',
         glass: 1,                 // 0 .. 1.4
         wallpaper: 'aurora',
@@ -99,6 +100,7 @@ function mergeDefaults(base, value) {
 
 export function normalizeSettings(raw) {
     const s = mergeDefaults(defaultSettings(), raw || {});
+    if (!['mirage', 'paper', 'neon'].includes(s.skin)) s.skin = 'mirage';
     if (!ACCENTS[s.accent]) s.accent = 'amber';
     if (!WALLPAPERS[s.wallpaper]) s.wallpaper = 'aurora';
     if (!['auto', 'dark', 'light'].includes(s.theme)) s.theme = 'auto';

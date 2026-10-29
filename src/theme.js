@@ -56,6 +56,7 @@ export function applyThemeVars(el, settings) {
     const accent = ACCENTS[settings?.accent] || ACCENTS.amber;
     const rgb = hexToRgb(accent.color);
     el.setAttribute('data-theme', resolveTheme(settings));
+    el.setAttribute('data-skin', settings?.skin || 'mirage');
     el.style.setProperty('--mp-accent', accent.color);
     el.style.setProperty('--mp-accent-rgb', rgb.join(', '));
     el.style.setProperty('--mp-accent-ink', luminance(rgb) > 0.62 ? '#2b1d10' : '#ffffff');
