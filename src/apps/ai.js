@@ -1,9 +1,18 @@
 /** 手机里的 AI 助手：按正文、记忆库、私聊和其它 App 回答。 */
-import { h, icon, avatar, toast } from '../render.js';
-import { getData, getFeed, saveNow } from '../store.js';
+import { h, icon, avatar, sheet, toast } from '../render.js';
+import { getData, getFeed, saveNow, getSettings } from '../store.js';
 import { generateText, importantStoryContext, memoryContext, userName, currentCharacter } from '../st.js';
 import { phoneStateSummary } from '../prompts.js';
 import { recentOtherChats } from '../ai.js';
+
+const PROVIDERS = {
+    inherit: { name: '跟随扩展设置', baseUrl: '', model: '' },
+    deepseek: { name: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+    openai: { name: 'OpenAI', baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+    moonshot: { name: 'Moonshot / Kimi', baseUrl: 'https://api.moonshot.cn/v1', model: 'moonshot-v1-8k' },
+    zhipu: { name: '智谱 GLM', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
+    custom: { name: '自定义', baseUrl: '', model: '' },
+};
 
 export function mountAI(host, { nav }) {
     nav.setChrome?.('dark');
@@ -12,6 +21,7 @@ export function mountAI(host, { nav }) {
         h('div', { class: 'mp-nav' },
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
             h('div', { class: 'mp-nav__title' }, 'AI', h('small', { text: 'ASSISTANT' })),
+            h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '模型设置', onclick: () => providerSheet() }, icon('settings')),
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '新对话', onclick: () => reset() }, icon('plus')),
         ),
         body,
@@ -94,6 +104,95 @@ export function mountAI(host, { nav }) {
         render();
     }
 
+    async function callModel({ system, prompt, length }) {
+        const config = getSettings().aiApp || {};
+        const provider = PROVIDERS[config.provider] ? config.provider : 'inherit';
+        if (provider === 'inherit') {
+            return generateText({ system, prompt, length });
+        }
+        const preset = PROVIDERS[provider];
+        const baseUrl = String(config.baseUrl || preset.baseUrl).replace(/\/$/, '');
+        const model = String(config.model || preset.model);
+        if (!baseUrl || !model) throw new Error('先在模型设置里填接口地址和模型');
+        const response = await fetch(baseUrl + '/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (config.apiKey || '') },
+            body: JSON.stringify({
+                model,
+                messages: [{ role: 'system', content: system }, { role: 'user', content: prompt }],
+                max_tokens: Math.max(128, Math.round(length)),
+                temperature: 0.8,
+            }),
+        });
+        if (!response.ok) {
+            let detail = '';
+            try { detail = (await response.text()).slice(0, 200); } catch { /* ignore */ }
+            throw new Error('接口返回 ' + response.status + (detail ? '：' + detail : ''));
+        }
+        const json = await response.json();
+        const answer = json?.choices?.[0]?.message?.content || json?.choices?.[0]?.text || '';
+        if (!answer) throw new Error('接口没有返回内容');
+        return String(answer).trim();
+    }
+
+    function providerSheet() {
+        const config = getSettings().aiApp || { provider: 'inherit', baseUrl: '', apiKey: '', model: '' };
+        let provider = config.provider || 'inherit';
+        const baseInput = h('input', { class: 'mp-input', type: 'text', value: config.baseUrl || '', placeholder: '接口地址，例如 https://api.deepseek.com/v1' });
+        const modelInput = h('input', { class: 'mp-input', type: 'text', value: config.model || '', placeholder: '模型名，例如 deepseek-chat' });
+        const keyInput = h('input', { class: 'mp-input', type: 'password', value: config.apiKey || '', placeholder: 'API Key（只存在本地设置）' });
+        const hint = h('div', { class: 'mp-st-hint', text: '跟随扩展设置：使用酒馆当前 API 或扩展里的独立 API。' });
+        const applyPreset = () => {
+            const preset = PROVIDERS[provider];
+            baseInput.disabled = provider === 'inherit';
+            modelInput.disabled = provider === 'inherit';
+            keyInput.disabled = provider === 'inherit';
+            if (preset.baseUrl && !baseInput.value) baseInput.value = preset.baseUrl;
+            if (preset.model && !modelInput.value) modelInput.value = preset.model;
+            hint.textContent = provider === 'inherit' ? '使用酒馆当前 API 或扩展里的独立 API。' : '注意：API Key 只保存在本机扩展设置里。';
+        };
+        applyPreset();
+        const choices = h('div', { class: 'mp-aiapp__chips' });
+        for (const [id, preset] of Object.entries(PROVIDERS)) {
+            choices.appendChild(h('button', {
+                type: 'button', class: 'mp-aiapp__chip' + (provider === id ? ' is-on' : ''), text: preset.name,
+                onclick: () => {
+                    provider = id;
+                    [...choices.children].forEach(btn => btn.classList.toggle('is-on', btn === event.currentTarget));
+                    const item = PROVIDERS[id];
+                    if (item.baseUrl) baseInput.value = item.baseUrl;
+                    if (item.model) modelInput.value = item.model;
+                    applyPreset();
+                },
+            }));
+        }
+        const dialog = sheet({
+            title: 'AI 模型',
+            content: h('div', { class: 'mp-field-list' },
+                h('div', { class: 'mp-aiapp__chips' }, choices),
+                h('div', {}, h('label', { text: '接口地址' }), baseInput),
+                h('div', {}, h('label', { text: '模型' }), modelInput),
+                h('div', {}, h('label', { text: 'API Key' }), keyInput),
+                hint,
+            ),
+            actions: h('button', {
+                class: 'mp-btn primary small', type: 'button', text: '保存',
+                onclick: () => {
+                    const current = getSettings();
+                    current.aiApp = {
+                        provider,
+                        baseUrl: baseInput.value.trim(),
+                        model: modelInput.value.trim(),
+                        apiKey: keyInput.value.trim(),
+                    };
+                    saveNow('settings');
+                    dialog.close();
+                    toast('模型已保存');
+                },
+            }),
+        });
+    }
+
     async function send(text) {
         const value = String(text || '').trim();
         if (!value || busy) return;
@@ -103,7 +202,7 @@ export function mountAI(host, { nav }) {
         busy = true;
         render();
         try {
-            const raw = await generateText({
+            const raw = await callModel({
                 system: [
                     '你是「幻镜手机」里的 AI 助手，知道这个聊天（酒馆正文）和手机里发生的一切。',
                     '优先根据提供的资料回答；资料里没有的就直说不知道，不要编造。',

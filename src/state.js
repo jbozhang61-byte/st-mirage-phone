@@ -66,6 +66,7 @@ export function defaultSettings() {
         inject: { enabled: true, depth: 2 },
         proactive: { enabled: false, cooldown: 120, perHour: 4, rounds: 1 },
         tts: { enabled: false, auto: false, rate: 1, voice: '' },
+        aiApp: { provider: 'inherit', baseUrl: '', apiKey: '', model: '' },
         ai: {
             useMain: true, baseUrl: '', apiKey: '', model: '', commentStyle: '真实网友', length: 320, style: DEFAULT_STYLE },
         replyInGroup: true,
@@ -110,6 +111,11 @@ export function normalizeSettings(raw) {
     s.tts = s.tts && typeof s.tts === 'object' ? s.tts : { enabled: false, auto: false, rate: 1, voice: '' };
     s.tts.rate = Math.max(0.5, Math.min(2, Number(s.tts.rate) || 1));
     s.tts.voice = String(s.tts.voice || '').slice(0, 80);
+    s.aiApp = s.aiApp && typeof s.aiApp === 'object' ? s.aiApp : { provider: 'inherit', baseUrl: '', apiKey: '', model: '' };
+    s.aiApp.provider = String(s.aiApp.provider || 'inherit').slice(0, 20);
+    s.aiApp.baseUrl = String(s.aiApp.baseUrl || '').slice(0, 200);
+    s.aiApp.apiKey = String(s.aiApp.apiKey || '').slice(0, 300);
+    s.aiApp.model = String(s.aiApp.model || '').slice(0, 80);
     s.ai.length = clamp(Math.round(Number(s.ai.length) || 320), 120, 1200);
     if (typeof s.ai.style !== 'string' || !s.ai.style.trim()) s.ai.style = DEFAULT_STYLE;
     s.ai.style = s.ai.style.slice(0, 4000);

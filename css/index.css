@@ -2156,3 +2156,5 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-aiapp__composer .mp-cm__input { flex: 1 1 auto; }
 .mp-appicon__glyph.g-ai { background: linear-gradient(160deg, #9aa5ff, #5f68de 55%, #2f347e); }
 .mp-as__icon.g-ai { background: linear-gradient(150deg, #9aa5ff, #4f57c9); }
+
+.mp-aiapp__chip.is-on { background: rgba(143,155,255,.28); border-color: rgba(143,155,255,.6); color: #fff; }
