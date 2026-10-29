@@ -203,6 +203,10 @@ export function gradientFor(name) {
 }
 
 export function avatar({ name = '', src = '', size = 44, cls = '', ring = false } = {}) {
+    try {
+        const custom = globalThis.__mpAvatarUrl?.(name);
+        if (custom) src = custom;
+    } catch { /* ignore */ }
     const el = h('span', { class: 'mp-avatar ' + cls, style: { width: size + 'px', height: size + 'px' } });
     if (ring) el.classList.add('is-ring');
     const ch = String(name || '?').trim().charAt(0).toUpperCase();

@@ -8,6 +8,7 @@ import {
 } from './src/store.js';
 import { ACCENTS } from './src/state.js';
 import { createPhone, openPhone, refreshTheme } from './src/phone.js';
+import { avatarUrl } from './src/avatars.js';
 import { aiEvents, runProactive, refreshInjection, isBusy } from './src/ai.js';
 
 let bootErrorTimer = 0;
@@ -69,6 +70,7 @@ function boot() {
     }
     started = true;
     initStore();
+    globalThis.__mpAvatarUrl = name => avatarUrl(name);
     lastChatId = chatId();
     ensureCity();
     phone = createPhone(openState => {

@@ -2167,3 +2167,9 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-as__icon.g-claude { background: linear-gradient(150deg, #ffc9a0, #d97a45); }
 .mp-appicon__glyph.g-gemini { background: linear-gradient(160deg, #c9c2ff, #6d63e8 58%, #36307e); }
 .mp-as__icon.g-gemini { background: linear-gradient(150deg, #c9c2ff, #6d63e8); }
+
+.mp-avatar-edit { display: flex; align-items: center; gap: 14px; padding: 10px 2px 14px; }
+.mp-avatar-edit__btns { display: flex; flex-direction: column; gap: 7px; }
+.mp-me-card { cursor: pointer; }
+.mp-me-card__edit { margin-left: auto; color: var(--mp-text-3); display: flex; }
+.mp-me-card__edit .mp-ic { width: 15px; height: 15px; }

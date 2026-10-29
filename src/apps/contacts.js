@@ -6,6 +6,7 @@ import { h, icon, avatar, sheet, confirmSheet, toast } from '../render.js';
 import { getData, getCast, upsertPerson, removePerson, ensureThread } from '../store.js';
 import { characterAvatar, userName, personaDescription, currentCharacter } from '../st.js';
 import { extractCast } from '../ai.js';
+import { changeAvatar, removeAvatar, avatarUrl } from '../avatars.js';
 
 export function mountContacts(host, { nav }) {
     const body = h('div', { class: 'mp-body' });
@@ -95,12 +96,13 @@ export function mountContacts(host, { nav }) {
         }
 
         // 我的名片
-        body.appendChild(h('div', { class: 'mp-me-card' },
+        body.appendChild(h('div', { class: 'mp-me-card', onclick: () => pickAvatar(userName(), render) },
             avatar({ name: userName(), src: '', size: 44 }),
             h('div', { class: 'mp-me-card__body' },
                 h('div', { class: 'mp-me-card__name', text: userName() }),
-                h('div', { class: 'mp-me-card__sig', text: personaDescription().trim().slice(0, 46) || '酒馆里的你' }),
+                h('div', { class: 'mp-me-card__sig', text: '点一下换自己的头像' }),
             ),
+            h('span', { class: 'mp-me-card__edit' }, icon('camera')),
         ));
         if (!cast.length && keyword) body.appendChild(h('div', { class: 'mp-st-hint', text: '没有这个人。' }));
     }
@@ -153,8 +155,34 @@ export function mountContacts(host, { nav }) {
         return row;
     }
 
+    function pickAvatar(name, done) {
+        const file = h('input', { type: 'file', accept: 'image/*', style: { display: 'none' } });
+        file.addEventListener('change', async () => {
+            const picked = file.files?.[0];
+            file.remove();
+            if (!picked) return;
+            try {
+                await changeAvatar(name, picked);
+                toast('头像已更新');
+                done?.();
+            } catch (error) {
+                toast(String(error?.message || '换头像失败'), 3000);
+            }
+        });
+        document.body.appendChild(file);
+        file.click();
+    }
+
     function personMenu(person, refresh) {
+        const hasAvatar = !!avatarUrl(person.name);
         const s = sheet({ title: person.name, content: h('div', { class: 'mp-field-list' },
+            h('div', { class: 'mp-avatar-edit' },
+                avatar({ name: person.name, size: 64 }),
+                h('div', { class: 'mp-avatar-edit__btns' },
+                    h('button', { class: 'mp-chip', type: 'button', onclick: () => pickAvatar(person.name, () => { s.close(); refresh(); }) }, icon('camera'), '换头像'),
+                    hasAvatar ? h('button', { class: 'mp-chip', type: 'button', onclick: () => { removeAvatar(person.name); s.close(); refresh(); } }, icon('trash'), '恢复默认') : null,
+                ),
+            ),
             h('div', { class: 'mp-chips' },
                 h('button', { class: 'mp-chip', type: 'button', onclick: () => { s.close(); editPerson(person); } }, icon('edit'), '编辑'),
                 h('button', {
