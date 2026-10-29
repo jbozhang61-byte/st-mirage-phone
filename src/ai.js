@@ -511,8 +511,9 @@ export async function extractCompanies() {
     const user = userName();
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
-    const story = storyContext(6, 260);
-    const text = story.map(line => (line.isUser ? '用户' : line.name) + '：' + line.text).join('\n');
+    const story = storyContext(20, 300);
+    const memory = memoryContext(8).map(item => String(item.text || '').slice(0, 400)).filter(Boolean).join('\n');
+    const text = [memory, ...story.map(line => (line.isUser ? '用户' : line.name) + '：' + line.text)].join('\n');
     if (!text) return [];
     try {
         const raw = await generateText({
@@ -536,11 +537,15 @@ export async function generateComments(item, app = '内容') {
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
     const style = getSettings().ai?.commentStyle || '真实网友';
+    const story = storyContext(40, 340).map(line => (line.isUser ? user : line.name) + '：' + line.text).join('\n');
+    const memory = memoryContext(12).map(entry => String(entry.text || '').slice(0, 500)).filter(Boolean).join('\n');
     const raw = await generateText({
         system: [
             '你在为一个故事世界里的「' + app + '」生成评论区。',
             world ? '世界：' + world : '',
             people.length ? '这个世界的人：' + people.join('、') : '',
+            memory ? '记忆库 / 摘要（背景）：\n' + memory : '',
+            story ? '最近剧情（背景）：\n' + story : '',
             '评论风格：' + style + '。',
             '每条评论像真实网友：短、具体、有反应，不要复读标题，不要解释。',
             '昵称要像网名，不要用真实人名列表。',
@@ -564,6 +569,7 @@ export async function generateComments(item, app = '内容') {
 export async function writeDiary() {
     const user = userName();
     const story = storyContext(12, 360);
+    const memory = memoryContext(12).map(item => String(item.text || '').slice(0, 600)).filter(Boolean).join('\n');
     const current = currentCharacter();
     const who = current?.name || '我';
     if (!story.length) throw new Error('正文里还没有可以记的事');
@@ -573,7 +579,7 @@ export async function writeDiary() {
         '不要写章节标题，不要复述剧情大纲，不要替「' + user + '」说话。',
         '篇幅 150 到 350 字。',
     ].join('\n');
-    const prompt = '最近发生的事：\n' + story.map(line => (line.isUser ? user : line.name) + '：' + line.text).join('\n') +
+    const prompt = (memory ? '记忆库 / 摘要：\n' + memory + '\n\n' : '') + '最近发生的事：\n' + story.map(line => (line.isUser ? user : line.name) + '：' + line.text).join('\n') +
         '\n\n请写这一天的日记。';
     const raw = await generateText({ system, prompt, length: 700 });
     const text = String(raw || '').trim();
