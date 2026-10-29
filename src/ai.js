@@ -239,7 +239,7 @@ function relevantHearts(data) {
     return [...all].sort((a, b) => (Number(b.affection) || 0) - (Number(a.affection) || 0)).slice(0, 2);
 }
 
-function recentOtherChats() {
+export function recentOtherChats() {
     const lines = [];
     const clean = (value) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, 70);
 

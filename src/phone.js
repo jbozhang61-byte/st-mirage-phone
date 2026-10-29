@@ -36,6 +36,7 @@ import { mountSignal } from './apps/signal.js';
 import { mountTieba } from './apps/tieba.js';
 import { mountHeart } from './apps/heart.js';
 import { mountWorld } from './apps/world.js';
+import { mountAI } from './apps/ai.js';
 
 const APPS = {
     chat: { mount: mountChat },
@@ -72,6 +73,7 @@ const APPS = {
     tieba: { mount: mountTieba },
     heart: { mount: mountHeart },
     world: { mount: mountWorld },
+    ai: { mount: mountAI },
 };
 
 let rootEl = null;

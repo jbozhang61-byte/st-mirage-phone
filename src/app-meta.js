@@ -70,6 +70,7 @@ export const STORE_APPS = [
         desc: '你感兴趣的视频都在这里',
     },
     { id: 'tieba', name: '百度贴吧', sub: 'Tieba', label: '贴吧', icon: 'tieba', cls: 'g-tieba', category: '社区', size: '86 MB', rating: '4.4', color: '#3385ff', accent: '#5aa0ff', desc: '旧城的人都在这里发帖' },
+    { id: 'ai', name: 'AI', sub: 'Assistant', label: 'AI', icon: 'sparkle', cls: 'g-ai', category: '工具', size: '120 MB', rating: '4.9', color: '#2b2f6b', accent: '#8f9bff', desc: '按正文和手机里的消息回答问题' },
     { id: 'world', name: '世界', sub: 'World', label: '世界', icon: 'globe', cls: 'g-world', category: '工具', size: '36 MB', rating: '4.9', color: '#1d4a5c', accent: '#5fd0c0', desc: '这个世界是什么样子、有多大' },
     { id: 'heart', name: '心', sub: 'Heart', label: '心', icon: 'heart', cls: 'g-heart', category: '社交', size: '42 MB', rating: '4.8', color: '#8f1f45', accent: '#ff6b9a', desc: '关系、偏好和今天穿什么' },
     { id: 'facebook', name: 'Facebook', sub: 'FB', label: 'Facebook', icon: 'facebook', cls: 'g-fb', category: '社交', size: '120 MB', rating: '4.3', color: '#1877f2', accent: '#4a9bff', desc: '和朋友、和这个世界保持联系' },
