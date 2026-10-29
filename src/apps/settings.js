@@ -174,6 +174,11 @@ export function mountSettings(host, { nav }) {
                     type: 'password', value: settings.image?.apiKey || '', placeholder: 'sk-…',
                     onchange: event => patchImage({ apiKey: event.target.value.trim() }),
                 }))) : null,
+            settings.image?.enabled && (settings.image?.provider || 'openai') === 'openai' ? row({ icon: 'sparkle', label: '画质', hint: 'auto / low / medium / high' },
+                h('div', { class: 'mp-field' }, h('input', {
+                    type: 'text', value: settings.image?.quality || 'auto', placeholder: 'auto',
+                    onchange: event => patchImage({ quality: event.target.value.trim() || 'auto' }),
+                }))) : null,
             settings.image?.enabled && (settings.image?.provider || 'openai') === 'openai' ? row({ icon: 'grid', label: '模型 / 尺寸', hint: '例如 gpt-image-1 · 1024x1024' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'text', value: (settings.image?.model || '') + ' ' + (settings.image?.size || ''), placeholder: 'gpt-image-1 1024x1024',
@@ -202,17 +207,27 @@ export function mountSettings(host, { nav }) {
                     value: settings.image?.comfyWorkflow || '',
                     onchange: event => patchImage({ comfyWorkflow: event.target.value }),
                 }))) : null,
-            settings.image?.enabled ? row({ icon: 'refresh', label: '测试接口', hint: '生成一张测试图，成功会提示' },
-                h('button', {
-                    class: 'mp-btn small', type: 'button', text: '生成一张',
-                    onclick: async () => {
-                        toast('正在生成…');
-                        try {
-                            await generateImage('雪夜里的旧城街道，一家亮着灯的小店，电影质感照片');
-                            toast('接口通了');
-                        } catch (error) { toast(String(error?.message || '生成失败'), 3200); }
-                    },
-                })) : null,
+            settings.image?.enabled ? row({ icon: 'refresh', label: '测试接口', hint: '生成一张测试图，成功会显示预览' },
+                h('div', { class: 'mp-image-test' },
+                    (() => {
+                        const preview = h('div', { class: 'mp-image-test__preview' });
+                        const btn = h('button', {
+                            class: 'mp-btn small', type: 'button', text: '生成一张',
+                            onclick: async () => {
+                                if (btn.disabled) return;
+                                btn.disabled = true;
+                                toast('正在生成…');
+                                try {
+                                    const url = await generateImage('雪夜里的旧城街道，一家亮着灯的小店，电影质感照片');
+                                    preview.style.backgroundImage = 'url("' + url + '")';
+                                    toast('接口通了');
+                                } catch (error) { toast(String(error?.message || '生成失败'), 3200); }
+                                finally { btn.disabled = false; }
+                            },
+                        });
+                        return h('div', { style: { display: 'flex', flexDirection: 'column', gap: '7px' } }, btn, preview);
+                    })(),
+                )) : null,
         ]));
 
         /* ---------------- 语音 ---------------- */

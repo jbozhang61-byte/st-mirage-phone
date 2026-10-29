@@ -2719,3 +2719,6 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-as__icon.g-xianyu { background: linear-gradient(150deg, #ffe28a, #e0a51f); }
 .mp-appicon__glyph.g-travel { background: linear-gradient(160deg, #9fdcff, #2f7fbf 58%, #123d63); }
 .mp-as__icon.g-travel { background: linear-gradient(150deg, #9fdcff, #2f7fbf); }
+
+.mp-image-test { display: flex; flex-direction: column; gap: 7px; }
+.mp-image-test__preview { width: 132px; height: 96px; border-radius: 10px; background: var(--mp-field) center/cover no-repeat; border: 1px solid var(--mp-line); }
