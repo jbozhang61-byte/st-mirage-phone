@@ -389,7 +389,7 @@ function mountConversation(host, nav, threadId) {
     }
 
     function locationCard(msg) {
-        return h('div', { class: 'mp-location', onclick: () => toast('地图还没画完，先记住这个地方：' + msg.text) },
+        return h('div', { class: 'mp-location', onclick: () => { nav.go('maps'); toast('打开地图，搜索：' + msg.text); } },
             h('div', { class: 'mp-location__map' }, h('span', { class: 'mp-location__pin' }, icon('location'))),
             h('div', { class: 'mp-location__name', text: msg.text || '某个地方' }),
         );
