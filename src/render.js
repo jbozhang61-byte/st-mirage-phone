@@ -236,7 +236,14 @@ export function avatar({ name = '', src = '', size = 44, cls = '', ring = false,
         el.setAttribute('role', 'button');
         el.tabIndex = 0;
         el.title = '查看 ' + name + ' 的属性';
-        el.addEventListener('click', event => { event.stopPropagation(); globalThis.__mpOpenProfile(name); });
+        el.addEventListener('click', event => {
+            // 头像是被包在按钮里的（比如「心动」顶部的人选条、Facebook 故事圈）时，
+            // 这一次点击该归按钮自己——选人 / 翻故事，而不是跳去人物卡。
+            const host = el.closest('button, a');
+            if (host && host !== el) return;
+            event.stopPropagation();
+            globalThis.__mpOpenProfile(name);
+        });
     }
     return el;
 }
