@@ -4,6 +4,7 @@ import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
 import { generateText, importantStoryContext, memoryContext, currentCharacter, personaDescription, userName } from '../st.js';
 import { extractJson } from '../prompts.js';
 import { difficultyOf, sortByDifficulty } from '../difficulty.js';
+import { powerOf, statsOf, POWER_DIMS } from '../power.js';
 
 const STAGES = ['陌生', '认识', '互有好感', '暧昧', '恋人', '伴侣'];
 
@@ -145,6 +146,8 @@ export function mountHeart(host, { nav }) {
             ),
         ));
 
+        body.appendChild(powerBlock(powerOf(person), { title: '攻略力' }));
+
         body.appendChild(section('喜欢怎样靠近', (person.likes || []).map(item => chip(item, 'heart'))));
         body.appendChild(section('敏感的地方', (person.sensitive || []).map(item => chip(item, 'sparkle'))));
         const wearRows = OUTFIT_FIELDS
@@ -164,6 +167,24 @@ export function mountHeart(host, { nav }) {
         body.appendChild(section('自定义标签', customChips));
         if (person.boundaries?.length) body.appendChild(section('边界', person.boundaries.map(item => chip(item, 'lock'))));
         body.appendChild(h('div', { class: 'mp-heart__note', text: '角色均为成年人；这里只记录双方自愿的部分，不舒服就直接说。' }));
+    }
+
+    /** 攻略力：总分 + 四项条。自己的那张卡多一个「作弊」按钮。 */
+    function powerBlock(power, { title = '攻略力', actions = null } = {}) {
+        return h('div', { class: 'mp-heart__power' },
+            h('div', { class: 'mp-power__head' },
+                h('span', { class: 'mp-power__title', text: title }),
+                h('b', { class: 'mp-power__score', text: String(power.score) }),
+                h('span', { class: 'mp-power__grade', text: power.grade }),
+                power.cheated ? h('span', { class: 'mp-power__cheat', text: '已开挂' }) : null,
+                actions,
+            ),
+            h('div', { class: 'mp-power__rows' }, ...power.rows.map(row => h('div', { class: 'mp-power__row' },
+                h('span', { class: 'mp-power__label', text: row.label }),
+                h('div', { class: 'mp-power__bar' }, h('i', { style: { width: row.value + '%' } })),
+                h('span', { class: 'mp-power__val', text: String(row.value) }),
+            ))),
+        );
     }
 
     function section(title, children, plain = false) {
@@ -224,6 +245,10 @@ export function mountHeart(host, { nav }) {
             ),
             h('div', { class: 'mp-heart__selfedit' }, edit),
         ));
+        body.appendChild(powerBlock(powerOf({ name: userName() || '我', desc: me.personality || '', power: me.power }), {
+            title: '我的攻略力',
+            actions: h('button', { type: 'button', class: 'mp-heart__cheat', onclick: () => cheatSelf() }, '作弊'),
+        }));
         const lines = [
             ['颜值', me.appearance],
             ['性格', me.personality],
@@ -241,6 +266,54 @@ export function mountHeart(host, { nav }) {
             body.appendChild(h('div', { class: 'mp-st-hint', text: '点「编辑」写下你的样子、性格、身体、家世和喜恶。' }));
         }
         body.appendChild(h('div', { class: 'mp-heart__note', text: '这部分只用于酒馆生成时参考，不会写进正文。' }));
+    }
+
+    /** 作弊：直接改自己的四项，存进 heartSelf.power。 */
+    function cheatSelf() {
+        const me = selfProfile();
+        const seedPerson = { name: userName() || '我', desc: me.personality || '', power: me.power };
+        const current = statsOf(seedPerson);
+        const inputs = {};
+        const rows = POWER_DIMS.map(dim => {
+            const value = h('span', { class: 'mp-power__val', text: String(current[dim.key]) });
+            const input = h('input', { class: 'mp-range', type: 'range', min: '1', max: '100', value: String(current[dim.key]) });
+            input.addEventListener('input', () => { value.textContent = input.value; });
+            inputs[dim.key] = input;
+            return h('div', { class: 'mp-power__edit' }, h('label', { text: dim.label }), input, value);
+        });
+        const fill = amount => {
+            for (const dim of POWER_DIMS) {
+                inputs[dim.key].value = String(amount);
+                inputs[dim.key].dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        };
+        const dialog = sheet({
+            title: '给自己的攻略力开挂',
+            content: h('div', { class: 'mp-field-list' },
+                h('div', { class: 'mp-power__edits' }, ...rows),
+                h('div', { class: 'mp-power__acts' },
+                    h('button', { class: 'mp-btn ghost small', type: 'button', text: '一键拉满', onclick: () => fill(100) }),
+                    h('button', { class: 'mp-btn ghost small', type: 'button', text: '还原', onclick: () => {
+                        const data = getData();
+                        if (data.heartSelf) delete data.heartSelf.power;
+                        saveNow('data');
+                        dialog.close();
+                        render();
+                    } }),
+                    h('button', { class: 'mp-btn primary small', type: 'button', text: '保存', onclick: () => {
+                        const self = selfProfile();
+                        self.power = {};
+                        for (const dim of POWER_DIMS) self.power[dim.key] = Number(inputs[dim.key].value) || 1;
+                        saveNow('data');
+                        dialog.close();
+                        toast('攻略力已更新');
+                        render();
+                    } }),
+                ),
+                h('div', { class: 'mp-st-hint', text: '只改「心」里的攻略力，不会写进正文；「还原」回到按你的设定算出来的值。' }),
+            ),
+        });
+        return dialog;
     }
 
     function editSelf() {
@@ -276,6 +349,7 @@ export function mountHeart(host, { nav }) {
                         body: bodyText.value.trim().slice(0, 200),
                         family: family.value.trim().slice(0, 120),
                         likes: split(likes.value), dislikes: split(dislikes.value), custom: split(custom.value),
+                        power: me.power,   // 作弊出来的攻略力别被编辑资料冲掉
                     };
                     saveNow('data');
                     dialog.close();

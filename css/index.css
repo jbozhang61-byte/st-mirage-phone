@@ -1908,6 +1908,25 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-heart__bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
 .mp-heart__bar i { display: block; height: 100%; background: linear-gradient(90deg, #ff6b9a, #ffb3c8); border-radius: 3px; }
 .mp-heart__section { margin-top: 16px; }
+.mp-heart__power { margin-top: 14px; border: 1px solid rgba(255,107,154,.16); background: rgba(255,255,255,.03); border-radius: 16px; padding: 12px 13px; }
+.mp-power__head { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; flex-wrap: wrap; }
+.mp-power__title { font-size: 10px; letter-spacing: 1.2px; color: #8f7a86; }
+.mp-power__score { font-size: 19px; font-weight: 800; color: #ffd9e4; line-height: 1; }
+.mp-power__grade { font-size: 9.5px; color: #ffb3c8; border: 1px solid rgba(255,107,154,.35); border-radius: 8px; padding: 1px 6px; }
+.mp-power__cheat { font-size: 9px; font-weight: 700; color: #ffd166; border: 1px solid rgba(255,209,102,.5); background: rgba(255,209,102,.12); border-radius: 8px; padding: 1px 6px; }
+.mp-power__rows { display: flex; flex-direction: column; gap: 6px; }
+.mp-power__row { display: flex; align-items: center; gap: 8px; }
+.mp-power__label { font-size: 10px; color: #b9a5b0; width: 30px; flex: 0 0 auto; }
+.mp-power__bar { flex: 1 1 auto; height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
+.mp-power__bar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #ff6b9a, #ffd166); }
+.mp-power__val { font-size: 10px; color: #b9a5b0; width: 22px; text-align: right; flex: 0 0 auto; }
+.mp-heart__cheat { margin-left: auto; font: inherit; font-size: 10px; font-weight: 700; color: #ffd166; border: 1px solid rgba(255,209,102,.45); background: rgba(255,209,102,.12); border-radius: 9px; padding: 4px 10px; cursor: pointer; }
+.mp-power__edits { display: flex; flex-direction: column; gap: 10px; }
+.mp-power__edit { display: flex; align-items: center; gap: 10px; }
+.mp-power__edit label { width: 34px; font-size: 11px; color: var(--mp-text-2); flex: 0 0 auto; }
+.mp-power__edit .mp-range { flex: 1 1 auto; accent-color: #ff6b9a; }
+.mp-power__acts { display: flex; gap: 8px; margin-top: 12px; }
+.mp-power__acts .mp-btn { flex: 1 1 0; }
 .mp-heart__label { font-size: 10px; letter-spacing: 1px; color: #8f7a86; margin-bottom: 6px; }
 .mp-heart__chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .mp-heart__chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(255,107,154,.22); background: rgba(255,107,154,.07); color: #ffd9e4; border-radius: 12px; padding: 5px 9px; font-size: 10.5px; }
