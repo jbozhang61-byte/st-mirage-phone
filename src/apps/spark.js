@@ -6,6 +6,7 @@ import { getData, saveNow, upsertPerson, ensureThread, findPerson, appendMessage
 import { findMatches } from '../ai.js';
 import { MAX_DATES, STAGES, VIBES } from '../spark.js';
 import { setOneShot, sendAsUserAndGenerate, subscribe } from '../st.js';
+import { difficultyOf, sortByDifficulty } from '../difficulty.js';
 
 const TONE_STYLE = {
     warm: 'linear-gradient(150deg, #f6b38a, #b5654f)',
@@ -54,7 +55,8 @@ export function mountSpark(host, { nav }) {
 
     function renderDiscover() {
         const data = getData();
-        const candidates = data.spark?.candidates || [];
+        // 攻略难度从高到低排
+        const candidates = sortByDifficulty(data.spark?.candidates || []);
 
         // 偏好
         body.appendChild(h('div', { class: 'mp-sp__prompt-card' },
@@ -108,6 +110,14 @@ export function mountSpark(host, { nav }) {
                 h('span', { class: 'mp-sp__count', text: (index + 1) + ' / ' + total }),
             ),
             h('div', { class: 'mp-sp__info' },
+                (() => {
+                    const diff = difficultyOf(person);
+                    return h('div', { class: 'mp-sp__diffrow' },
+                        h('span', { class: 'mp-sp__diff is-' + diff.key, text: '攻略难度 · ' + diff.label }),
+                        h('div', { class: 'mp-sp__diffbar' }, h('i', { style: { width: diff.score + '%' } })),
+                        h('span', { class: 'mp-sp__diffnum', text: diff.score }),
+                    );
+                })(),
                 h('div', { class: 'mp-sp__tags' }, (person.tags || []).map(tag => h('span', { class: 'mp-sp__tag', text: tag }))),
                 h('div', { class: 'mp-sp__bio', text: person.bio }),
                 person.opening ? h('div', { class: 'mp-sp__opening' },
@@ -170,6 +180,7 @@ export function mountSpark(host, { nav }) {
             id: 'm' + Date.now().toString(36),
             name: person.name,
             stage: STAGES[0],
+            difficulty: difficultyOf(person).score,
             dates: [],
             ts: Date.now(),
         }];
@@ -202,6 +213,9 @@ export function mountSpark(host, { nav }) {
                     h('div', { class: 'mp-sp__match-top' },
                         h('span', { class: 'mp-sp__match-name', text: match.name }),
                         h('span', { class: 'mp-sp__stage', text: match.stage }),
+                        Number.isFinite(Number(match.difficulty))
+                            ? h('span', { class: 'mp-sp__matchdiff is-' + difficultyOf(match).key, text: difficultyOf(match).label })
+                            : null,
                     ),
                     h('div', { class: 'mp-sp__match-sub', text: last ? '上次：' + last.title : '还没见过面' }),
                 ),

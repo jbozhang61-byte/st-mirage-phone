@@ -405,6 +405,9 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
         bio: String(item.bio || '').slice(0, 300),
         opening: String(item.opening || '').slice(0, 200),
         tone: ['warm', 'danger', 'young', 'mature', 'mystery'].includes(item.tone) ? item.tone : 'warm',
+        difficulty: Number.isFinite(Number(item.difficulty))
+            ? Math.max(0, Math.min(100, Math.round(Number(item.difficulty))))
+            : undefined,
     }));
 }
 

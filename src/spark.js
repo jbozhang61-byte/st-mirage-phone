@@ -21,8 +21,10 @@ export function sparkSystemPrompt({ world, people, user }) {
         '用户：' + user,
         '候选人是这个世界里真实存在的人，不是明星，也不要和已有的人重名。',
         '每个人都要具体：职业、年纪、说话方式、一个小缺点。',
+        'difficulty 是攻略难度，0-100 的整数，越大越难追（看性格、边界、生活状态）。',
+        '三个人要拉开差距：一个 80 以上，一个 55 左右，一个 35 以下。',
         '只输出 JSON：',
-        '{"candidates":[{"name":"名字","age":"27","job":"职业","tags":["标签1","标签2"],"bio":"一两句介绍，带一点缺点","opening":"TA 会主动发来的第一句话","tone":"warm|danger|young|mature|mystery"}]}',
+        '{"candidates":[{"name":"名字","age":"27","job":"职业","tags":["标签1","标签2"],"bio":"一两句介绍，带一点缺点","opening":"TA 会主动发来的第一句话","tone":"warm|danger|young|mature|mystery","difficulty":72}]}',
     ].filter(Boolean).join('\n');
 }
 

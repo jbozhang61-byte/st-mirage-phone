@@ -3,6 +3,7 @@ import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
 import { generateText, importantStoryContext, memoryContext, currentCharacter, personaDescription, userName } from '../st.js';
 import { extractJson } from '../prompts.js';
+import { difficultyOf, sortByDifficulty } from '../difficulty.js';
 
 const STAGES = ['陌生', '认识', '互有好感', '暧昧', '恋人', '伴侣'];
 
@@ -84,7 +85,8 @@ export function mountHeart(host, { nav }) {
     }
 
     function render() {
-        const people = load();
+        // 攻略难度从高到低排，难搞的排前面
+        const people = sortByDifficulty(load());
         body.innerHTML = '';
         if (!people.length) {
             body.appendChild(h('div', { class: 'mp-empty' },
@@ -102,10 +104,12 @@ export function mountHeart(host, { nav }) {
             onclick: () => { if (Date.now() - pickerDragAt < 300) return; selfMode = true; render(); },
         }, avatar({ name: userName() || '我', size: 42 }), h('span', { text: '我' })));
         people.forEach((person, index) => {
+            const diff = difficultyOf(person);
             picker.appendChild(h('button', {
                 type: 'button', class: 'mp-heart__pick' + (!selfMode && index === selected ? ' on' : ''),
                 onclick: () => { if (Date.now() - pickerDragAt < 300) return; selected = index; selfMode = false; render(); },
-            }, avatar({ name: person.name, size: 42 }), h('span', { text: person.name })));
+            }, avatar({ name: person.name, size: 42 }), h('span', { text: person.name }),
+                h('span', { class: 'mp-heart__pickdiff is-' + diff.key, title: '攻略难度 ' + diff.score + ' / 100', text: diff.label })));
         });
         enablePickerDrag(picker);
         body.appendChild(picker);
@@ -117,11 +121,14 @@ export function mountHeart(host, { nav }) {
 
         const person = people[selected];
         const pct = Math.max(0, Math.min(100, Number(person.affection) || 0));
+        const diff = difficultyOf(person);
         body.appendChild(h('div', { class: 'mp-heart__card' },
             h('div', { class: 'mp-heart__top' },
                 avatar({ name: person.name, size: 56 }),
                 h('div', { class: 'mp-heart__id' },
-                    h('div', { class: 'mp-heart__name' }, person.name, h('span', { class: 'mp-heart__stage', text: person.stage || '认识' })),
+                    h('div', { class: 'mp-heart__name' }, person.name,
+                        h('span', { class: 'mp-heart__stage', text: person.stage || '认识' }),
+                        h('span', { class: 'mp-heart__diff is-' + diff.key, text: '攻略难度 · ' + diff.label + ' ' + diff.score })),
                     h('div', { class: 'mp-heart__summary', text: person.summary || '' }),
                 ),
             ),
