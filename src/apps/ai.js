@@ -4,6 +4,7 @@ import { getData, getFeed, saveNow, getSettings } from '../store.js';
 import { generateText, importantStoryContext, memoryContext, userName, currentCharacter } from '../st.js';
 import { phoneStateSummary } from '../prompts.js';
 import { recentOtherChats } from '../ai.js';
+import { powerRoster } from '../roster.js';
 
 const PROVIDERS = {
     inherit: { name: '跟随扩展设置', baseUrl: '', model: '' },
@@ -70,6 +71,7 @@ export function mountAssistant(host, { nav }, brand = {}) {
             selfProfile: current.heartSelf || null,
             worldProfile: current.worldInfo || null,
             extras: recentOtherChats(),
+            power: powerRoster({ selfProfile: current.heartSelf || null }),
         });
         return [
             story ? '【正文最近发生的事】\n' + story : '',

@@ -7,7 +7,7 @@
   "js": "index.js",
   "css": "css/index.css",
   "author": "Mirage Phone",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "auto_update": false,
   "minimum_client_version": "1.13.0",
   "description": "酒馆里的一部小手机：消息、朋友圈、通讯录、相册、备忘录、钱包、天气与设置。角色会用手机和你聊天，并和剧情双向联动。"

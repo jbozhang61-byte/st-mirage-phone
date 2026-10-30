@@ -12,6 +12,7 @@ import {
     commentSystemPrompt, commentUserPrompt, proactivePrompt, parseChatReply, parseMoments,
     extractJson, phoneStateSummary, personaBlock, trim, castSystemPrompt, castUserPrompt,
 } from './prompts.js';
+import { powerRoster } from './roster.js';
 import { FEEDS } from './feed.js';
 import { SOCIAL } from './social.js';
 import { EXTRA } from './extra.js';
@@ -280,14 +281,14 @@ export function recentOtherChats() {
 export function refreshInjection() {
     const settings = getSettings();
     const data = getData();
-    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: data.heartSelf || null, worldProfile: data.worldInfo || null, extras: recentOtherChats() });
+    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: data.heartSelf || null, worldProfile: data.worldInfo || null, extras: recentOtherChats(), power: powerRoster({ selfProfile: data.heartSelf || null }) });
     setPhonePrompt(text, { depth: settings.inject.depth, enabled: settings.inject.enabled && !!text });
     return text;
 }
 
 export function previewInjection() {
     const data = getData();
-    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), extras: recentOtherChats() });
+    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), extras: recentOtherChats(), power: powerRoster({ selfProfile: data.heartSelf || null }) });
 }
 
 /**

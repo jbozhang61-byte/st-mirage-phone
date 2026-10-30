@@ -392,7 +392,7 @@ export function proactivePrompt({ thread, user, story }) {
 }
 
 /** 注入正文的手机状态摘要。 */
-export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, extras = [], maxThreads = 20, maxMsgs = 10 }) {
+export function phoneStateSummary({ threads, user, hearts = [], selfProfile = null, worldProfile = null, extras = [], power = null, maxThreads = 20, maxMsgs = 10 }) {
     const lines = [];
     const sorted = [...(threads || [])].filter(t => t.msgs?.length).sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, maxThreads);
     for (const thread of sorted) {
@@ -439,6 +439,14 @@ export function phoneStateSummary({ threads, user, hearts = [], selfProfile = nu
         parts.push('【你对这些人的了解（手机「心」里记录的，成年角色、双方自愿）】');
         parts.push(...heartLines);
         parts.push('聊到相关话题时可以自然带出，不要生硬复述。');
+    }
+    if (power && Array.isArray(power.lines) && power.lines.length) {
+        const mine = power.mine || {};
+        parts.push('【攻略情报（手机「心」里的数值，随时可以查）】');
+        parts.push('· 我：攻略力 ' + mine.score + '（' + mine.grade + (mine.cheated ? '，作弊过' : '') + '）'
+            + (mine.rows ? '（' + mine.rows.map(row => row.label + row.value).join('/') + '）' : ''));
+        parts.push(...power.lines);
+        parts.push('有人问「她的攻略力」「攻略难度」「我能不能拿下」就照这里的数值回答；没人提就别主动念数字，也别一次念一长串。');
     }
     if (worldProfile && typeof worldProfile === 'object') {
         const worldFields = [
