@@ -113,7 +113,7 @@ export function mountSpark(host, { nav }) {
                 (() => {
                     const diff = difficultyOf(person);
                     return h('div', { class: 'mp-sp__diffrow' },
-                        h('span', { class: 'mp-sp__diff is-' + diff.key, text: '攻略难度 · ' + diff.label }),
+                        h('span', { class: 'mp-sp__diff is-' + diff.key, text: '攻略难度 · ' + diff.label + (diff.special ? ' · ' + diff.special : '') }),
                         h('div', { class: 'mp-sp__diffbar' }, h('i', { style: { width: diff.score + '%' } })),
                         h('span', { class: 'mp-sp__diffnum', text: diff.score }),
                     );

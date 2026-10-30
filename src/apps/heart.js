@@ -16,6 +16,9 @@ function seedFor(person, index) {
     const sensitive = ['耳后', '颈侧', '锁骨', '胸口', '腰侧', '小腹', '大腿内侧', '私处', '后背', '膝盖'];
     return {
         name: person.name,
+        // 身份要带上：攻略难度靠「皇女 / 千金 / 世家」这类词判定特殊档
+        role: person.role || '',
+        relation: person.relation || '',
         stage,
         affection: 35 + (hash % 60),
         summary: person.desc || person.relation || '在这个世界和你认识的人。',
@@ -109,7 +112,7 @@ export function mountHeart(host, { nav }) {
                 type: 'button', class: 'mp-heart__pick' + (!selfMode && index === selected ? ' on' : ''),
                 onclick: () => { if (Date.now() - pickerDragAt < 300) return; selected = index; selfMode = false; render(); },
             }, avatar({ name: person.name, size: 42 }), h('span', { text: person.name }),
-                h('span', { class: 'mp-heart__pickdiff is-' + diff.key, title: '攻略难度 ' + diff.score + ' / 100', text: diff.label })));
+                h('span', { class: 'mp-heart__pickdiff is-' + diff.key, title: '攻略难度 ' + diff.score + ' / 100' + (diff.special ? '（' + diff.special + '）' : ''), text: diff.label })));
         });
         enablePickerDrag(picker);
         body.appendChild(picker);
@@ -128,7 +131,11 @@ export function mountHeart(host, { nav }) {
                 h('div', { class: 'mp-heart__id' },
                     h('div', { class: 'mp-heart__name' }, person.name,
                         h('span', { class: 'mp-heart__stage', text: person.stage || '认识' }),
-                        h('span', { class: 'mp-heart__diff is-' + diff.key, text: '攻略难度 · ' + diff.label + ' ' + diff.score })),
+                        h('span', {
+                            class: 'mp-heart__diff is-' + diff.key,
+                            title: '攻略难度 ' + diff.score + ' / 100',
+                            text: '攻略难度 · ' + diff.label + (diff.special ? ' · ' + diff.special : '') + ' ' + diff.score,
+                        })),
                     h('div', { class: 'mp-heart__summary', text: person.summary || '' }),
                 ),
             ),
