@@ -7,6 +7,7 @@
 const HEART_STAGES = ['陌生', '认识', '互有好感', '暧昧', '恋人', '伴侣'];
 
 const TIERS = [
+    { min: 99, label: '禁忌', key: 'forbidden' },
     { min: 95, label: '神话', key: 'myth' },
     { min: 88, label: '传说', key: 'legend' },
     { min: 82, label: '地狱', key: 'hell' },
@@ -21,6 +22,7 @@ const TIERS = [
  * 命中身份就保底 88 / 96 分，没命中的普通人最高只到 87（地狱）。
  */
 const SPECIAL = [
+    { key: 'forbidden', floor: 99, words: ['女神', '神明', '神女', '神族', '天使', '魔王', '恶魔', '先知', '神选', '魔女'] },
     { key: 'myth', floor: 96, words: ['皇女', '公主', '女王', '王女', '女帝', '女皇', '圣女', '殿下', '陛下'] },
     { key: 'legend', floor: 88, words: ['千金', '大小姐', '贵女', '世家', '财阀', '继承人', '家主', '族长', '总裁', '影后', '明星', '偶像', '贵族', '宰相', '祭司长'] },
 ];

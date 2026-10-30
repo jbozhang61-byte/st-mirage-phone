@@ -1884,6 +1884,7 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-heart__name { font-size: 19px; font-weight: 750; display: flex; align-items: center; gap: 7px; }
 .mp-heart__stage { font-size: 9.5px; font-weight: 600; color: #ffb3c8; border: 1px solid rgba(255,107,154,.35); background: rgba(255,107,154,.1); padding: 2px 7px; border-radius: 9px; }
 .mp-heart__diff { font-size: 9px; font-weight: 700; letter-spacing: .3px; color: #e7d9e2; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); padding: 2px 7px; border-radius: 9px; white-space: nowrap; }
+.mp-heart__diff.is-forbidden { color: #ffe6ef; border-color: rgba(255,70,110,.75); background: linear-gradient(135deg, rgba(180,20,60,.55), rgba(255,120,160,.25)); box-shadow: 0 0 14px rgba(255,60,110,.45); }
 .mp-heart__diff.is-myth { color: #ffd166; border-color: rgba(255,209,102,.6); background: rgba(255,209,102,.16); box-shadow: 0 0 12px rgba(255,209,102,.25); }
 .mp-heart__diff.is-legend { color: #c9a6ff; border-color: rgba(180,130,255,.55); background: rgba(160,110,255,.16); }
 .mp-heart__diff.is-hell { color: #ff8f8f; border-color: rgba(255,90,90,.5); background: rgba(255,90,90,.14); }
@@ -1892,6 +1893,7 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-heart__diff.is-easy { color: #a8e6c8; border-color: rgba(120,220,170,.36); background: rgba(120,220,170,.1); }
 .mp-heart__diff.is-soft { color: #9ad8ff; border-color: rgba(120,190,255,.36); background: rgba(120,190,255,.1); }
 .mp-heart__pickdiff { font-size: 8.5px; font-weight: 700; letter-spacing: .2px; color: #a98e9c; margin-top: -1px; }
+.mp-heart__pickdiff.is-forbidden { color: #ff7d9c; text-shadow: 0 0 10px rgba(255,60,110,.7); }
 .mp-heart__pickdiff.is-myth { color: #ffd166; text-shadow: 0 0 8px rgba(255,209,102,.5); }
 .mp-heart__pickdiff.is-legend { color: #c9a6ff; }
 .mp-heart__pickdiff.is-hell { color: #ff8f8f; }

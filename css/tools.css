@@ -187,6 +187,7 @@
 .mp-sp__tag { font-size: 10px; color: #ff7ea5; background: rgba(255, 90, 138, .12); padding: 2px 8px; border-radius: 10px; }
 .mp-sp__diffrow { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
 .mp-sp__diff { font-size: 10px; font-weight: 700; white-space: nowrap; color: #ffe1ea; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.05); padding: 3px 9px; border-radius: 10px; }
+.mp-sp__diff.is-forbidden { color: #ffe6ef; border-color: rgba(255,70,110,.75); background: linear-gradient(135deg, rgba(180,20,60,.55), rgba(255,120,160,.25)); box-shadow: 0 0 14px rgba(255,60,110,.45); }
 .mp-sp__diff.is-myth { color: #ffd166; border-color: rgba(255,209,102,.6); background: rgba(255,209,102,.16); box-shadow: 0 0 12px rgba(255,209,102,.25); }
 .mp-sp__diff.is-legend { color: #c9a6ff; border-color: rgba(180,130,255,.55); background: rgba(160,110,255,.16); }
 .mp-sp__diff.is-hell { color: #ff8f8f; border-color: rgba(255,90,90,.5); background: rgba(255,90,90,.14); }
@@ -198,6 +199,7 @@
 .mp-sp__diffbar i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #9ad8ff, #ff4d7d); }
 .mp-sp__diffnum { font-size: 9.5px; color: var(--mp-text-3); min-width: 16px; text-align: right; }
 .mp-sp__matchdiff { font-size: 9px; font-weight: 700; color: var(--mp-text-3); border: 1px solid var(--mp-line); padding: 1px 6px; border-radius: 8px; }
+.mp-sp__matchdiff.is-forbidden { color: #ff7d9c; border-color: rgba(255,70,110,.75); }
 .mp-sp__matchdiff.is-myth { color: #ffd166; border-color: rgba(255,209,102,.6); }
 .mp-sp__matchdiff.is-legend { color: #c9a6ff; border-color: rgba(180,130,255,.55); }
 .mp-sp__matchdiff.is-hell { color: #ff8f8f; border-color: rgba(255,90,90,.5); }
