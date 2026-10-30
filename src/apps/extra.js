@@ -1,7 +1,7 @@
 /** Discord / Telegram / Spotify / Gmail：打开先显示兜底内容，再让模型按世界生成。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { createMusicPlayer } from '../audio.js';
-import { getData, getCast, getFeed, setFeed } from '../store.js';
+import { getData, getCast, getFeed, setFeed, saveNow } from '../store.js';
 import { generateExtra, friendlyError } from '../ai.js';
 import { EXTRA } from '../extra.js';
 import { feedContext } from './feed-common.js';
@@ -71,7 +71,7 @@ export function mountDiscord(host, { nav }) {
     let channelIndex = 0;
 
     const view = loader('discord', data => {
-        const servers = data.servers || [];
+        const servers = Array.isArray(data.servers) ? data.servers : [];
         if (!servers.length) return;
         serverIndex = Math.min(serverIndex, servers.length - 1);
         const server = servers[serverIndex];
@@ -160,6 +160,7 @@ export function mountDiscord(host, { nav }) {
                         time: String(message.time || '刚刚').slice(0, 10),
                     })),
                 }));
+                data.servers = Array.isArray(data.servers) ? data.servers : [];
                 data.servers.push({ name, style, channels: channels.length ? channels : [{ name: '综合', messages: [] }] });
                 serverIndex = data.servers.length - 1;
                 channelIndex = 0;

@@ -2749,3 +2749,9 @@ html:not(.mp-mobile-float) .mp-shell:not(.is-closed) { transition: none !importa
 .mp-person__world { margin-top: 16px; font-size: 9px; color: var(--mp-text-3); }
 .mp-person__actions { position: sticky; bottom: 0; padding: 8px 14px 14px; background: linear-gradient(180deg, transparent, var(--mp-screen-bg) 35%); }
 .mp-person__actions .mp-btn { width: 100%; }
+
+/* 人物「属性」卡：点头像出小弹层，不再直接跳整页主页 */
+.mp-person-card { padding: 2px 0 6px; }
+.mp-person-card .mp-me__top { gap: 12px; }
+.mp-person-card__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
+.mp-person-card__actions .mp-btn { width: 100%; }

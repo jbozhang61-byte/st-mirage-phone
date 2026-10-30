@@ -241,7 +241,16 @@ export function getFeed(appId) {
 
 export function setFeed(appId, items) {
     if (!store.data.feeds) store.data.feeds = {};
-    store.data.feeds[appId] = { items: (items || []).slice(0, 40), at: Date.now() };
+    // 列表型应用（朋友圈、贴吧、社交 App）存成 { items: [...] }；
+    // Discord / Telegram / Gmail 这类存的是整个对象（{servers}/{chats}/{emails}），
+    // 直接 .slice 会抛 "(items || []).slice is not a function"，所以分开处理。
+    if (Array.isArray(items)) {
+        store.data.feeds[appId] = { items: items.slice(0, 40), at: Date.now() };
+    } else if (items && typeof items === 'object') {
+        store.data.feeds[appId] = { ...items, at: Date.now() };
+    } else {
+        store.data.feeds[appId] = { items: [], at: Date.now() };
+    }
     saveNow('data');
 }
 

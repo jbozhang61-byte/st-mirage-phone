@@ -20,7 +20,7 @@ export function openProfile(appId, items = []) {
     const world = currentCharacter()?.name || getData().meta?.city || '旧城';
     const cast = getCast();
     const seed = name.split('').reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-    const posts = (items || []).slice(0, 6);
+    const posts = (Array.isArray(items) ? items : []).slice(0, 6);
 
     const stats = {
         x: [['关注', 30 + seed % 80], ['关注者', 120 + seed % 900]],

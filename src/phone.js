@@ -37,7 +37,7 @@ import { mountTieba } from './apps/tieba.js';
 import { mountHeart } from './apps/heart.js';
 import { mountWorld } from './apps/world.js';
 import { mountAI } from './apps/ai.js';
-import { openPersonProfile } from './apps/person.js';
+import { openPersonProfile, openPersonCard } from './apps/person.js';
 import { mountDeepSeek, mountChatGPT, mountClaude, mountGemini } from './apps/ai-brands.js';
 import { mountShop } from './apps/shopping.js';
 import { mountWebApp } from './apps/webapps.js';
@@ -223,11 +223,17 @@ export function createPhone(onOpenChange) {
     globalThis.__mpOpenProfile = name => {
         if (name === userName()) { openApp('me'); return; }
         if (!name || name === 'AI') return;
-        openPersonProfile(name, {
+        openPersonCard(name, {
             onChat: () => {
                 const thread = ensureThread([name]);
                 if (thread) openApp('chat', { threadId: thread.id });
             },
+            onPage: () => openPersonProfile(name, {
+                onChat: () => {
+                    const thread = ensureThread([name]);
+                    if (thread) openApp('chat', { threadId: thread.id });
+                },
+            }),
         });
     };
 

@@ -1,5 +1,5 @@
 /** 任意人物的主页：资料、关系、喜欢、最近动态。 */
-import { h, icon, avatar, toast } from '../render.js';
+import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getData, getFeed, findPerson, ensureThread } from '../store.js';
 import { userName, currentCharacter } from '../st.js';
 import { artFor } from '../art.js';
@@ -95,4 +95,51 @@ export function openPersonProfile(name, { onChat } = {}) {
     render();
     screen.appendChild(page);
     return { close };
+}
+
+/**
+ * 点人物头像时的「属性」卡：一个小弹层，不抢整屏。
+ * 需要看完整主页时，卡里还有「看主页」。
+ */
+export function openPersonCard(name, { onChat, onPage } = {}) {
+    const key = String(name || '').trim();
+    if (!key) return null;
+    const person = findPerson(key);
+    const data = getData();
+    const hearts = getFeed('heart')?.items;
+    const heart = (Array.isArray(hearts) ? hearts : []).find(item => item?.name === key);
+    const moments = (Array.isArray(data.moments) ? data.moments : []).filter(item => item?.author === key).slice(0, 3);
+    const chipRow = list => h('div', { class: 'mp-person__chips' },
+        ...list.filter(Boolean).map(text => h('span', { class: 'mp-person__chip', text: String(text) })));
+    const section = (label, node) => h('div', { class: 'mp-person__section' },
+        h('div', { class: 'mp-person__label', text: label }), node);
+    const openChat = () => {
+        if (onChat) { onChat(); return; }
+        const thread = ensureThread([key], { note: person?.relation || '' });
+        if (thread) globalThis.MiragePhone?.openThread?.(thread.id);
+    };
+
+    const content = h('div', { class: 'mp-person-card' },
+        h('div', { class: 'mp-me__top' },
+            avatar({ name: key, size: 56, link: false }),
+            h('div', {},
+                h('div', { class: 'mp-me__name', text: person?.name || key }),
+                h('div', { class: 'mp-me__phone', text: [person?.role, person?.relation].filter(Boolean).join(' · ') || '这个世界里的人' }),
+            ),
+        ),
+        h('div', { class: 'mp-me__bio', text: person?.desc || '还没有写下关于这个人的事。' }),
+        person?.style ? section('说话方式', chipRow([person.style])) : null,
+        heart ? section('关系', chipRow([(heart.stage || '认识') + (heart.affection ? ' · ' + heart.affection + '%' : '')])) : null,
+        heart?.likes?.length ? section('喜欢怎样靠近', chipRow(heart.likes)) : null,
+        heart?.sensitive?.length ? section('敏感的地方', chipRow(heart.sensitive)) : null,
+        heart?.custom?.length ? section('自定义', chipRow(heart.custom)) : null,
+        moments.length ? section('最近动态', h('div', {},
+            ...moments.map(moment => h('div', { class: 'mp-person__moment', text: String(moment.text || '').slice(0, 160) })))) : null,
+        h('div', { class: 'mp-person-card__actions' },
+            h('button', { type: 'button', class: 'mp-btn primary small', text: '发消息', onclick: () => { dialog.close(); openChat(); } }),
+            h('button', { type: 'button', class: 'mp-btn ghost small', text: '看主页', onclick: () => { dialog.close(); if (onPage) onPage(); else openPersonProfile(key, { onChat }); } }),
+        ),
+    );
+    const dialog = sheet({ title: '属性', content });
+    return dialog;
 }

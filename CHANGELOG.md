@@ -1,5 +1,13 @@
 # 更新日志
 
+## 1.5.1 — 2026-10-30
+
+- **修复** Discord / Telegram / Gmail 一保存就报 `(items || []).slice is not a function`：`setFeed` 只认得数组，把 `{servers}` / `{chats}` / `{emails}` 这类整个对象也拿去 `.slice` 了。现在数组存 `{items}`、对象原样存
+- **修复** `extra.js` 用了 `saveNow` 却没 import，Discord / Telegram 每次保存都会抛 ReferenceError，消息和新服务器都存不下来
+- **修复** 新建服务器的 `data.servers` 缺失时直接崩；渲染也加了数组保护
+- **改动** 点头像从「整页主页」改成「属性」小弹层：资料 / 说话方式 / 关系 / 喜欢 / 最近动态，底部「发消息」「看主页」，要看完整主页仍然点得到
+- 各处个人主页的 `items` 参数加数组保护
+
 ## 1.5.0 — 2026-10-27
 
 - 桌面图标拖动排序、拖到图标上建分组、长按菜单、文件夹管理

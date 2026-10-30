@@ -235,7 +235,7 @@ export function avatar({ name = '', src = '', size = 44, cls = '', ring = false,
         el.classList.add('is-profile-link');
         el.setAttribute('role', 'button');
         el.tabIndex = 0;
-        el.title = '查看 ' + name + ' 的主页';
+        el.title = '查看 ' + name + ' 的属性';
         el.addEventListener('click', event => { event.stopPropagation(); globalThis.__mpOpenProfile(name); });
     }
     return el;
