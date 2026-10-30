@@ -1,7 +1,7 @@
 /**
  * 攻略力：把一个人拆成 颜值 / 谈吐 / 金钱 / 家境 四项，加权成 0-100。
  * 别人是算出来的（同一份资料永远算出同一组数）；
- * 自己的可以存一份覆盖值——「心」里的那个「作弊」按钮就是干这个的。
+ * 自己的可以存一份覆盖值，而且不封顶（9999 都行）——「心」里的那个「作弊」按钮就是干这个的。
  */
 
 export const POWER_DIMS = [
@@ -12,6 +12,9 @@ export const POWER_DIMS = [
 ];
 
 const GRADES = [
+    [1000, '离谱'],
+    [300, '外挂'],
+    [100, '破格'],
     [88, '顶配'],
     [74, '上等'],
     [60, '中上'],
@@ -55,7 +58,8 @@ export function statsOf(person = {}) {
     const dims = {};
     for (const dim of POWER_DIMS) {
         const raw = Number(override?.[dim.key]);
-        dims[dim.key] = Math.round(clamp(Number.isFinite(raw) ? raw : seed[dim.key], 1, 100));
+        // 自己作弊可以随便填，9999 也行，所以这里不封 100
+        dims[dim.key] = Math.round(clamp(Number.isFinite(raw) ? raw : seed[dim.key], 1, 9999));
     }
     return dims;
 }

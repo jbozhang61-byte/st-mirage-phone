@@ -3,7 +3,7 @@ import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
 import { generateText, importantStoryContext, memoryContext, currentCharacter, personaDescription, userName } from '../st.js';
 import { extractJson } from '../prompts.js';
-import { difficultyOf, sortByDifficulty } from '../difficulty.js';
+import { difficultyOf, sortByDifficulty, canTake } from '../difficulty.js';
 import { powerOf, statsOf, POWER_DIMS } from '../power.js';
 
 const STAGES = ['陌生', '认识', '互有好感', '暧昧', '恋人', '伴侣'];
@@ -147,6 +147,7 @@ export function mountHeart(host, { nav }) {
         ));
 
         body.appendChild(powerBlock(powerOf(person), { title: '攻略力' }));
+        body.appendChild(verdictLine(person));
 
         body.appendChild(section('喜欢怎样靠近', (person.likes || []).map(item => chip(item, 'heart'))));
         body.appendChild(section('敏感的地方', (person.sensitive || []).map(item => chip(item, 'sparkle'))));
@@ -184,6 +185,22 @@ export function mountHeart(host, { nav }) {
                 h('div', { class: 'mp-power__bar' }, h('i', { style: { width: row.value + '%' } })),
                 h('span', { class: 'mp-power__val', text: String(row.value) }),
             ))),
+        );
+    }
+
+    /** 我自己的攻略力总分（含作弊值）。 */
+    function myPowerScore() {
+        const me = selfProfile();
+        return powerOf({ name: userName() || '我', desc: me.personality || '', power: me.power }).score;
+    }
+
+    /** 我的攻略力够不够拿下 TA。 */
+    function verdictLine(person) {
+        const verdict = canTake(myPowerScore(), person);
+        return h('div', { class: 'mp-power__verdict' + (verdict.ok ? ' is-ok' : ' is-short') },
+            h('span', { class: 'mp-power__mine', text: '我的攻略力 ' + verdict.mine }),
+            h('b', { text: verdict.ok ? '拿得下' : '还差 ' + verdict.gap }),
+            h('span', { class: 'mp-power__need', text: '需要 ' + verdict.need }),
         );
     }
 
@@ -274,25 +291,26 @@ export function mountHeart(host, { nav }) {
         const seedPerson = { name: userName() || '我', desc: me.personality || '', power: me.power };
         const current = statsOf(seedPerson);
         const inputs = {};
+        // 不封顶：想填 9999 就 9999
         const rows = POWER_DIMS.map(dim => {
-            const value = h('span', { class: 'mp-power__val', text: String(current[dim.key]) });
-            const input = h('input', { class: 'mp-range', type: 'range', min: '1', max: '100', value: String(current[dim.key]) });
-            input.addEventListener('input', () => { value.textContent = input.value; });
+            const input = h('input', {
+                class: 'mp-input mp-power__num', type: 'number', inputmode: 'numeric',
+                min: '1', max: '9999', step: '10', value: String(current[dim.key]),
+            });
             inputs[dim.key] = input;
-            return h('div', { class: 'mp-power__edit' }, h('label', { text: dim.label }), input, value);
+            return h('div', { class: 'mp-power__edit' }, h('label', { text: dim.label }), input);
         });
-        const fill = amount => {
-            for (const dim of POWER_DIMS) {
-                inputs[dim.key].value = String(amount);
-                inputs[dim.key].dispatchEvent(new Event('input', { bubbles: true }));
-            }
-        };
+        const fill = amount => { for (const dim of POWER_DIMS) inputs[dim.key].value = String(amount); };
         const dialog = sheet({
             title: '给自己的攻略力开挂',
             content: h('div', { class: 'mp-field-list' },
                 h('div', { class: 'mp-power__edits' }, ...rows),
+                h('div', { class: 'mp-power__quick' },
+                    [100, 999, 9999].map(amount => h('button', {
+                        class: 'mp-chip', type: 'button', text: String(amount), onclick: () => fill(amount),
+                    }))),
                 h('div', { class: 'mp-power__acts' },
-                    h('button', { class: 'mp-btn ghost small', type: 'button', text: '一键拉满', onclick: () => fill(100) }),
+                    h('button', { class: 'mp-btn ghost small', type: 'button', text: '一键拉满', onclick: () => fill(9999) }),
                     h('button', { class: 'mp-btn ghost small', type: 'button', text: '还原', onclick: () => {
                         const data = getData();
                         if (data.heartSelf) delete data.heartSelf.power;
@@ -303,14 +321,17 @@ export function mountHeart(host, { nav }) {
                     h('button', { class: 'mp-btn primary small', type: 'button', text: '保存', onclick: () => {
                         const self = selfProfile();
                         self.power = {};
-                        for (const dim of POWER_DIMS) self.power[dim.key] = Number(inputs[dim.key].value) || 1;
+                        for (const dim of POWER_DIMS) {
+                            const raw = Math.round(Number(inputs[dim.key].value) || 1);
+                            self.power[dim.key] = Math.max(1, Math.min(9999, raw));
+                        }
                         saveNow('data');
                         dialog.close();
                         toast('攻略力已更新');
                         render();
                     } }),
                 ),
-                h('div', { class: 'mp-st-hint', text: '只改「心」里的攻略力，不会写进正文；「还原」回到按你的设定算出来的值。' }),
+                h('div', { class: 'mp-st-hint', text: '随便填，9999 也行。攻略力高过对方的攻略难度就能拿下，连「禁忌」也一样。只影响「心」里的显示，不写进正文。' }),
             ),
         });
         return dialog;

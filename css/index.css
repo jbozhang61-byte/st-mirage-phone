@@ -1925,6 +1925,17 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-power__edit { display: flex; align-items: center; gap: 10px; }
 .mp-power__edit label { width: 34px; font-size: 11px; color: var(--mp-text-2); flex: 0 0 auto; }
 .mp-power__edit .mp-range { flex: 1 1 auto; accent-color: #ff6b9a; }
+.mp-power__verdict { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 11px; border-radius: 12px; font-size: 10.5px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04); color: #b9a5b0; }
+.mp-power__verdict b { font-size: 11px; margin-left: auto; }
+.mp-power__verdict.is-ok { border-color: rgba(120,220,170,.4); background: rgba(120,220,170,.09); }
+.mp-power__verdict.is-ok b { color: #8fe0b4; }
+.mp-power__verdict.is-short { border-color: rgba(255,120,120,.35); background: rgba(255,120,120,.08); }
+.mp-power__verdict.is-short b { color: #ff9b9b; }
+.mp-power__mine { color: #e7d9e2; }
+.mp-power__need { color: #8f7a86; }
+.mp-power__quick { display: flex; gap: 8px; margin-top: 12px; }
+.mp-power__quick .mp-chip { flex: 1 1 0; justify-content: center; font-size: 11px; padding: 7px 0; }
+.mp-power__num { width: 100%; text-align: right; font-variant-numeric: tabular-nums; }
 .mp-power__acts { display: flex; gap: 8px; margin-top: 12px; }
 .mp-power__acts .mp-btn { flex: 1 1 0; }
 .mp-heart__label { font-size: 10px; letter-spacing: 1px; color: #8f7a86; margin-bottom: 6px; }

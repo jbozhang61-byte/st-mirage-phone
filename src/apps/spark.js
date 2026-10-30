@@ -5,8 +5,9 @@ import { h, icon, avatar, sheet, confirmSheet, toast } from '../render.js';
 import { getData, saveNow, upsertPerson, ensureThread, findPerson, appendMessages } from '../store.js';
 import { findMatches } from '../ai.js';
 import { MAX_DATES, STAGES, VIBES } from '../spark.js';
-import { setOneShot, sendAsUserAndGenerate, subscribe } from '../st.js';
-import { difficultyOf, sortByDifficulty } from '../difficulty.js';
+import { setOneShot, sendAsUserAndGenerate, subscribe, userName } from '../st.js';
+import { difficultyOf, sortByDifficulty, canTake } from '../difficulty.js';
+import { powerOf } from '../power.js';
 
 const TONE_STYLE = {
     warm: 'linear-gradient(150deg, #f6b38a, #b5654f)',
@@ -116,6 +117,16 @@ export function mountSpark(host, { nav }) {
                         h('span', { class: 'mp-sp__diff is-' + diff.key, text: '攻略难度 · ' + diff.label + (diff.special ? ' · ' + diff.special : '') }),
                         h('div', { class: 'mp-sp__diffbar' }, h('i', { style: { width: diff.score + '%' } })),
                         h('span', { class: 'mp-sp__diffnum', text: diff.score }),
+                    );
+                })(),
+                (() => {
+                    const me = getData().heartSelf || {};
+                    const mine = powerOf({ name: userName() || '我', desc: me.personality || '', power: me.power }).score;
+                    const verdict = canTake(mine, person);
+                    return h('div', { class: 'mp-power__verdict' + (verdict.ok ? ' is-ok' : ' is-short') },
+                        h('span', { class: 'mp-power__mine', text: '我的攻略力 ' + verdict.mine }),
+                        h('b', { text: verdict.ok ? '拿得下' : '还差 ' + verdict.gap }),
+                        h('span', { class: 'mp-power__need', text: '需要 ' + verdict.need }),
                     );
                 })(),
                 h('div', { class: 'mp-sp__tags' }, (person.tags || []).map(tag => h('span', { class: 'mp-sp__tag', text: tag }))),
