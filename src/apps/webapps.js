@@ -2,7 +2,7 @@
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getData, saveNow, getCast } from '../store.js';
 import { openPostPage } from './postpage.js';
-import { generateSearchResults, generateWikiArticle, generateBooks } from '../storyseed.js';
+import { generateSearchResults, generateWikiArticle, generateBooks, generateBookExcerpt } from '../storyseed.js';
 
 const CONFIG = {
     google: { name: 'Google', sub: 'SEARCH', cls: 'is-google', placeholder: '搜索这个世界的任何事' },
@@ -173,17 +173,19 @@ function mount(host, nav, kind) {
                 h('div', { class: 'mp-zlib__desc', text: book.desc || '没有更多简介。' }),
                 h('div', { class: 'mp-st-hint', text: '已保存在这部手机的书库。' }),
             ),
-            actions: h('button', {
-                class: 'mp-btn ghost small', type: 'button', text: '移出书库',
-                onclick: () => {
-                    const data = getData();
-                    if (data.books) delete data.books[book.title];
-                    saveNow('data');
-                    dialog.close();
-                    paint();
-                    toast('已移出书库');
-                },
-            }),
+            actions: h('div', { class: 'mp-reader__acts' },
+                h('button', { class: 'mp-btn ghost small', type: 'button', text: '试读', onclick: () => { dialog.close(); openReader(book); } }),
+                h('button', {
+                    class: 'mp-btn ghost small', type: 'button', text: '移出书库',
+                    onclick: () => {
+                        const data = getData();
+                        if (data.books) delete data.books[book.title];
+                        saveNow('data');
+                        dialog.close();
+                        paint();
+                        toast('已移出书库');
+                    },
+                })),
         });
         return dialog;
     }
@@ -197,17 +199,60 @@ function mount(host, nav, kind) {
                 h('div', { class: 'mp-zlib__desc', text: book.desc || '没有更多简介。' }),
                 h('div', { class: 'mp-st-hint', text: '下载会保存到手机书库。' }),
             ),
-            actions: h('button', {
-                class: 'mp-btn primary small', type: 'button', text: '下载',
-                onclick: () => {
-                    const data = getData();
-                    data.books = data.books && typeof data.books === 'object' ? data.books : {};
-                    data.books[book.title] = { ...book, ts: Date.now() };
-                    saveNow('data');
-                    toast('已保存到书库');
-                },
-            }),
+            actions: h('div', { class: 'mp-reader__acts' },
+                h('button', { class: 'mp-btn ghost small', type: 'button', text: '试读', onclick: () => { dialog.close(); openReader(book); } }),
+                h('button', {
+                    class: 'mp-btn primary small', type: 'button', text: '下载',
+                    onclick: () => { saveBook(book); dialog.close(); },
+                })),
         });
+        return dialog;
+    }
+
+    function saveBook(book) {
+        const data = getData();
+        data.books = data.books && typeof data.books === 'object' ? data.books : {};
+        data.books[book.title] = { ...book, ts: Date.now() };
+        saveNow('data');
+        toast('已保存到书库');
+    }
+
+    /** 阅读页：整页覆盖，正文滚动。 */
+    function openReader(book) {
+        const screen = document.querySelector('.mp-screen');
+        if (!screen) return null;
+        const chip = screen.querySelector('.mp-backchip');
+        if (chip) chip.style.display = 'none';
+        const close = () => {
+            page.classList.add('is-closing');
+            setTimeout(() => { page.remove(); if (chip) chip.style.display = ''; }, 200);
+        };
+        const scroll = h('div', { class: 'mp-reader__scroll' });
+        const page = h('div', { class: 'mp-reader' },
+            h('div', { class: 'mp-reader__bar' },
+                h('button', { type: 'button', class: 'mp-reader__back', onclick: close }, icon('back')),
+                h('div', { class: 'mp-reader__title', text: book.title || '未命名' }),
+                h('button', { type: 'button', class: 'mp-reader__act', 'aria-label': '存进书库', onclick: () => saveBook(book) }, icon('download')),
+            ),
+            scroll,
+        );
+        screen.appendChild(page);
+        scroll.appendChild(h('div', { class: 'mp-webapp__state' }, h('span', { class: 'mp-webapp__dots' }, h('i'), h('i'), h('i')), '正在翻开…'));
+        generateBookExcerpt(book).then(excerpt => {
+            scroll.innerHTML = '';
+            scroll.appendChild(h('div', { class: 'mp-reader__meta', text: [book.author, book.year ? book.year + ' 年' : '', book.format].filter(Boolean).join(' · ') || '佚名' }));
+            scroll.appendChild(h('h1', { class: 'mp-reader__h1', text: book.title || '未命名' }));
+            scroll.appendChild(h('h2', { class: 'mp-reader__h2', text: excerpt.chapter }));
+            for (const para of String(excerpt.text || '').split(/\n+/)) {
+                if (para.trim()) scroll.appendChild(h('p', { class: 'mp-reader__p', text: para.trim() }));
+            }
+            scroll.appendChild(h('div', { class: 'mp-reader__foot', text: '—— 试读到此为止 ——' }));
+            scroll.scrollTop = 0;
+        }).catch(() => {
+            scroll.innerHTML = '';
+            scroll.appendChild(h('div', { class: 'mp-webapp__state', text: '这本书现在翻不开，等会儿再试' }));
+        });
+        return page;
     }
 
     async function search() {

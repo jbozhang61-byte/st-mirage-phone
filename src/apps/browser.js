@@ -78,7 +78,11 @@ export function mountBrowser(host, { nav }) {
             onkeydown: event => { if (event.key === 'Enter') go(address); },
         });
         const refresh = h('button', { type: 'button', class: 'mp-br__icon', 'aria-label': '刷新', onclick: () => { if (address) go(address); } }, icon('refresh'));
-        bar.append(home, h('div', { class: 'mp-br__addr' }, h('span', { class: 'mp-br__lock' }, icon('lock')), input), star, refresh);
+        const submitAddr = h('button', {
+            type: 'button', class: 'mp-br__icon', 'aria-label': '前往',
+            onclick: () => { const value = address.trim(); if (value) go(value); },
+        }, icon('chevron'));
+        bar.append(home, h('div', { class: 'mp-br__addr' }, h('span', { class: 'mp-br__lock' }, icon('lock')), input), submitAddr, star, refresh);
     }
 
     function render() {
@@ -93,15 +97,20 @@ export function mountBrowser(host, { nav }) {
         home.appendChild(h('div', { class: 'mp-br__logo', text: '幻镜' }));
         home.appendChild(h('div', { class: 'mp-br__logo-sub', text: '这个世界的网页' }));
 
+        const run = value => {
+            const text = String(value || '').trim();
+            if (!text) { toast('先写点什么'); return; }
+            go(text);
+        };
         const input = h('input', {
-            type: 'text', placeholder: '搜点什么…',
-            onkeydown: event => {
-                if (event.key !== 'Enter') return;
-                const value = event.target.value.trim();
-                if (value) go(value);
-            },
+            type: 'text', placeholder: '搜点什么…（输完点右边）',
+            onkeydown: event => { if (event.key === 'Enter') run(event.target.value); },
         });
-        home.appendChild(h('div', { class: 'mp-br__search' }, icon('search'), input));
+        const goBtn = h('button', {
+            type: 'button', class: 'mp-br__go', 'aria-label': '搜索',
+            onclick: () => run(input.value),
+        }, icon('chevron'));
+        home.appendChild(h('div', { class: 'mp-br__search' }, icon('search'), input, goBtn));
 
         const shortcuts = h('div', { class: 'mp-br__shortcuts' });
         for (const item of SHORTCUTS) {

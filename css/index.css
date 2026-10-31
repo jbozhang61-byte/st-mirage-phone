@@ -2357,6 +2357,25 @@ html.mp-phone-open #toast-container { display: none !important; }
 .mp-zlib__tab { border: 1px solid var(--mp-line); background: transparent; color: var(--mp-text-3); font: inherit; font-size: 11px; padding: 5px 14px; border-radius: 10px; cursor: pointer; }
 .mp-zlib__tab.is-on { background: var(--mp-field); color: var(--mp-text); border-color: var(--mp-line-strong); }
 .mp-br__star.is-on { color: #e0a73a; }
+.mp-br__go { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 12px; border: 0; background: var(--mp-accent, #ff6b9a); color: #1a1208; display: grid; place-items: center; cursor: pointer; }
+.mp-br__go .mp-ic { width: 17px; height: 17px; }
+/* 书：试读页 */
+.mp-reader { position: absolute; inset: 44px 0 0 0; z-index: 60; display: flex; flex-direction: column; background: #1a1410; color: #e8ddcd; }
+.mp-reader.is-closing { animation: mp-app-out .2s ease forwards; }
+.mp-reader__bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; flex: 0 0 auto; min-height: 52px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.mp-reader__back { border: 0; background: rgba(255,255,255,.08); color: #fff; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; cursor: pointer; }
+.mp-reader__back .mp-ic { width: 16px; height: 16px; }
+.mp-reader__title { flex: 1 1 auto; min-width: 0; font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-reader__act { border: 0; background: rgba(255,255,255,.08); color: #e8ddcd; width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; cursor: pointer; }
+.mp-reader__act .mp-ic { width: 15px; height: 15px; }
+.mp-reader__scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 18px 20px 40px; }
+.mp-reader__meta { font-size: 10px; color: #9a8b78; margin-bottom: 6px; }
+.mp-reader__h1 { font-size: 20px; line-height: 1.4; margin: 0 0 14px; font-weight: 750; }
+.mp-reader__h2 { font-size: 12px; letter-spacing: 1px; color: #c8a97a; margin: 18px 0 10px; }
+.mp-reader__p { font-size: 14px; line-height: 2; color: #ddd0bd; margin: 0 0 12px; text-indent: 2em; }
+.mp-reader__foot { margin-top: 22px; text-align: center; font-size: 10px; color: #8a7a66; }
+.mp-reader__acts { display: flex; gap: 8px; }
+.mp-reader__acts .mp-btn { flex: 1 1 0; }
 .mp-br__favs { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 2px 10px; }
 .mp-br__fav { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; border: 1px solid rgba(0,0,0,.08); background: #f2f3f7; color: #3a4150; font: inherit; font-size: 10.5px; padding: 6px 10px; border-radius: 10px; cursor: pointer; }
 .mp-br__fav span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; }

@@ -162,6 +162,32 @@ export async function generateBooks(query) {
         return [];
     }
 }
+/** 试读：让模型写这本书开头几页，失败就用本地兜底。 */
+export async function generateBookExcerpt(book = {}) {
+    const prompt = [
+        context(),
+        '书名：' + (book.title || ''),
+        '作者：' + (book.author || '佚名'),
+        book.owner ? '这本书和谁有关：' + book.owner : '',
+        book.desc ? '简介：' + book.desc : '',
+        '像真的书一样，写这本书开头的正文：一个小节标题 + 三段正文，语气和这本书的定位一致。',
+        '只输出 JSON：{"chapter":"小节标题","text":"正文，段落之间用\\n分隔"}',
+    ].filter(Boolean).join('\n');
+    try {
+        const raw = await generateText({ system: '你在写故事世界里一本书的开头几页。用中文，只输出 JSON。', prompt, length: 900, json: true });
+        const json = extractJson(raw) || {};
+        if (json.text) return { chapter: String(json.chapter || '第一章').slice(0, 40), text: String(json.text).slice(0, 2000) };
+    } catch { /* 用兜底 */ }
+    return {
+        chapter: '第一章',
+        text: [
+            (book.desc || '这本书在这个世界里流传了很久。') + '\n',
+            '翻开第一页，纸的味道先于文字出现。' + (book.owner ? '扉页上有一行小字，署名是' + book.owner + '。' : ''),
+            '写到第三段的时候，作者忽然停下——像是有什么话没说完。',
+        ].join('\n'),
+    };
+}
+
 async function askJson(prompt, system) {
     try {
         const raw = await generateText({ system, prompt, length: 1000, json: true });
