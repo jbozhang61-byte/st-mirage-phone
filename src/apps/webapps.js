@@ -32,10 +32,16 @@ function mount(host, nav, kind) {
     let results = [];
     let article = null;
     let books = [];
+    let tab = 'search';   // zlib：搜索 / 书库
 
     const body = h('div', { class: 'mp-webapp__body' });
     const input = h('input', { class: 'mp-webapp__input', type: 'search', placeholder: config.placeholder });
     const submit = h('button', { type: 'button', class: 'mp-webapp__go', 'aria-label': '搜索' }, icon('search'));
+    const tabsBar = kind === 'zlib'
+        ? h('div', { class: 'mp-zlib__tabs' },
+            h('button', { type: 'button', class: 'mp-zlib__tab is-on', text: '搜索', onclick: () => switchTab('search') }),
+            h('button', { type: 'button', class: 'mp-zlib__tab', text: '书库', onclick: () => switchTab('books') }))
+        : null;
     const el = h('div', { class: 'mp-webapp ' + config.cls },
         h('div', { class: 'mp-nav' },
             h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
@@ -43,8 +49,15 @@ function mount(host, nav, kind) {
             h('div', { class: 'mp-nav__spacer' }),
         ),
         h('div', { class: 'mp-webapp__search' }, input, submit),
+        tabsBar,
         body,
     );
+
+    function switchTab(next) {
+        tab = next;
+        [...(tabsBar?.children || [])].forEach(button => button.classList.toggle('is-on', (button.textContent === '书库') === (tab === 'books')));
+        paint();
+    }
     host.appendChild(el);
 
     function paint() {
@@ -74,6 +87,7 @@ function mount(host, nav, kind) {
             return;
         }
         if (kind === 'zlib') {
+            if (tab === 'books') { drawBooks(); return; }
             if (!books.length) {
                 body.appendChild(h('div', { class: 'mp-webapp__hero' },
                     h('div', { class: 'mp-webapp__logo' }, icon('book')),
@@ -125,6 +139,53 @@ function mount(host, nav, kind) {
                 h('div', { class: 'mp-webapp__result-snippet', text: result.snippet }),
             ));
         }
+    }
+
+    /** 书库：这部手机里已经"下载"过的书。 */
+    function drawBooks() {
+        const saved = Object.values(getData().books || {}).filter(book => book && book.title);
+        if (!saved.length) {
+            body.appendChild(h('div', { class: 'mp-webapp__hero' },
+                h('div', { class: 'mp-webapp__logo' }, icon('book')),
+                h('div', { class: 'mp-webapp__title', text: '书库是空的' }),
+                h('div', { class: 'mp-webapp__sub', text: '搜到想看的书，点下载就会存到这里。' }),
+            ));
+            return;
+        }
+        body.appendChild(h('div', { class: 'mp-webapp__count', text: saved.length + ' 本' }));
+        for (const book of saved) {
+            body.appendChild(h('button', { type: 'button', class: 'mp-zlib__book', onclick: () => openSavedBook(book) },
+                h('div', { class: 'mp-zlib__cover', text: (book.title || '书').slice(0, 1) }),
+                h('div', { class: 'mp-zlib__main' },
+                    h('div', { class: 'mp-zlib__title', text: book.title }),
+                    h('div', { class: 'mp-zlib__meta', text: [book.author, book.year ? book.year + ' 年' : '', book.format].filter(Boolean).join(' · ') }),
+                    h('div', { class: 'mp-zlib__desc', text: book.desc || '没有简介。' }),
+                ),
+            ));
+        }
+    }
+
+    function openSavedBook(book) {
+        const dialog = sheet({
+            title: book.title,
+            content: h('div', { class: 'mp-field-list' },
+                h('div', { class: 'mp-zlib__detailmeta', text: [book.author, book.year ? book.year + ' 年' : '', book.format].filter(Boolean).join(' · ') }),
+                h('div', { class: 'mp-zlib__desc', text: book.desc || '没有更多简介。' }),
+                h('div', { class: 'mp-st-hint', text: '已保存在这部手机的书库。' }),
+            ),
+            actions: h('button', {
+                class: 'mp-btn ghost small', type: 'button', text: '移出书库',
+                onclick: () => {
+                    const data = getData();
+                    if (data.books) delete data.books[book.title];
+                    saveNow('data');
+                    dialog.close();
+                    paint();
+                    toast('已移出书库');
+                },
+            }),
+        });
+        return dialog;
     }
 
     function openBook(book) {

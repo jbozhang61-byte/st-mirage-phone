@@ -17,6 +17,7 @@ export function mountBrowser(host, { nav }) {
     let page = getData().browser?.last || null;
     let loading = false;
     let address = page?.url || '';
+    let stack = [];   // 后退栈
 
     const el = h('div', { class: 'mp-br' });
     const body = h('div', { class: 'mp-br__body' });
@@ -24,22 +25,60 @@ export function mountBrowser(host, { nav }) {
     el.append(bar, body);
     host.appendChild(el);
 
+    function bookmarks() {
+        const data = getData();
+        data.browser = data.browser || { last: null, history: [] };
+        if (!Array.isArray(data.browser.bookmarks)) data.browser.bookmarks = [];
+        return data.browser.bookmarks;
+    }
+
+    function isBookmarked(url) {
+        return !!url && bookmarks().some(item => item.url === url);
+    }
+
+    function toggleBookmark() {
+        if (!address) { toast('先打开一个网页'); return; }
+        const data = getData();
+        data.browser = data.browser || { last: null, history: [] };
+        const list = bookmarks();
+        const index = list.findIndex(item => item.url === address);
+        if (index >= 0) {
+            list.splice(index, 1);
+            toast('已取消收藏');
+        } else {
+            list.unshift({ url: address, title: page?.title || address, ts: Date.now() });
+            toast('已收藏，在浏览器首页能看到');
+        }
+        saveNow('data');
+    }
+
     function renderBar() {
         bar.innerHTML = '';
         const home = h('button', {
             type: 'button', class: 'mp-br__icon', 'aria-label': '返回',
             onclick: () => {
+                if (stack.length) {
+                    const prev = stack.pop();
+                    page = prev || null;
+                    address = prev?.url || '';
+                    render();
+                    return;
+                }
                 if (page) { page = null; address = ''; render(); }
                 else nav.back();
             },
         }, icon('back'));
+        const star = h('button', {
+            type: 'button', class: 'mp-br__icon mp-br__star' + (isBookmarked(address) ? ' is-on' : ''), 'aria-label': '收藏',
+            onclick: () => { toggleBookmark(); renderBar(); },
+        }, icon('star'));
         const input = h('input', {
             type: 'text', value: address, placeholder: '输入网址或搜索',
             oninput: event => { address = event.target.value; },
             onkeydown: event => { if (event.key === 'Enter') go(address); },
         });
         const refresh = h('button', { type: 'button', class: 'mp-br__icon', 'aria-label': '刷新', onclick: () => { if (address) go(address); } }, icon('refresh'));
-        bar.append(home, h('div', { class: 'mp-br__addr' }, h('span', { class: 'mp-br__lock' }, icon('lock')), input), refresh);
+        bar.append(home, h('div', { class: 'mp-br__addr' }, h('span', { class: 'mp-br__lock' }, icon('lock')), input), star, refresh);
     }
 
     function render() {
@@ -72,6 +111,20 @@ export function mountBrowser(host, { nav }) {
             }, icon(item.icon), h('span', { text: item.name })));
         }
         home.appendChild(shortcuts);
+
+        const saved = bookmarks();
+        if (saved.length) {
+            home.appendChild(h('div', { class: 'mp-br__recent-head' },
+                h('div', { class: 'mp-br__recent-label', text: '收藏' })));
+            const favWrap = h('div', { class: 'mp-br__favs' });
+            for (const item of saved.slice(0, 6)) {
+                favWrap.appendChild(h('button', {
+                    type: 'button', class: 'mp-br__fav',
+                    onclick: () => go(item.url),
+                }, icon('star'), h('span', { text: item.title || item.url })));
+            }
+            home.appendChild(favWrap);
+        }
         body.appendChild(home);
 
         const history = getData().browser?.history || [];
@@ -140,6 +193,7 @@ export function mountBrowser(host, { nav }) {
         const value = String(query || '').trim();
         if (!value || loading) return;
         loading = true;
+        if (page) stack = [...stack.slice(-9), page];
         address = value;
         renderBar();
         body.innerHTML = '';

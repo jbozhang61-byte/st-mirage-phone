@@ -490,8 +490,11 @@ function applyLayout() {
         if (screenEl2) screenEl2.style.removeProperty('border-radius');
         shellEl.style.removeProperty('width');
         shellEl.style.removeProperty('height');
-        const fit = Math.min((vp.width - 16) / 384, (vp.height - 16) / 812);
-        const scale = floating ? Math.max(0.5, Math.min(1.12, fit, Number(settings.scale) || 0.86)) : 1;
+        // 窄屏悬浮窗：宽度优先铺满（整机 404px 宽 = 384 机身 + 左右各 10 内边距），
+        // 高度交给 .mp-device 的 max-height 兜底。以前会被 settings.scale(默认 .86) 压窄，
+        // 手机上看起来就是右边留一条黑边、没铺满。
+        const fillScale = (vp.width - 12) / 404;
+        const scale = floating ? Math.max(0.5, Math.min(1.15, fillScale)) : 1;
         shellEl.style.setProperty('--mp-scale', String(scale));
         if (floating) {
             const w = 384 * scale;
