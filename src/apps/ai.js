@@ -1,6 +1,6 @@
 /** 手机里的 AI 助手：按正文、记忆库、私聊和其它 App 回答。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
-import { getData, getFeed, saveNow, getSettings } from '../store.js';
+import { getData, getFeed, saveNow, getSettings, getSelfProfile } from '../store.js';
 import { generateText, importantStoryContext, memoryContext, userName, currentCharacter } from '../st.js';
 import { phoneStateSummary } from '../prompts.js';
 import { recentOtherChats } from '../ai.js';
@@ -68,10 +68,10 @@ export function mountAssistant(host, { nav }, brand = {}) {
             threads: current.threads,
             user: userName(),
             hearts: getFeed('heart')?.items || [],
-            selfProfile: current.heartSelf || null,
+            selfProfile: getSelfProfile(),
             worldProfile: current.worldInfo || null,
             extras: recentOtherChats(),
-            power: powerRoster({ selfProfile: current.heartSelf || null }),
+            power: powerRoster({ selfProfile: getSelfProfile() }),
         });
         return [
             story ? '【正文最近发生的事】\n' + story : '',

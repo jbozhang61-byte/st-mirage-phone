@@ -5,7 +5,7 @@
 import { generateText, storyContext, importantStoryContext, memoryContext, userName, findCharacter, setPhonePrompt, currentCharacter } from './st.js';
 import {
     getSettings, getData, findThread, appendMessages, ensureThread, addMoment, addNote, saveNow,
-    getCast, setCast, findPerson, setFeed, getFeed,
+    getCast, setCast, findPerson, setFeed, getFeed, getSelfProfile,
 } from './store.js';
 import {
     chatSystemPrompt, chatUserPrompt, momentsSystemPrompt, momentsUserPrompt,
@@ -281,14 +281,14 @@ export function recentOtherChats() {
 export function refreshInjection() {
     const settings = getSettings();
     const data = getData();
-    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: data.heartSelf || null, worldProfile: data.worldInfo || null, extras: recentOtherChats(), power: powerRoster({ selfProfile: data.heartSelf || null }) });
+    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: getSelfProfile(), worldProfile: data.worldInfo || null, extras: recentOtherChats(), power: powerRoster({ selfProfile: getSelfProfile() }) });
     setPhonePrompt(text, { depth: settings.inject.depth, enabled: settings.inject.enabled && !!text });
     return text;
 }
 
 export function previewInjection() {
     const data = getData();
-    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), extras: recentOtherChats(), power: powerRoster({ selfProfile: data.heartSelf || null }) });
+    return phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), extras: recentOtherChats(), power: powerRoster({ selfProfile: getSelfProfile() }) });
 }
 
 /**

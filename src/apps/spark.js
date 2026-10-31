@@ -2,7 +2,7 @@
  * 相遇：写一个你想要的人，见几个候选人，然后开始约会。
  */
 import { h, icon, avatar, sheet, confirmSheet, toast } from '../render.js';
-import { getData, saveNow, upsertPerson, ensureThread, findPerson, appendMessages } from '../store.js';
+import { getData, saveNow, upsertPerson, ensureThread, findPerson, appendMessages, getSelfProfile } from '../store.js';
 import { findMatches } from '../ai.js';
 import { MAX_DATES, STAGES, VIBES } from '../spark.js';
 import { setOneShot, sendAsUserAndGenerate, subscribe, userName } from '../st.js';
@@ -120,7 +120,7 @@ export function mountSpark(host, { nav }) {
                     );
                 })(),
                 (() => {
-                    const me = getData().heartSelf || {};
+                    const me = getSelfProfile();
                     const mine = powerOf({ name: userName() || '我', desc: me.personality || '', power: me.power }).score;
                     const verdict = canTake(mine, person);
                     return h('div', { class: 'mp-power__verdict' + (verdict.ok ? ' is-ok' : ' is-short') },

@@ -82,6 +82,27 @@ export function resetData() {
     return replaceData(defaultData());
 }
 
+/**
+ * 自己的「心」资料（颜值/性格/家世，以及作弊出来的攻略力）。
+ * 存在全局设置里——换聊天、换角色卡都不会被清空。
+ * 以前的版本存在 data 里，这里顺手迁移一次。
+ */
+export function getSelfProfile() {
+    const settings = store.settings;
+    if (!settings.heartSelf || typeof settings.heartSelf !== 'object') {
+        const legacy = store.data && store.data.heartSelf;
+        settings.heartSelf = legacy && typeof legacy === 'object' ? { ...legacy } : {};
+        saveNow('settings');
+    }
+    return settings.heartSelf;
+}
+
+export function saveSelfProfile(profile) {
+    store.settings.heartSelf = profile && typeof profile === 'object' ? profile : {};
+    saveNow('settings');
+    return store.settings.heartSelf;
+}
+
 export function flushSave() {
     clearTimeout(store.saveTimer);
     saveData(store.data);

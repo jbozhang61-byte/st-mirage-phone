@@ -1,6 +1,6 @@
 /** 心：主要人物的关系、亲密偏好、穿着与边界。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
-import { getCast, getFeed, setFeed, getData, saveNow } from '../store.js';
+import { getCast, getFeed, setFeed, getData, saveNow, getSelfProfile, saveSelfProfile } from '../store.js';
 import { generateText, importantStoryContext, memoryContext, currentCharacter, personaDescription, userName } from '../st.js';
 import { extractJson } from '../prompts.js';
 import { difficultyOf, sortByDifficulty, canTake } from '../difficulty.js';
@@ -216,14 +216,10 @@ export function mountHeart(host, { nav }) {
     }
 
     function selfProfile() {
-        const data = getData();
-        if (!data.heartSelf || typeof data.heartSelf !== 'object') {
-            data.heartSelf = {
-                appearance: '', personality: personaDescription().trim().slice(0, 300),
-                body: '', family: '', likes: [], dislikes: [], custom: [],
-            };
-        }
-        return data.heartSelf;
+        // 全局的：换聊天、换角色卡都不会清空（作弊值也在这里面）
+        const me = getSelfProfile();
+        if (!me.personality) me.personality = personaDescription().trim().slice(0, 300);
+        return me;
     }
 
     function enablePickerDrag(el) {
@@ -312,9 +308,9 @@ export function mountHeart(host, { nav }) {
                 h('div', { class: 'mp-power__acts' },
                     h('button', { class: 'mp-btn ghost small', type: 'button', text: '一键拉满', onclick: () => fill(9999) }),
                     h('button', { class: 'mp-btn ghost small', type: 'button', text: '还原', onclick: () => {
-                        const data = getData();
-                        if (data.heartSelf) delete data.heartSelf.power;
-                        saveNow('data');
+                        const self = selfProfile();
+                        delete self.power;
+                        saveSelfProfile(self);
                         dialog.close();
                         render();
                     } }),
@@ -325,7 +321,7 @@ export function mountHeart(host, { nav }) {
                             const raw = Math.round(Number(inputs[dim.key].value) || 1);
                             self.power[dim.key] = Math.max(1, Math.min(9999, raw));
                         }
-                        saveNow('data');
+                        saveSelfProfile(self);
                         dialog.close();
                         toast('攻略力已更新');
                         render();
@@ -363,16 +359,15 @@ export function mountHeart(host, { nav }) {
             actions: h('button', {
                 class: 'mp-btn primary small', type: 'button', text: '保存',
                 onclick: () => {
-                    const data = getData();
-                    data.heartSelf = {
+                    saveSelfProfile({
+                        ...me,
                         appearance: appearance.value.trim().slice(0, 80),
                         personality: personality.value.trim().slice(0, 300),
                         body: bodyText.value.trim().slice(0, 200),
                         family: family.value.trim().slice(0, 120),
                         likes: split(likes.value), dislikes: split(dislikes.value), custom: split(custom.value),
                         power: me.power,   // 作弊出来的攻略力别被编辑资料冲掉
-                    };
-                    saveNow('data');
+                    });
                     dialog.close();
                     render();
                 },

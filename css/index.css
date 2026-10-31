@@ -111,6 +111,10 @@
 
 .mp-device {
     position: relative;
+    /* 窗口比手机还矮的时候别再硬撑 812：不然整部手机被居中、上下两头都被裁掉，
+       看起来就像标题压住状态栏、输入框被底部切了一半 */
+    max-height: calc(100dvh - 28px);
+    max-width: calc(100vw - 24px);
     width: var(--mp-phone-w);
     height: var(--mp-phone-h);
     padding: 10px;
@@ -1049,7 +1053,7 @@
 .mp-composer { background: var(--mp-screen-bg) !important; position: relative; z-index: 6; }
 .mp-composer__quick, .mp-composer__row { background: var(--mp-screen-bg); }
 .mp-composer .mp-quick-chip, .mp-composer__quick button { font-size: 12px !important; padding: 7px 12px !important; }
-.mp-composer { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+.mp-composer { padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)); }
 
 /* 鎵嬫満绔細鍐嶇粰搴曢儴鐣欎竴鐐圭┖闂?*/
 @media (max-width: 760px) {
