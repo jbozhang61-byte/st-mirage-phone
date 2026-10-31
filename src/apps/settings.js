@@ -341,8 +341,15 @@ export function mountSettings(host, { nav }) {
             current.image = { ...(current.image || {}), comfyWorkflow: value };
             saveNow('settings');
             if (!value.trim()) { info.textContent = '留空 = 用内置文生图工作流'; return; }
-            try { JSON.parse(value); info.textContent = '已保存 · ' + value.length + ' 字符 · JSON 合法'; }
-            catch { info.textContent = '已保存 · ' + value.length + ' 字符 · 还不是合法 JSON'; }
+            try {
+                const parsed = JSON.parse(value);
+                const uiFormat = parsed && Array.isArray(parsed.nodes) && Array.isArray(parsed.links);
+                info.textContent = uiFormat
+                    ? '已保存 · ' + value.length + ' 字符 · 这是 ComfyUI 的「界面格式」，请换成 Export (API) 那份'
+                    : '已保存 · ' + value.length + ' 字符 · JSON 合法';
+            } catch {
+                info.textContent = '已保存 · ' + value.length + ' 字符 · 还不是合法 JSON';
+            }
         };
 
         textarea.addEventListener('input', () => {
