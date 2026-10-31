@@ -854,13 +854,19 @@ function openApp(id, params = {}) {
     if (!open) openPhone('home');
     setChrome('dark');
 
+    // 从一个 App 跳到另一个 App：旧页面留在下面淡出，新页面直接盖上去。
+    // 以前是先 remove 再挂，中间会露出桌面；而且新页面带 scale(.94)+opacity:0
+    // 的入场动画，边缘同样会透出主屏，看起来就是「闪一下主页」。
+    const stacked = !!current;
     if (current) {
         current.view?.destroy?.();
-        current.el?.remove();
+        const oldEl = current.el;
+        oldEl.classList.add('is-closing');
+        setTimeout(() => oldEl.remove(), 240);
     }
     screenEl.classList.remove('is-home');
     screenEl.classList.toggle('is-chatting', id === 'chat' && !!params.threadId);
-    const el = h('div', { class: 'mp-app', 'data-app': id });
+    const el = h('div', { class: 'mp-app' + (stacked ? ' is-stack' : ''), 'data-app': id });
     el.appendChild(h('div', { class: 'mp-app__bg', 'data-wall': 'blur' }));
     viewEl.appendChild(el);
     const navApi = makeNav();

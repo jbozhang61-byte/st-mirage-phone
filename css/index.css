@@ -929,6 +929,8 @@
 }
 
 .mp-app.is-closing { animation: mp-app-out .26s ease forwards; }
+/* App 之间切换：不要缩放入场，否则四周会透出主屏 */
+.mp-app.is-stack { animation: none !important; }
 
 @keyframes mp-app-out {
     to { opacity: 0; transform: scale(.96); }
