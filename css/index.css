@@ -1947,6 +1947,11 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 
 /* 收藏 */
 .mp-fav { transition: color .15s ease; }
+/* 工作流 JSON 输入框：等宽字体、边打边存 */
+.mp-workflow { display: flex; flex-direction: column; gap: 8px; }
+.mp-workflow__input { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px; line-height: 1.5; white-space: pre; tab-size: 2; }
+.mp-workflow__bar { display: flex; gap: 8px; }
+.mp-workflow__bar .mp-btn { flex: 0 0 auto; }
 .mp-fav.on, .mp-fav.on .mp-ic { color: #ffd166 !important; }
 .mp-fav-list { display: flex; flex-direction: column; gap: 8px; }
 .mp-fav-row { display: flex; align-items: center; gap: 8px; padding: 10px 11px; border-radius: 12px; background: var(--mp-field); cursor: pointer; }

@@ -206,11 +206,7 @@ export function mountSettings(host, { nav }) {
                     onchange: event => patchImage({ comfyCheckpoint: event.target.value.trim() }),
                 }))) : null,
             settings.image?.enabled && (settings.image?.provider || 'openai') === 'comfyui' ? row({ icon: 'edit', label: '工作流 JSON', hint: '可选；留空用内置文生图工作流，支持 {{prompt}} / {{negative}} 占位' },
-                h('div', { class: 'mp-field' }, h('textarea', {
-                    class: 'mp-input', rows: '4', placeholder: '{ "3": { "class_type": "KSampler", ... } }',
-                    value: settings.image?.comfyWorkflow || '',
-                    onchange: event => patchImage({ comfyWorkflow: event.target.value }),
-                }))) : null,
+                workflowField()) : null,
             settings.image?.enabled ? row({ icon: 'refresh', label: '测试接口', hint: '生成一张测试图，成功会显示预览' },
                 h('div', { class: 'mp-image-test' },
                     (() => {
@@ -324,6 +320,72 @@ export function mountSettings(host, { nav }) {
         current.tts = { ...(current.tts || {}), ...patch };
         saveNow('settings');
         render();
+    }
+
+    /**
+     * 工作流输入框：边打边存（不重渲染，粘贴不会被打断），
+     * 另外给「读剪贴板」「选文件」两个入口——手机长按弹不出粘贴菜单时也能进。
+     */
+    function workflowField() {
+        const textarea = h('textarea', {
+            class: 'mp-input mp-workflow__input', rows: '6', spellcheck: 'false',
+            placeholder: '{ "3": { "class_type": "KSampler", ... } }',
+        });
+        textarea.value = getSettings().image?.comfyWorkflow || '';
+        const info = h('div', { class: 'mp-st-hint' });
+        let timer = 0;
+
+        const commit = text => {
+            const value = String(text || '');
+            const current = getSettings();
+            current.image = { ...(current.image || {}), comfyWorkflow: value };
+            saveNow('settings');
+            if (!value.trim()) { info.textContent = '留空 = 用内置文生图工作流'; return; }
+            try { JSON.parse(value); info.textContent = '已保存 · ' + value.length + ' 字符 · JSON 合法'; }
+            catch { info.textContent = '已保存 · ' + value.length + ' 字符 · 还不是合法 JSON'; }
+        };
+
+        textarea.addEventListener('input', () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => commit(textarea.value), 400);
+        });
+        textarea.addEventListener('change', () => { clearTimeout(timer); commit(textarea.value); });
+
+        const readClipboard = h('button', { type: 'button', class: 'mp-btn ghost small', text: '读剪贴板' });
+        readClipboard.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text.trim()) { toast('剪贴板是空的'); return; }
+                textarea.value = text;
+                commit(text);
+                toast('已填入 ' + text.length + ' 字符');
+            } catch {
+                toast('读不到剪贴板：长按输入框手动粘贴，或用「选文件」', 3600);
+            }
+        });
+
+        const fileInput = h('input', { type: 'file', accept: '.json,application/json,text/plain', style: { display: 'none' } });
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files?.[0];
+            fileInput.remove();
+            if (!file) return;
+            try {
+                const text = await file.text();
+                textarea.value = text;
+                commit(text);
+                toast('已导入 ' + file.name);
+            } catch {
+                toast('读取文件失败', 3000);
+            }
+        });
+        const pick = h('button', { type: 'button', class: 'mp-btn ghost small', text: '选文件' });
+        pick.addEventListener('click', () => { document.body.appendChild(fileInput); fileInput.click(); });
+
+        return h('div', { class: 'mp-field mp-workflow' },
+            textarea,
+            h('div', { class: 'mp-workflow__bar' }, readClipboard, pick),
+            info,
+        );
     }
 
     function patchImage(patch) {
