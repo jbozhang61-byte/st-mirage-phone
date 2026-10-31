@@ -6,6 +6,7 @@ import { getCast } from '../store.js';
 import { loadFeed, refreshFeed, num, moodOf } from './feed-common.js';
 import { openSearchSheet } from './search-sheet.js';
 import { openPostPage } from './postpage.js';
+import { artFor } from '../art.js';
 
 export function mountXhs(host, { nav }) {
     nav.setChrome?.('light');

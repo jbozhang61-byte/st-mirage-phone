@@ -4,6 +4,7 @@ import { getData, getSettings, installedApps } from '../store.js';
 import { getCast } from '../store.js';
 import { changeAvatar, changeAvatarUrl, removeAvatar } from '../avatars.js';
 import { userName, personaAvatarUrl, currentCharacter, personaDescription } from '../st.js';
+import { openFavorites } from '../favorites.js';
 
 
 export function mountMe(host, { nav }) {
@@ -44,6 +45,7 @@ export function mountMe(host, { nav }) {
         ));
 
         body.appendChild(section('我的', [
+            row('收藏', ((data.favorites || []).length || 0) + ' 条帖子', 'star', () => openFavorites()),
             row('钱包', '钱包与流水', 'wallet', () => nav.go('wallet')),
             row('相册', '这个世界拍下的照片', 'photos', () => nav.go('photos')),
             row('相遇', '正在约会的人', 'spark', () => nav.go('spark')),

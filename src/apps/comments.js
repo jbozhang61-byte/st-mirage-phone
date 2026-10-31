@@ -3,6 +3,7 @@ import { h, icon, avatar, sheet } from '../render.js';
 import { getData, getSettings, saveNow } from '../store.js';
 import { userName } from '../st.js';
 import { generateComments, friendlyError } from '../ai.js';
+import { favoriteButton } from '../favorites.js';
 
 function hash(text) {
     let value = 2166136261;
@@ -20,12 +21,13 @@ export function createComments(item, app = '评论') {
     const head = h('div', { class: 'mp-cm__head' });
     const list = h('div', { class: 'mp-cm__list' });
     const refresh = h('button', { type: 'button', class: 'mp-cm__refresh', 'aria-label': '换一批评论' }, icon('refresh'));
+    const star = favoriteButton({ app, item, extra: { title: item.title || '', body: item.text || '' } });
 
     function key() { return baseKey; }
 
     function draw() {
         head.innerHTML = '';
-        head.append(h('span', { text: (app ? app + ' · ' : '') + (loading ? '正在生成评论…' : error ? '评论生成失败' : comments.length + ' 条评论') }), refresh);
+        head.append(h('span', { text: (app ? app + ' · ' : '') + (loading ? '正在生成评论…' : error ? '评论生成失败' : comments.length + ' 条评论') }), star, refresh);
         list.innerHTML = '';
         if (loading) {
             list.appendChild(h('div', { class: 'mp-cm__state' }, h('span', { class: 'mp-cm__dots' }, h('i'), h('i'), h('i')), '正在让模型写评论…'));

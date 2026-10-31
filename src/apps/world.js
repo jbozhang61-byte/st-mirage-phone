@@ -1,7 +1,9 @@
 /** 世界：这个世界的样子、大小、规则、势力与地点，可自己改。 */
 import { h, icon, sheet, toast } from '../render.js';
 import { getData, saveNow } from '../store.js';
-import { currentCharacter } from '../st.js';
+import { currentCharacter, worldBookEntries, generateText } from '../st.js';
+import { extractJson } from '../prompts.js';
+import { friendlyError } from '../ai.js';
 
 const EMPTY = {
     name: '', type: '', scale: '', era: '', rules: '', factions: [], places: [], notes: '',
@@ -75,9 +77,14 @@ export function mountWorld(host, { nav }) {
         const notes = h('textarea', { class: 'mp-input', rows: '3', placeholder: '其他想补充的世界设定' });
         notes.value = world.notes || '';
         const split = value => String(value || '').split(/[、,，\s]+/).map(item => item.trim()).filter(Boolean).slice(0, 20);
+        const readBtn = h('button', { type: 'button', class: 'mp-btn ghost small', text: 'AI 读取世界书' });
+        readBtn.addEventListener('click', () => aiFill({ name, type, scale, era, rules, factions, places, notes }, readBtn));
         const dialog = sheet({
             title: '编辑世界',
             content: h('div', { class: 'mp-field-list' },
+                h('div', { class: 'mp-worldapp__aifill' },
+                    readBtn,
+                    h('span', { class: 'mp-st-hint', text: '读角色卡绑定的世界书和内嵌条目，只填资料里写过的，不编造。' })),
                 h('div', {}, h('label', { text: '名字' }), name),
                 h('div', {}, h('label', { text: '类型' }), type),
                 h('div', {}, h('label', { text: '范围 / 大小' }), scale),
@@ -109,6 +116,54 @@ export function mountWorld(host, { nav }) {
                 },
             }),
         });
+    }
+
+    /** 让模型读世界书，把空着的字段自动填上（只填资料里有的）。 */
+    async function aiFill(fields, button) {
+        if (button.dataset.busy === '1') return;
+        button.dataset.busy = '1';
+        const label = button.textContent;
+        button.textContent = '读取中…';
+        try {
+            const book = await worldBookEntries(50);
+            const card = currentCharacter();
+            const parts = [];
+            if (card) {
+                parts.push('角色卡《' + card.name + '》\n' + String(card.description || '').slice(0, 1500)
+                    + (card.scenario ? '\n场景：' + String(card.scenario).slice(0, 600) : ''));
+            }
+            if (book.length) parts.push('世界书条目：\n' + book.map(entry => '【' + entry.title + '】' + entry.content).join('\n'));
+            if (!parts.length) { toast('没读到世界书，也没读到角色卡设定'); return; }
+            const raw = await generateText({
+                system: '你在整理一段故事世界的设定。只抽取资料里已经写明的内容，不要编造；没有的字段给空字符串或空数组。用中文。只输出 JSON。',
+                prompt: [
+                    parts.join('\n\n'),
+                    '整理成这个 JSON：',
+                    '{"name":"世界名字","type":"类型，例如 现代都市/奇幻/末日/校园","scale":"范围","era":"时代与科技水平","rules":"资料里明确写过的规则，两三句","factions":["势力"],"places":["地点"],"notes":"补充"}',
+                ].join('\n'),
+                length: 800,
+                json: true,
+            });
+            const json = extractJson(raw) || {};
+            const setValue = (input, value) => {
+                const text = Array.isArray(value) ? value.join('、') : String(value || '');
+                if (text.trim()) input.value = text.slice(0, 400);
+            };
+            setValue(fields.name, json.name);
+            setValue(fields.type, json.type);
+            setValue(fields.scale, json.scale);
+            setValue(fields.era, json.era);
+            setValue(fields.rules, json.rules);
+            setValue(fields.factions, json.factions);
+            setValue(fields.places, json.places);
+            setValue(fields.notes, json.notes);
+            toast('读到 ' + book.length + ' 条世界书，检查一下再保存');
+        } catch (error) {
+            toast(friendlyError(error), 3200);
+        } finally {
+            button.dataset.busy = '';
+            button.textContent = label;
+        }
     }
 
     if (!currentCharacter()) toast('先打开一张角色卡，世界才有默认名字');

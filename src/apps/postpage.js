@@ -2,6 +2,7 @@
 import { h, icon, toast } from '../render.js';
 import { createComments } from './comments.js';
 import { generateImage, imageConfig } from '../imagegen.js';
+import { favoriteButton } from '../favorites.js';
 
 export function openPostPage({ item, app = '帖子', title = '', body = '', meta = '', image = '' }) {
     const screen = document.querySelector('.mp-screen');
@@ -35,6 +36,7 @@ export function openPostPage({ item, app = '帖子', title = '', body = '', meta
         h('div', { class: 'mp-soc-page__bar' },
             h('button', { type: 'button', class: 'mp-soc-page__back', onclick: close }, icon('back')),
             h('div', { class: 'mp-soc-page__title', text: title || '详情' }),
+            favoriteButton({ app, item, extra: { title, body, meta, image }, cls: 'mp-soc-page__act' }),
             h('button', { type: 'button', class: 'mp-soc-page__act', 'aria-label': 'AI 配图', onclick: () => genImage() }, icon('sparkle')),
             h('button', { type: 'button', class: 'mp-soc-page__act', onclick: () => comments.refresh() }, icon('refresh')),
         ),

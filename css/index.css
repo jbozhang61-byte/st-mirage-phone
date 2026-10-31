@@ -1938,6 +1938,19 @@ html.mp-keyboard-open .mp-fab { display: none !important; }
 .mp-power__num { width: 100%; text-align: right; font-variant-numeric: tabular-nums; }
 .mp-power__acts { display: flex; gap: 8px; margin-top: 12px; }
 .mp-power__acts .mp-btn { flex: 1 1 0; }
+
+/* 收藏 */
+.mp-fav { transition: color .15s ease; }
+.mp-fav.on, .mp-fav.on .mp-ic { color: #ffd166 !important; }
+.mp-fav-list { display: flex; flex-direction: column; gap: 8px; }
+.mp-fav-row { display: flex; align-items: center; gap: 8px; padding: 10px 11px; border-radius: 12px; background: var(--mp-field); cursor: pointer; }
+.mp-fav-main { flex: 1 1 auto; min-width: 0; }
+.mp-fav-head { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.mp-fav-app { font-size: 9px; color: #fff; background: var(--mp-accent, #ff6b9a); border-radius: 6px; padding: 1px 6px; flex: 0 0 auto; }
+.mp-fav-title { font-size: 12px; font-weight: 700; color: var(--mp-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-fav-text { font-size: 10px; color: var(--mp-text-3); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-fav-del { border: 0; background: transparent; color: var(--mp-text-3); padding: 4px; cursor: pointer; }
+.mp-worldapp__aifill { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
 .mp-heart__label { font-size: 10px; letter-spacing: 1px; color: #8f7a86; margin-bottom: 6px; }
 .mp-heart__chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .mp-heart__chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(255,107,154,.22); background: rgba(255,107,154,.07); color: #ffd9e4; border-radius: 12px; padding: 5px 9px; font-size: 10.5px; }

@@ -494,6 +494,54 @@ export function toast(message, type = 'info') {
     console.info('[幻镜手机]', text);
 }
 
+/** 读世界书条目：角色卡内嵌的 + 绑定的那本。返回 [{title, content}]。 */
+export async function worldBookEntries(limit = 60) {
+    const c = ctx();
+    const out = [];
+    const seen = new Set();
+    const push = (title, content) => {
+        const text = String(content || '').trim();
+        if (!text) return;
+        const key = text.slice(0, 40);
+        if (seen.has(key)) return;
+        seen.add(key);
+        out.push({ title: String(title || '条目').slice(0, 40), content: text.slice(0, 420) });
+    };
+    try {
+        const data = c?.characters?.[c?.characterId]?.data;
+        const book = data?.character_book || data?.data?.character_book;
+        for (const entry of book?.entries || []) {
+            if (entry?.disable) continue;
+            push(entry?.comment || entry?.keys?.[0] || entry?.key?.[0], entry?.content);
+            if (out.length >= limit) return out;
+        }
+    } catch { /* ignore */ }
+    const names = new Set();
+    try {
+        const bound = c?.characters?.[c?.characterId]?.data?.extensions?.world;
+        if (bound) names.add(String(bound));
+        const chatWorld = c?.chatMetadata?.world_info || c?.chatMetadata?.worldInfo;
+        if (chatWorld) names.add(String(chatWorld));
+    } catch { /* ignore */ }
+    for (const name of names) {
+        try {
+            const response = await fetch('/api/worldinfo/get', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...requestHeaders() },
+                body: JSON.stringify({ name }),
+            });
+            if (!response.ok) continue;
+            const json = await response.json();
+            for (const entry of Object.values(json?.entries || {})) {
+                if (entry?.disable) continue;
+                push(entry?.comment || entry?.key?.[0], entry?.content);
+                if (out.length >= limit) return out;
+            }
+        } catch { /* ignore */ }
+    }
+    return out;
+}
+
 export function requestHeaders() {
     try {
         return ctx()?.getRequestHeaders?.() || {};

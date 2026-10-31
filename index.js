@@ -47,7 +47,7 @@ window.addEventListener('unhandledrejection', event => {
     if (text) showBootError(text);
 });
 
-const VERSION = '1.5.0';
+const VERSION = '1.5.10';
 let phone = null;
 let started = false;
 let panel = null;
@@ -70,6 +70,11 @@ function boot() {
     }
     started = true;
     initStore();
+    // 「我」页显示的版本号跟着 manifest 走，别一直停在旧版本
+    if (getSettings().version !== VERSION) {
+        getSettings().version = VERSION;
+        saveNow('settings');
+    }
     globalThis.__mpAvatarUrl = name => avatarUrl(name);
     globalThis.__mpArtPack = getSettings().artPack !== false;
     globalThis.__mpRealPhotos = getSettings().realPhotos !== false;
