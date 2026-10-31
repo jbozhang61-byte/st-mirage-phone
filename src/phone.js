@@ -140,7 +140,7 @@ export function createPhone(onOpenChange) {
 
     ensureSprite();
     rootEl = h('div', { class: 'mp-root', 'data-theme': 'dark' });
-    shellEl = h('div', { class: 'mp-shell is-closed' });
+    shellEl = h('div', { class: 'mp-shell is-closed' + (getSettings().full ? ' is-full' : '') });
     screenEl = h('div', { class: 'mp-screen' });
 
     islandEl = h('div', { class: 'mp-island' }, h('div', { class: 'mp-island__inner' }));
@@ -435,6 +435,14 @@ function paintFloat(scale, pos) {
 function applyLayout() {
     if (!shellEl) return;
     setFab(open);
+    // 全屏铺满交给 CSS（100vw × 100dvh），别再走悬浮窗那套 left/top/scale
+    if (shellEl.classList.contains('is-full')) {
+        for (const prop of ['left', 'top', 'right', 'bottom', 'transform', 'transform-origin', 'width', 'height']) {
+            shellEl.style.removeProperty(prop);
+        }
+        shellEl.style.setProperty('--mp-scale', '1');
+        return;
+    }
     const settings = getSettings();
     const narrow = isNarrow();
     if (narrow) document.documentElement.classList.remove('mp-mobile-float');
@@ -732,9 +740,19 @@ function bindDrag(device) {
 }
 
 function toggleFull() {
-    shellEl.classList.toggle('is-full');
-    applyLayout();
+    setFull(!shellEl?.classList.contains('is-full'));
+}
+
+/** 全屏铺满：把整部手机撑到 100vw × 100dvh，去掉外壳和圆角。 */
+function setFull(next) {
+    if (!shellEl) return false;
+    const value = !!next;
+    shellEl.classList.toggle('is-full', value);
+    const settings = getSettings();
+    settings.full = value;
     saveNow('settings');
+    applyLayout();
+    return value;
 }
 
 /* --------------------------------- 打开/关闭 --------------------------------- */
@@ -1105,6 +1123,8 @@ const api = {
     back: goBack,
     notify,
     refresh: refreshAll,
+    setFull,
+    toggleFull,
     refreshTheme,
     setTyping,
     islandShow,

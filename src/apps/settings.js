@@ -79,6 +79,11 @@ export function mountSettings(host, { nav }) {
 
         /* ---------------- 手机 ---------------- */
         wrap.appendChild(section('手机', [
+            row({ icon: 'maximize', label: '全屏铺满', hint: '把手机撑满整个屏幕，去掉外壳和圆角' },
+                toggle(getSettings().full, value => {
+                    globalThis.MiragePhone?.setFull?.(value);
+                    render();
+                })),
             isNarrow() ? null : row({ icon: 'settings', label: '窗口大小', hint: '拖动顶部状态栏可以移动到任意位置' },
                 slider(0.7, 1.35, 0.05, settings.scale, v => Math.round(v * 100) + '%', value => {
                     patchSettings('scale', value);

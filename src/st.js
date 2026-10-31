@@ -582,7 +582,12 @@ export function isNarrow() {
         const width = globalThis.innerWidth || 0;
         const height = globalThis.innerHeight || 0;
         // 竖屏手机：按宽度；横屏手机：按高度（平板横屏通常高度 > 520，不受影响）
-        return width <= 760 || (height <= 520 && width <= 940);
+        if (width <= 760 || (height <= 520 && width <= 940)) return true;
+        // 有些手机浏览器没有 viewport meta，报的是 980 这种桌面宽度，但指针是粗的
+        try {
+            if (globalThis.matchMedia?.('(pointer: coarse)')?.matches && width <= 1024) return true;
+        } catch { /* ignore */ }
+        return false;
     } catch {
         return false;
     }
