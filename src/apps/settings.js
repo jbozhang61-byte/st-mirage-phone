@@ -8,7 +8,7 @@ import { storeImage } from '../images.js';
 import { previewInjection } from '../ai.js';
 import { isNarrow } from '../st.js';
 import { generateImage } from '../imagegen.js';
-import { ttsVoices, ttsSupported, speak } from '../tts.js';
+import { ttsVoices, ttsVoiceList, ttsSupported, speak } from '../tts.js';
 
 export function mountSettings(host, { nav }) {
     const body = h('div', { class: 'mp-body' });
@@ -231,8 +231,17 @@ export function mountSettings(host, { nav }) {
         ]));
 
         /* ---------------- 语音 ---------------- */
-        const voices = ttsVoices();
+        const voices = ttsVoiceList();
         const ttsProvider = settings.tts?.provider || 'browser';
+        if (!voices.length && ttsSupported()) {
+            // Chrome 的语音是异步加载的，加载完再画一次，否则"声音"下拉是空的
+            const synth = globalThis.speechSynthesis;
+            const refreshVoices = () => {
+                try { synth.removeEventListener?.('voiceschanged', refreshVoices); } catch { /* ignore */ }
+                if (ttsVoices().length) render();
+            };
+            try { synth.addEventListener?.('voiceschanged', refreshVoices); } catch { /* ignore */ }
+        }
         wrap.appendChild(section('语音朗读', [
             row({ icon: 'volume', label: '启用 TTS', hint: ttsSupported() ? '用系统语音或接口朗读手机消息' : '当前浏览器不支持系统语音，可改用接口 TTS' },
                 toggle(settings.tts?.enabled, value => patchTTS({ enabled: value }))),
@@ -250,14 +259,10 @@ export function mountSettings(host, { nav }) {
                     type: 'password', value: settings.tts?.apiKey || '', placeholder: 'sk-…',
                     onchange: event => patchTTS({ apiKey: event.target.value.trim() }),
                 }))) : null,
-            settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'grid', label: '模型 / 声音', hint: '例如 tts-1 · alloy' },
-                h('div', { class: 'mp-field' }, h('input', {
-                    type: 'text', value: (settings.tts?.model || 'tts-1') + ' ' + (settings.tts?.apiVoice || 'alloy'),
-                    onchange: event => {
-                        const [model, voice] = event.target.value.trim().split(/\s+/);
-                        patchTTS({ model: model || 'tts-1', apiVoice: voice || 'alloy' });
-                    },
-                }))) : null,
+            settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'grid', label: '模型', hint: 'tts-1 便宜、tts-1-hd 清晰；4o-mini-tts 更自然但贵' },
+                choices([['tts-1', 'tts-1'], ['tts-1-hd', 'tts-1-hd'], ['gpt-4o-mini-tts', '4o-mini-tts']], settings.tts?.model || 'tts-1', value => patchTTS({ model: value }))) : null,
+            settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'user', label: '接口音色', hint: 'nova / shimmer 偏女声，onyx / echo 偏男声' },
+                choices([['alloy', 'alloy'], ['nova', 'nova'], ['shimmer', 'shimmer'], ['echo', 'echo'], ['fable', 'fable'], ['onyx', 'onyx'], ['coral', 'coral'], ['sage', 'sage']], settings.tts?.apiVoice || 'alloy', value => patchTTS({ apiVoice: value }))) : null,
             settings.tts?.enabled && ttsProvider === 'browser' ? row({ icon: 'user', label: '声音', hint: voices.length ? '系统里可用的语音' : '系统没有返回语音包' },
                 h('select', {
                     class: 'text_pole',
@@ -266,14 +271,14 @@ export function mountSettings(host, { nav }) {
                     value: voice.name, selected: settings.tts?.voice === voice.name,
                     text: voice.name + (voice.lang ? ' · ' + voice.lang : ''),
                 })))) : null,
-            settings.tts?.enabled ? row({ icon: 'music', label: '语速 / 音调 / 音量', hint: '用逗号分隔，例如 1.0 / 1.0 / 0.9' },
-                h('div', { class: 'mp-field' }, h('input', {
-                    type: 'text', value: (settings.tts?.rate || 1) + ' / ' + (settings.tts?.pitch || 1) + ' / ' + (settings.tts?.volume ?? 1),
-                    onchange: event => {
-                        const [rate = '1', pitch = '1', volume = '1'] = event.target.value.split('/').map(x => x.trim());
-                        patchTTS({ rate: Number(rate) || 1, pitch: Number(pitch) || 1, volume: Number(volume) });
-                    },
-                }))) : null,
+            settings.tts?.enabled && ttsProvider === 'browser' ? row({ icon: 'users', label: '按人分配嗓音', hint: voices.length > 1 ? '同一个人固定一个嗓子，不同人不一样' : '系统只返回了一个语音，分不了' },
+                toggle(settings.tts?.multiVoice !== false, value => patchTTS({ multiVoice: value }))) : null,
+            settings.tts?.enabled ? row({ icon: 'music', label: '语速', hint: '0.6 慢 – 1.6 快，1.0 正常' },
+                slider(0.6, 1.6, 0.05, Number(settings.tts?.rate) || 1, value => value.toFixed(2), value => updateTts({ rate: value }))) : null,
+            settings.tts?.enabled ? row({ icon: 'music', label: '音调', hint: '0.80 低 – 1.30 高；系统语音超出这个范围会很怪' },
+                slider(0.8, 1.3, 0.01, Number(settings.tts?.pitch) || 1, value => value.toFixed(2), value => updateTts({ pitch: value }))) : null,
+            settings.tts?.enabled ? row({ icon: 'volume', label: '音量', hint: '' },
+                slider(0, 1, 0.05, Number(settings.tts?.volume ?? 1), value => Math.round(value * 100) + '%', value => updateTts({ volume: value }))) : null,
             settings.tts?.enabled ? row({ icon: 'play', label: '试听', hint: '用当前设置读一句' },
                 h('button', { class: 'mp-btn small', type: 'button', text: '读一句', onclick: () => speak('这是幻镜手机的语音测试。') })) : null,
         ]));
@@ -393,6 +398,13 @@ export function mountSettings(host, { nav }) {
             h('div', { class: 'mp-workflow__bar' }, readClipboard, pick),
             info,
         );
+    }
+
+    /** 滑杆用：只写设置、不重渲染，拖的时候不会被重画打断。 */
+    function updateTts(patch) {
+        const current = getSettings();
+        current.tts = { ...(current.tts || {}), ...patch };
+        saveNow('settings');
     }
 
     function patchImage(patch) {

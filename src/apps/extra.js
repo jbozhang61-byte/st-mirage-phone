@@ -346,7 +346,7 @@ export function mountTelegram(host, { nav }) {
             h('div', { class: 'mp-tg-page__bar' },
                 h('button', { type: 'button', class: 'mp-tg-page__back', onclick: close }, icon('back')),
                 h('div', { class: 'mp-tg-page__title', text: chat.name + (chat.group ? ' · ' + (chat.members || 0) + ' 人' : '') + (chat.style ? ' · ' + chat.style : '') }),
-                chat.group ? h('div', { class: 'mp-tg-page__more' },
+                chat.group ? h('div', { class: 'mp-tg-page__actions' },
                     h('button', { type: 'button', class: 'mp-tg-page__more', text: '重新生成', onclick: () => more('replace') }),
                     h('button', { type: 'button', class: 'mp-tg-page__more', text: '追加', onclick: () => more('append') }),
                 ) : null,

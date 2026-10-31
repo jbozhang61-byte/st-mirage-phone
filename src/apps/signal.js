@@ -153,7 +153,7 @@ export function mountSignal(host, { nav }) {
             h('div', { class: 'mp-sg-page__bar' },
                 h('button', { type: 'button', class: 'mp-sg-page__back', onclick: close }, icon('back')),
                 h('div', {}, h('div', { class: 'mp-sg-page__title', text: chat.name }), h('div', { class: 'mp-sg-page__sub', text: chat.group ? '端到端加密 · ' + (chat.style || '群组') : '端到端加密' })),
-                chat.group ? h('div', { class: 'mp-sg-page__more' },
+                chat.group ? h('div', { class: 'mp-sg-page__actions' },
                     h('button', { type: 'button', class: 'mp-sg-page__more', text: '重新生成', onclick: () => more('replace') }),
                     h('button', { type: 'button', class: 'mp-sg-page__more', text: '追加', onclick: () => more('append') }),
                 ) : null,

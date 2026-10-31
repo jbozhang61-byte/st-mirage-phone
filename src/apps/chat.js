@@ -276,7 +276,7 @@ function mountConversation(host, nav, threadId) {
         const canRead = !mine && msg.text && ['text', 'voice'].includes(msg.type) && getSettings().tts?.enabled;
         const ttsButton = canRead ? h('button', {
             type: 'button', class: 'mp-msg__tts', 'aria-label': '朗读',
-            onclick: event => { event.stopPropagation(); speak(msg.text, { rate: getSettings().tts?.rate }); },
+            onclick: event => { event.stopPropagation(); speak(msg.text, { rate: getSettings().tts?.rate, speaker: msg.sender || thread.members[0] }); },
         }, icon('volume')) : null;
         const row = h('div', { class: 'mp-msg' + (mine ? ' me' : '') + (msg.state === 'failed' ? ' is-failed' : '') + (showAvatar ? '' : ' is-tail') },
             showAvatar
@@ -766,7 +766,7 @@ function mountConversation(host, nav, threadId) {
         const tts = getSettings().tts;
         if (tts?.enabled && tts.auto) {
             const last = (detail.messages || [])[detail.messages.length - 1];
-            if (last?.text) speak(last.text, { rate: tts.rate });
+            if (last?.text) speak(last.text, { rate: tts.rate, speaker: last.sender || (currentThread?.members || [])[0] || '' });
         }
     };
     const onViewportChange = () => {
