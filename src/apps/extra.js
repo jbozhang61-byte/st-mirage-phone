@@ -60,7 +60,12 @@ function loader(id, render) {
     const cached = getFeed(id);
     load(cached || config.fallback(feedContext()));
     if (!cached) generateExtra(id).then(load).catch(() => {});
-    return { refresh, render: load };
+    // 便宜的「重画」：只拿现有内容重排，不再叫模型
+    const repaint = () => {
+        const latest = getFeed(id);
+        if (latest) load(latest);
+    };
+    return { refresh, repaint, render: load };
 }
 
 export function mountDiscord(host, { nav }) {
@@ -212,7 +217,7 @@ export function mountDiscord(host, { nav }) {
     }
 
     refresh.addEventListener('click', view.refresh);
-    return { refresh: view.refresh };
+    return { refresh: view.refresh, repaint: view.repaint };
 }
 
 export function mountTelegram(host, { nav }) {
@@ -354,7 +359,7 @@ export function mountTelegram(host, { nav }) {
     }
 
     refresh.addEventListener('click', view.refresh);
-    return { refresh: view.refresh };
+    return { refresh: view.refresh, repaint: view.repaint };
 }
 
 export function mountSpotify(host, { nav }) {
@@ -433,7 +438,7 @@ export function mountSpotify(host, { nav }) {
 
     const view = loader('spotify', data => paint(data));
     refresh.addEventListener('click', view.refresh);
-    return { refresh: view.refresh, destroy: () => player.destroy() };
+    return { refresh: view.refresh, repaint: view.repaint, destroy: () => player.destroy() };
 }
 
 export function mountGmail(host, { nav }) {
@@ -525,5 +530,5 @@ export function mountGmail(host, { nav }) {
         }
     });
     refresh.addEventListener('click', view.refresh);
-    return { refresh: view.refresh };
+    return { refresh: view.refresh, repaint: view.repaint };
 }

@@ -1118,7 +1118,13 @@ onChange(kind => {
         refreshBadges();
         homeView?.refresh?.();
         // 聊天页自己处理消息追加；这里再整页重渲染会把滚动位置清掉
-        if (current?.id !== 'chat' && !typingThreads.size) current.view?.refresh?.();
+        if (current?.id !== 'chat' && !typingThreads.size) {
+            const view = current.view;
+            // 只重画：refresh 对 AI 型应用等于「再生成一次」，它自己保存又会触发
+            // 这里，于是变成无限「正在刷新…」。要重新生成走右上角刷新按钮。
+            if (typeof view?.repaint === 'function') view.repaint();
+            else if (view?.refreshOnChange) view.refresh?.();
+        }
     }
     if (kind === 'settings') {
         refreshTheme();
