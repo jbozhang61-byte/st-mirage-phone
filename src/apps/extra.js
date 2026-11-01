@@ -2,7 +2,7 @@
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { createMusicPlayer } from '../audio.js';
 import { getData, getCast, getFeed, setFeed, saveNow } from '../store.js';
-import { generateExtra, friendlyError } from '../ai.js';
+import { generateExtra, friendlyError, replyInChat } from '../ai.js';
 import { EXTRA } from '../extra.js';
 import { feedContext } from './feed-common.js';
 import { openGroupCreate, generateMore } from '../groupgen.js';
@@ -325,8 +325,12 @@ export function mountTelegram(host, { nav }) {
         };
         draw();
         const input = h('input', { class: 'mp-cm__input', type: 'text', placeholder: '发消息…' });
-        const send = () => {
-            const text = input.value.trim();
+        const saveChat = () => {
+            const data = getFeed('telegram');
+            if (data) { data.chats = (data.chats || []).map(item => item.name === chat.name ? chat : item); save(data); }
+        };
+        const send = async raw => {
+            const text = String(raw ?? input.value).trim();
             if (!text) return;
             messages.push({ name: userName() || '我', text, mine: true });
             chat.messages = messages;
@@ -334,8 +338,18 @@ export function mountTelegram(host, { nav }) {
             chat.time = '刚刚';
             input.value = '';
             draw();
-            const data = getFeed('telegram');
-            if (data) { data.chats = (data.chats || []).map(item => item.name === chat.name ? chat : item); save(data); }
+            saveChat();
+            // 让对方真的回一句（以前发完永远没人理）
+            try {
+                const reply = await replyInChat({ app: 'Telegram', chat, messages });
+                if (reply) {
+                    messages.push({ name: chat.name, text: reply, mine: false });
+                    chat.messages = messages;
+                    chat.preview = reply;
+                    draw();
+                    saveChat();
+                }
+            } catch { /* ignore */ }
         };
         const more = async mode => {
             if (!chat.group) return;
@@ -371,7 +385,15 @@ export function mountTelegram(host, { nav }) {
                 ) : null,
             ),
             h('div', { class: 'mp-tg-page__scroll' }, list),
-            h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: send }, '发送')),
+            h('div', { class: 'mp-tg__media' },
+                h('button', { type: 'button', class: 'mp-chip', text: '表情', onclick: () => {
+                    input.value += ['🙂', '😂', '😭', '🥺', '👀', '👍'][Math.floor(Math.random() * 6)];
+                    input.focus?.();
+                } }),
+                h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => send('📷 [图片] 随手拍的一张') }),
+                h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => send('📹 [视频] 15 秒') }),
+            ),
+            h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: () => send() }, '发送')),
         );
         screen.appendChild(page);
         setTimeout(() => input.focus?.(), 200);

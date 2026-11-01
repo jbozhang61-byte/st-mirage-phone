@@ -437,6 +437,31 @@ export async function planDate(match) {
     return dateFallback({ person, stage: match.stage });
 }
 
+/** 轻量聊天页（Telegram / Signal / Discord 私聊）里，让对方回一句。 */
+export async function replyInChat({ app = 'Chat', chat = {}, messages = [] } = {}) {
+    const user = userName();
+    const current = currentCharacter();
+    const world = current?.name || '';
+    const style = chat.style || '';
+    const recent = messages.slice(-8).map(line => (line.mine ? user : (line.name || chat.name)) + '：' + String(line.text || '').slice(0, 80)).join('\n');
+    try {
+        const raw = await generateText({
+            system: [
+                '你在扮演故事世界里的聊天对象，用中文回一条消息。',
+                world ? '世界：' + world : '',
+                style ? '说话风格：' + style : '',
+                '只回一句话，20 字以内，像真人发消息，不要旁白、不要加引号。',
+            ].filter(Boolean).join('\n'),
+            prompt: '聊天记录：\n' + recent + '\n\n现在你是『' + (chat.name || '对方') + '』，回一条。',
+            length: 120,
+        });
+        const text = String(raw || '').split('\n').map(line => line.trim()).filter(Boolean).pop() || '';
+        if (text) return text.replace(/^["「]|["」]$/g, '').slice(0, 60);
+    } catch { /* 用兜底 */ }
+    const fallback = ['嗯，在的。', '刚看到，等下回你。', '好，我知道了。', '你说。'];
+    return fallback[Math.floor(Math.random() * fallback.length)];
+}
+
 /** 浏览器：生成一个网页。 */
 export async function browse(query) {
     const user = userName();
