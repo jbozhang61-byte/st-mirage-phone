@@ -130,9 +130,20 @@ export function sortByDifficulty(list = []) {
         .map(entry => entry.person);
 }
 
-/** 我的攻略力够不够拿下这个人。 */
+/**
+ * 攻略力越高，攻略越简单：难度按 `基础 × 100 / (100 + 攻略力 × 0.8)` 折减。
+ * 100 攻略力 ≈ 打 5.5 折；500 ≈ 2 折；9999 基本等于 1（白给）。
+ */
+export function effectiveDifficulty(person, myPower = 0) {
+    const base = difficultyOf(person).score;
+    const power = Math.max(0, Number(myPower) || 0);
+    return Math.max(1, Math.round(base * 100 / (100 + power * 0.8)));
+}
+
+/** 我的攻略力够不够拿下这个人（需要的分数已经被攻略力折减过了）。 */
 export function canTake(myPower, person) {
-    const need = difficultyOf(person).score;
     const mine = Math.round(Number(myPower) || 0);
-    return { need, mine, ok: mine >= need, gap: Math.max(0, need - mine) };
+    const baseScore = difficultyOf(person).score;
+    const need = Math.max(1, Math.round(baseScore * 100 / (100 + Math.max(0, mine) * 0.8)));
+    return { need, base: baseScore, mine, ok: mine >= need, gap: Math.max(0, need - mine) };
 }
