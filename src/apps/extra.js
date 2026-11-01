@@ -258,7 +258,7 @@ export function mountTelegram(host, { nav }) {
         body.appendChild(chips);
         for (const chat of (data.chats || []).filter(item => tgFilter === 'all' || (tgFilter === 'unread' ? item.unread : item.group))) {
             body.appendChild(h('div', { class: 'mp-tg__chat', onclick: () => openChat(chat) },
-                avatar({ name: chat.name, size: 42, group: chat.group }),
+                avatar({ name: chat.name, size: 42, link: false }),
                 h('div', { class: 'mp-tg__main' },
                     h('div', { class: 'mp-tg__line' },
                         h('b', { text: chat.name }),

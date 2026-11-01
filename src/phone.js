@@ -30,6 +30,7 @@ import { mountMaps } from './apps/maps.js';
 import { mountBrowser } from './apps/browser.js';
 import { mountSocial } from './apps/social.js';
 import { mountDiscord, mountTelegram, mountSpotify, mountGmail } from './apps/extra.js';
+import { mountPatreon } from './apps/patreon.js';
 import { mountStocks } from './apps/stocks.js';
 import { mountFacebook } from './apps/facebook.js';
 import { mountSignal } from './apps/signal.js';
@@ -69,6 +70,7 @@ const APPS = {
     quora: { mount: mountSocial('quora') },
     youtube: { mount: mountSocial('youtube') },
     discord: { mount: mountDiscord },
+    patreon: { mount: mountPatreon },
     telegram: { mount: mountTelegram },
     spotify: { mount: mountSpotify },
     gmail: { mount: mountGmail },
