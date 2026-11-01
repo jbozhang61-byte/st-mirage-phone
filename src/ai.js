@@ -542,7 +542,15 @@ export async function generateComments(item, app = '内容') {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
-    const style = getSettings().ai?.commentStyle || '真实网友';
+    const ai = getSettings().ai || {};
+    const style = ai.commentStyle || '真实网友';
+    const tone = String(ai.commentTone || '').trim();
+    const strength = Math.max(0, Math.min(500, Number(ai.commentStrength ?? 100))) / 100;
+    const strengthText = strength <= 0.3
+        ? '几乎不带风格，就是普通路人随口一说。'
+        : strength >= 3
+            ? '把这种风格拉到极端，每一句都要顶满，允许夸张。'
+            : '正常强度，自然一点，别用力过猛。';
     const story = storyContext(80, 340).map(line => (line.isUser ? user : line.name) + '：' + line.text).join('\n');
     const memory = memoryContext(12).map(entry => String(entry.text || '').slice(0, 500)).filter(Boolean).join('\n');
     const raw = await generateText({
@@ -552,8 +560,13 @@ export async function generateComments(item, app = '内容') {
             people.length ? '这个世界的人：' + people.join('、') : '',
             memory ? '记忆库 / 摘要（背景）：\n' + memory : '',
             story ? '最近剧情（背景）：\n' + story : '',
-            '评论风格：' + style + '。',
+            '评论风格：' + style + (tone ? '（' + tone + '）' : '') + '，强度 ' + Math.round(strength * 100) + '%。',
+            '强度说明：' + strengthText,
             '每条评论像真实网友：短、具体、有反应，不要复读标题，不要解释。',
+            '先像个普通人那样反应：遇到离谱、不可能、明显越级的事（比如普通人跟大人物在一起、亲眼见到超自然事件），',
+            '第一反应是怀疑、觉得是编的/炒作/玩梗，要求实拍证据，而不是直接相信、羡慕或祝贺。',
+            '只有正文里已经给足证据的事，评论才会当真。',
+            '可以有分歧：一部分人信，一部分人骂，一部分人玩梗，别写成清一色好评。',
             '昵称要像网名，不要用真实人名列表。',
             '只输出 JSON：{"comments":[{"name":"网名","text":"评论","likes":12}]}',
         ].filter(Boolean).join('\n'),

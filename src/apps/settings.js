@@ -111,6 +111,14 @@ export function mountSettings(host, { nav }) {
                     patchSettings('ai.commentStyle', value);
                     toast('评论风格已切换');
                 })),
+            row({ icon: 'edit', label: '自定义风格', hint: '再加一层你自己的要求，比如"像贴吧老哥""全是阴阳怪气"' },
+                h('div', { class: 'mp-field' }, textInput(settings.ai?.commentTone || '', '例如：像小区业主群，爱抬杠', value => {
+                    patchSettings('ai.commentTone', value);
+                }))),
+            row({ icon: 'sliders', label: '风格强度', hint: '100% 正常；500% 拉到极端；0% 几乎没有风格' },
+                slider(0, 5, 0.1, (Number(settings.ai?.commentStrength ?? 100) || 0) / 100, v => Math.round(v * 100) + '%', value => {
+                    patchSettings('ai.commentStrength', Math.round(value * 100));
+                })),
             row({ icon: 'message', label: '回复长度', hint: '模型一次最多写多少字，太长会变啰嗦' },
                 slider(120, 800, 20, settings.ai.length, v => Math.round(v) + ' tokens', value => {
                     patchSettings('ai.length', Math.round(value));

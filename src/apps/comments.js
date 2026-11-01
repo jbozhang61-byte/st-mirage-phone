@@ -81,7 +81,18 @@ export function createComments(item, app = '评论') {
     return {
         el: h('div', { class: 'mp-cm' }, head, list),
         refresh: () => load(true),
-        add: text => { comments.unshift({ name: userName() || '我', text, likes: 0 }); draw(); },
+        add: text => {
+            const value = String(text || '').trim();
+            if (!value) return false;
+            comments.unshift({ name: userName() || '我', text: value, likes: 0 });
+            // 以前只改内存，页面一关就回到旧缓存，看起来像"回复没生效"
+            const data = getData();
+            data.comments = data.comments || {};
+            data.comments[key()] = comments.map(entry => ({ ...entry }));
+            saveNow('data');
+            draw();
+            return true;
+        },
     };
 }
 

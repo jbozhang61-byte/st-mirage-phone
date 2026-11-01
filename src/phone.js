@@ -153,8 +153,13 @@ export function createPhone(onOpenChange) {
     refs.battery = batt;
 
     const floatBtn = h('button', {
-        type: 'button', class: 'mp-status__float', 'aria-label': '切换悬浮窗',
-        onclick: event => { event.stopPropagation(); toggleFloatMode(); },
+        type: 'button', class: 'mp-status__float', 'aria-label': '全屏 / 悬浮窗',
+        onclick: event => {
+            event.stopPropagation();
+            // 窄屏上没有"悬浮窗"这回事，这个键改成全屏开关
+            if (isNarrow()) setFull(!shellEl?.classList.contains('is-full'));
+            else toggleFloatMode();
+        },
     }, icon('maximize'));
     const collapseBtn = h('button', {
         type: 'button', class: 'mp-status__collapse', 'aria-label': '收起小手机', title: '收起小手机',

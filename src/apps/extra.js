@@ -116,7 +116,11 @@ export function mountDiscord(host, { nav }) {
             main.appendChild(h('div', { class: 'mp-dc__msg' },
                 avatar({ name: message.author, size: 28 }),
                 h('div', {},
-                    h('div', { class: 'mp-dc__line' }, h('b', { text: message.author }), h('span', { text: message.time })),
+                    h('div', { class: 'mp-dc__line' }, h('b', { text: message.author }), h('span', { text: message.time }),
+                        h('button', {
+                            type: 'button', class: 'mp-dc__reply', text: '↩ 回复',
+                            onclick: event => { event.stopPropagation(); replyTo(message); },
+                        })),
                     h('div', { class: 'mp-dc__text', text: message.text }),
                 ),
             ));
@@ -146,6 +150,14 @@ export function mountDiscord(host, { nav }) {
             }, '发送'),
         );
         body.append(h('div', { class: 'mp-dc' }, rail, h('div', { class: 'mp-dc__wrap' }, main, composer, panel)));
+
+        // 引用回复：把原话塞进输入框，发出去就带着「> 作者：内容」
+        function replyTo(message) {
+            const quote = '> ' + message.author + '：' + String(message.text || '').replace(/\s+/g, ' ').slice(0, 60) + '\n';
+            composerInput.value = quote;
+            composerInput.focus?.();
+            try { composerInput.setSelectionRange(quote.length, quote.length); } catch { /* ignore */ }
+        }
     });
 
     function save(data) {

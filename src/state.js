@@ -72,7 +72,7 @@ export function defaultSettings() {
         aiApp: { provider: 'inherit', baseUrl: '', apiKey: '', model: '' },
         aiApps: {},
         ai: {
-            useMain: true, baseUrl: '', apiKey: '', model: '', commentStyle: '真实网友', length: 320, style: DEFAULT_STYLE },
+            useMain: true, baseUrl: '', apiKey: '', model: '', commentStyle: '真实网友', commentTone: '', commentStrength: 100, length: 320, style: DEFAULT_STYLE },
         replyInGroup: true,
         showSpoilers: false,
         signature: '把手机放进剧情里',

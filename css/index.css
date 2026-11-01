@@ -2894,3 +2894,7 @@ html:not(.mp-mobile-float) .mp-shell:not(.is-closed) { transition: none !importa
     }
     html.mp-mobile-float .mp-screen { border-radius: 36px; }
 }
+
+/* Discord 消息的引用回复按钮 */
+.mp-dc__reply { margin-left: auto; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); color: #b9c2cf; font: inherit; font-size: 9px; padding: 1px 7px; border-radius: 8px; cursor: pointer; }
+.mp-dc__reply:hover { color: #fff; border-color: rgba(255,255,255,.3); }
