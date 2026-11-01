@@ -92,14 +92,15 @@ function mergeLists(prev, next) {
         return true;
     });
     // 新的接在后面，旧的保留；最多留 120 条免得越滚越卡
-    return [...old, ...added].slice(-120);
+    // 不设条数上限：旧的全部保留，新的接在后面
+    return [...old, ...added];
 }
 
 function persistFeed(appId, items) {
     try {
         const data = getData();
         data.feeds = data.feeds && typeof data.feeds === 'object' ? data.feeds : {};
-        data.feeds[appId] = { items: Array.isArray(items) ? items.slice(-120) : [], at: Date.now() };
+        data.feeds[appId] = { items: Array.isArray(items) ? items.slice(-500) : [], at: Date.now() };
         saveNow('data');
     } catch { /* ignore */ }
 }

@@ -266,7 +266,7 @@ export function setFeed(appId, items) {
     // Discord / Telegram / Gmail 这类存的是整个对象（{servers}/{chats}/{emails}），
     // 直接 .slice 会抛 "(items || []).slice is not a function"，所以分开处理。
     if (Array.isArray(items)) {
-        store.data.feeds[appId] = { items: items.slice(0, 40), at: Date.now() };
+        store.data.feeds[appId] = { items: items.slice(0, 500), at: Date.now() };
     } else if (items && typeof items === 'object') {
         store.data.feeds[appId] = { ...items, at: Date.now() };
     } else {
