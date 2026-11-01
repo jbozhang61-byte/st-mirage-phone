@@ -2920,3 +2920,25 @@ html.mp-narrow .mp-status__float { display: grid !important; pointer-events: aut
 .mp-tg__bubble.mine, .mp-sg__bubble.mine { align-self: flex-end; }
 .mp-tg__msgs::-webkit-scrollbar, .mp-sg__msgs::-webkit-scrollbar,
 .mp-tg-page__scroll::-webkit-scrollbar, .mp-sg-page__scroll::-webkit-scrollbar { width: 0; height: 0; }
+
+/* 下滑加载更多：底部浮出的胶囊 + 转圈 */
+.mp-more-pill {
+    position: absolute; left: 50%; bottom: 112px; z-index: 60;
+    transform: translate(-50%, 12px); opacity: 0;
+    transition: opacity .2s ease, transform .2s ease;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 999px;
+    background: rgba(18, 20, 26, .88); color: #e9eef7;
+    font-size: 12px; letter-spacing: .2px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    pointer-events: none;
+}
+.mp-more-pill.in { opacity: 1; transform: translate(-50%, 0); }
+.mp-more-spin {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, .22);
+    border-top-color: #ffb454;
+    animation: mp-more-spin .8s linear infinite;
+}
+@keyframes mp-more-spin { to { transform: rotate(360deg); } }

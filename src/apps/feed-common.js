@@ -1,7 +1,7 @@
 /**
  * 内容类 App 的公共部分：拿缓存、兜底内容、刷新、数字格式化。
  */
-import { toast } from '../render.js';
+import { toast, h } from '../render.js';
 import { getFeed, getData, saveNow } from '../store.js';
 import { FEEDS } from '../feed.js';
 import { generateFeed, friendlyError } from '../ai.js';
@@ -69,13 +69,42 @@ export function bindAutoMore(el, loadMore, gap = 8000) {
     if (!el || typeof loadMore !== 'function') return;
     let last = 0;
     let busy = false;
+
+    /** 底部浮出「正在加载更多…」，等列表真的变了（或超时）再收起来。 */
+    function showLoading() {
+        const host = document.querySelector('.mp-screen') || document.body;
+        const pill = h('div', { class: 'mp-more-pill' },
+            h('span', { class: 'mp-more-spin' }),
+            h('span', { text: '正在加载更多…' }));
+        host.appendChild(pill);
+        requestAnimationFrame(() => pill.classList.add('in'));
+        let done = false;
+        let timer = 0;
+        let mo = null;
+        const hide = () => {
+            if (done) return;
+            done = true;
+            try { mo?.disconnect(); } catch { /* ignore */ }
+            clearTimeout(timer);
+            pill.classList.remove('in');
+            setTimeout(() => pill.remove(), 240);
+        };
+        try {
+            mo = new MutationObserver(() => setTimeout(hide, 350));
+            mo.observe(el, { childList: true });
+        } catch { /* ignore */ }
+        timer = setTimeout(hide, 12000);
+        return hide;
+    }
+
     el.addEventListener('scroll', () => {
         if (busy) return;
         if (Date.now() - last < gap) return;
         if (el.scrollTop + el.clientHeight < el.scrollHeight - 180) return;
         busy = true;
         last = Date.now();
-        try { loadMore(); } catch { /* ignore */ }
+        const hide = showLoading();
+        try { loadMore(); } catch { hide(); }
         setTimeout(() => { busy = false; }, 1500);
     }, { passive: true });
 }
