@@ -182,6 +182,10 @@ export function mountTikTok(host, { nav }) {
                 onclick: () => {
                     query = input.value.trim();
                     s.close();
+                    // 视频流还没生成（或者一条都没匹配上）时，给一条本地结果，别让搜索看起来没反应
+                    if (query && !items.some(item => [item.title, item.desc, item.author, ...(item.tags || [])].join(' ').includes(query))) {
+                        items = [{ id: 'search-' + query, title: query, desc: '关于「' + query + '」的视频，拍的是这个世界的街景。', author: '旧城的路人', tags: [query], likes: 24, comments: 6, video: true }, ...items];
+                    }
                     paint();
                     feed.scrollTop = 0;
                     if (query) toast('搜索：' + query);

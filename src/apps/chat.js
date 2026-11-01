@@ -5,7 +5,7 @@ import { h, icon, avatar, timeText, dayText, sheet, confirmSheet, toast, haptic,
 import { getData, getSettings, findThread, appendMessages, markRead, removeThread, saveNow, uid } from '../store.js';
 import { characterAvatar, personaAvatarUrl, userName, setOneShot } from '../st.js';
 import { findPerson } from '../store.js';
-import { replyToThread, isBusy, aiEvents, quoteForBring, friendlyError } from '../ai.js';
+import { replyToThread, isBusy, aiEvents, quoteForBring, friendlyError, refreshInjection } from '../ai.js';
 import { storeImage, resolveImage } from '../images.js';
 import { parseLine } from '../prompts.js';
 import { speak, stopTts } from '../tts.js';
@@ -546,6 +546,7 @@ function mountConversation(host, nav, threadId) {
             pinBottom = true;
             const msg = { id: uid(), from: 'me', type: payload.type || 'text', text: payload.text || '', meta: payload.meta || {}, ts: Date.now() };
             appendMessages(thread.id, msg);
+            try { refreshInjection?.(); } catch { /* ignore */ }
             haptic(6);
             appendMessageToView(msg);
             jumpBottom();

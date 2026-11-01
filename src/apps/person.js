@@ -137,6 +137,19 @@ export function openPersonCard(name, { onChat, onPage } = {}) {
             ...moments.map(moment => h('div', { class: 'mp-person__moment', text: String(moment.text || '').slice(0, 160) })))) : null,
         h('div', { class: 'mp-person-card__actions' },
             h('button', { type: 'button', class: 'mp-btn primary small', text: '发消息', onclick: () => { dialog.close(); openChat(); } }),
+            h('button', {
+                type: 'button', class: 'mp-btn ghost small',
+                text: (getData().follows || {})[key] ? '已关注' : '关注',
+                onclick: event => {
+                    const data = getData();
+                    data.follows = data.follows && typeof data.follows === 'object' ? data.follows : {};
+                    if (data.follows[key]) delete data.follows[key];
+                    else data.follows[key] = Date.now();
+                    saveNow('data');
+                    event.currentTarget.textContent = data.follows[key] ? '已关注' : '关注';
+                    toast(data.follows[key] ? '已关注 ' + key : '已取消关注');
+                },
+            }),
             h('button', { type: 'button', class: 'mp-btn ghost small', text: '看主页', onclick: () => { dialog.close(); if (onPage) onPage(); else openPersonProfile(key, { onChat }); } }),
         ),
     );
