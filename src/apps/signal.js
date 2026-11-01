@@ -4,6 +4,7 @@ import { getCast, getFeed, setFeed } from '../store.js';
 import { characterAvatar } from '../st.js';
 import { openGroupCreate, generateMore } from '../groupgen.js';
 import { generateSignal } from '../storyseed.js';
+import { replyInChat } from '../ai.js';
 
 export function mountSignal(host, { nav }) {
     const body = h('div', { class: 'mp-sg__body' });
@@ -119,8 +120,12 @@ export function mountSignal(host, { nav }) {
         };
         draw();
         const input = h('input', { class: 'mp-cm__input', type: 'text', placeholder: '加密消息…' });
-        const send = () => {
-            const text = input.value.trim();
+        const saveChat = () => {
+            const stored = getFeed('signal')?.items;
+            if (stored) setFeed('signal', stored.map(item => item.id === chat.id ? chat : item));
+        };
+        const send = async raw => {
+            const text = String(raw ?? input.value).trim();
             if (!text) return;
             messages.push({ mine: true, text });
             chat.messages = messages;
@@ -129,8 +134,18 @@ export function mountSignal(host, { nav }) {
             chat.unread = 0;
             input.value = '';
             draw();
-            const stored = getFeed('signal')?.items;
-            if (stored) setFeed('signal', stored.map(item => item.id === chat.id ? chat : item));
+            saveChat();
+            // 对方回一句（以前发完永远没人理）
+            try {
+                const reply = await replyInChat({ app: 'Signal', chat, messages });
+                if (reply) {
+                    messages.push({ mine: false, name: chat.name, text: reply });
+                    chat.messages = messages;
+                    chat.preview = reply;
+                    draw();
+                    saveChat();
+                }
+            } catch { /* ignore */ }
         };
         const more = async mode => {
             if (!chat.group) return;
@@ -166,7 +181,15 @@ export function mountSignal(host, { nav }) {
                 ) : null,
             ),
             h('div', { class: 'mp-sg-page__scroll' }, list),
-            h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: send }, '发送')),
+            h('div', { class: 'mp-tg__media' },
+                h('button', { type: 'button', class: 'mp-chip', text: '表情', onclick: () => {
+                    input.value += ['🙂', '😂', '😭', '🥺', '👀', '👍'][Math.floor(Math.random() * 6)];
+                    input.focus?.();
+                } }),
+                h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => send('📷 [图片] 随手拍的一张') }),
+                h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => send('📹 [视频] 15 秒') }),
+            ),
+            h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: () => send() }, '发送')),
         );
         screen.appendChild(page);
         setTimeout(() => input.focus?.(), 200);
