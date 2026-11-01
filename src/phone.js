@@ -452,6 +452,8 @@ function applyLayout() {
     }
     const settings = getSettings();
     const narrow = isNarrow();
+    // 让 CSS 也知道"这是窄屏"（媒体查询只认 760px，某些安卓报的视口更宽）
+    document.documentElement.classList.toggle('mp-narrow', narrow);
     if (narrow) document.documentElement.classList.remove('mp-mobile-float');
     const floating = document.documentElement.classList.contains('mp-mobile-float');
     const vpGlobal = viewportMetrics();

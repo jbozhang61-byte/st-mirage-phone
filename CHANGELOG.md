@@ -1,5 +1,13 @@
 # 更新日志
 
+## 1.5.26 — 2026-11-01
+
+- **修复安卓铺不满**：宽屏判断以前只看 CSS 的 `@media (max-width:760px)`，而有些安卓浏览器报的视口更宽
+  （没有 viewport meta）→ JS 知道是手机、CSS 还以为桌面。现在 applyLayout 会给 `<html>` 加 `mp-narrow`，
+  CSS 用 `html.mp-narrow:not(.mp-mobile-float) .mp-device { 100vw × 100dvh }` 强制铺满
+- **修复全屏键点不到**：窄屏下 `.mp-status__float` 被一条 `display:none` 直接藏掉了，所以"点了没反应"
+  （其实是根本按不到）。现在窄屏强制显示，并且它就是全屏开关
+
 ## 1.5.25 — 2026-11-01
 
 - **Telegram / Signal 能引用回复了**：点对方的气泡，自动把「> 名字：原话」填进输入框，
