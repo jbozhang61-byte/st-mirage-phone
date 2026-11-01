@@ -139,17 +139,56 @@ export function mountDiscord(host, { nav }) {
             composerInput,
             h('button', {
                 type: 'button', class: 'mp-dc__send',
-                onclick: () => {
+                onclick: async () => {
                     const text = composerInput.value.trim();
                     if (!text) return;
                     channel.messages = channel.messages || [];
                     channel.messages.push({ author: userName() || '我', text, time: '刚刚' });
+                    composerInput.value = '';
                     save(data);
                     view.render(data);
+                    // 频道里总得有人接一句（以前发完永远没人理）
+                    try {
+                        const reply = await replyInChat({
+                            app: 'Discord',
+                            chat: { name: server.name + ' / #' + channel.name, style: server.style || '' },
+                            messages: channel.messages,
+                        });
+                        if (reply) {
+                            const cast = getCast().map(person => person.name).filter(Boolean);
+                            const who = cast.length ? cast[Math.floor(Math.random() * cast.length)] : '网友';
+                            channel.messages.push({ author: who, text: reply, time: '刚刚' });
+                            save(data);
+                            view.render(data);
+                        }
+                    } catch { /* ignore */ }
                 },
             }, '发送'),
         );
-        body.append(h('div', { class: 'mp-dc' }, rail, h('div', { class: 'mp-dc__wrap' }, main, composer, panel)));
+        const mediaRow = h('div', { class: 'mp-tg__media' },
+            h('button', { type: 'button', class: 'mp-chip', text: '表情', onclick: () => {
+                composerInput.value += ['🙂', '😂', '😭', '🥺', '👀', '👍'][Math.floor(Math.random() * 6)];
+                composerInput.focus?.();
+            } }),
+            h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => sendMedia('📷 [图片] 随手拍的一张') }),
+            h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => sendMedia('📹 [视频] 15 秒') }),
+        );
+        async function sendMedia(text) {
+            channel.messages = channel.messages || [];
+            channel.messages.push({ author: userName() || '我', text, time: '刚刚' });
+            save(data);
+            view.render(data);
+            try {
+                const reply = await replyInChat({ app: 'Discord', chat: { name: server.name, style: server.style || '' }, messages: channel.messages });
+                if (reply) {
+                    const cast = getCast().map(person => person.name).filter(Boolean);
+                    channel.messages.push({ author: cast.length ? cast[Math.floor(Math.random() * cast.length)] : '网友', text: reply, time: '刚刚' });
+                    save(data);
+                    view.render(data);
+                }
+            } catch { /* ignore */ }
+        }
+        body.append(h('div', { class: 'mp-dc' }, rail, h('div', { class: 'mp-dc__wrap' }, main, mediaRow, composer, panel)));
 
         // 引用回复：把原话塞进输入框，发出去就带着「> 作者：内容」
         function replyTo(message) {
