@@ -2,7 +2,7 @@
  * 内容类 App 的公共部分：拿缓存、兜底内容、刷新、数字格式化。
  */
 import { toast } from '../render.js';
-import { getFeed, getData } from '../store.js';
+import { getFeed, getData, saveNow } from '../store.js';
 import { FEEDS } from '../feed.js';
 import { generateFeed, friendlyError } from '../ai.js';
 import { userName, currentCharacter, storyContext, memoryContext } from '../st.js';
@@ -80,16 +80,49 @@ export function bindAutoMore(el, loadMore, gap = 8000) {
     }, { passive: true });
 }
 
+/** 把新一批接到旧的前面/后面：同 id（或同标题）的不重复，旧的永远保留。 */
+function mergeLists(prev, next) {
+    const old = Array.isArray(prev) ? prev : [];
+    const fresh = Array.isArray(next) ? next : [];
+    const seen = new Set(old.map(item => item && (item.id || item.title || item.text)));
+    const added = fresh.filter(item => {
+        const key = item && (item.id || item.title || item.text);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    // 新的接在后面，旧的保留；最多留 120 条免得越滚越卡
+    return [...old, ...added].slice(-120);
+}
+
+function persistFeed(appId, items) {
+    try {
+        const data = getData();
+        data.feeds = data.feeds && typeof data.feeds === 'object' ? data.feeds : {};
+        data.feeds[appId] = { items: Array.isArray(items) ? items.slice(-120) : [], at: Date.now() };
+        saveNow('data');
+    } catch { /* ignore */ }
+}
+
 export function refreshFeed(appId, onUpdate, onLoading) {
     onLoading(true);
     toast('正在刷新…');
+    const prev = getFeed(appId)?.items || [];
     generateFeed(appId)
-        .then(items => { onUpdate(items); toast('刷新好了'); })
+        .then(items => {
+            // 追加，不覆盖：原来滚动出来的帖子一条都不删
+            const merged = mergeLists(prev, items);
+            persistFeed(appId, merged);
+            onUpdate(merged);
+            toast('又来了 ' + Math.max(0, merged.length - prev.length) + ' 条');
+        })
         .catch(error => {
             const fallback = fallbackFor(appId);
             if (fallback) {
-                onUpdate(jitter(fallback));
-                toast('AI 这次没返回，先换一批本地内容', 2600);
+                const merged = mergeLists(prev, jitter(fallback));
+                persistFeed(appId, merged);
+                onUpdate(merged);
+                toast('AI 这次没返回，先补几条本地内容', 2600);
             } else {
                 toast(friendlyError(error), 3200);
             }
