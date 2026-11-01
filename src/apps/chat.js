@@ -441,7 +441,7 @@ function mountConversation(host, nav, threadId) {
 
     /* ------------------------------ 输入区 ------------------------------ */
 
-    function videoSheet() {
+    function videoSheet(send) {
         const url = h('input', { class: 'mp-input', type: 'text', placeholder: '视频链接（留空就发一段「现场视频」）' });
         const caption = h('input', { class: 'mp-input', type: 'text', placeholder: '配一句话（可选）' });
         const s = sheet({
@@ -450,8 +450,10 @@ function mountConversation(host, nav, threadId) {
             actions: h('button', {
                 class: 'mp-btn primary small', type: 'button', text: '发送',
                 onclick: () => {
+                    const text = '📹 ' + (url.value.trim() || '一段现场视频') + (caption.value.trim() ? '\n' + caption.value.trim() : '');
                     s.close();
-                    sendMe({ type: 'video', text: '📹 ' + (url.value.trim() || '一段现场视频') + (caption.value.trim() ? '\n' + caption.value.trim() : '') });
+                    if (typeof send !== 'function') { toast('发送通道没接上'); return; }
+                    send({ type: 'video', text });
                 },
             }),
         });
@@ -464,7 +466,7 @@ function mountConversation(host, nav, threadId) {
         const plusBtn = h('button', { class: 'mp-composer__plus', type: 'button', 'aria-label': '更多', onclick: () => toggleQuick() }, icon('plus'));
         const quick = h('div', { class: 'mp-quick' },
             quickChip('图片', 'image', () => photoSheet()),
-            quickChip('视频', 'play', () => videoSheet()),
+            quickChip('视频', 'play', () => videoSheet(sendMe)),
             quickChip('语音', 'mic', () => voiceSheet()),
             quickChip('红包', 'envelope', () => moneySheet('redpacket')),
             quickChip('转账', 'transfer', () => moneySheet('transfer')),
@@ -475,7 +477,7 @@ function mountConversation(host, nav, threadId) {
         const panel = h('div', { class: 'mp-composer__panel' });
         const panelItems = [
             ['图片', 'image', () => photoSheet()],
-            ['视频', 'play', () => videoSheet()],
+            ['视频', 'play', () => videoSheet(sendMe)],
             ['语音', 'mic', () => voiceSheet()],
             ['红包', 'envelope', () => moneySheet('redpacket')],
             ['转账', 'transfer', () => moneySheet('transfer')],

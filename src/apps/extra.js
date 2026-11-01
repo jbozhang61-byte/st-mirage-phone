@@ -348,7 +348,18 @@ export function mountTelegram(host, { nav }) {
                 list.appendChild(h('div', {
                     class: 'mp-tg__bubble' + (line.mine ? ' mine' : ''),
                     onclick: () => {
-                        if (line.mine) return;
+                        if (line.mine) {
+                            // 自己的：点一下撤回
+                            const index = messages.indexOf(line);
+                            if (index < 0) return;
+                            messages.splice(index, 1);
+                            chat.messages = messages;
+                            chat.preview = messages[messages.length - 1]?.text || chat.preview;
+                            draw();
+                            saveChat();
+                            toast('已撤回');
+                            return;
+                        }
                         input.value = '> ' + line.name + '：' + String(line.text || '').slice(0, 60) + '\n';
                         input.focus?.();
                     },
@@ -399,6 +410,38 @@ export function mountTelegram(host, { nav }) {
             draw();
             saveChat();
         };
+        /** 表情 / 图片 / 视频都能自己填，不再是一句写死的文字。 */
+        function mediaSheet(kind) {
+            if (kind === '表情') {
+                let box = null;
+                const grid = h('div', { class: 'mp-emoji-grid' },
+                    ...['🙂', '😄', '😂', '🤣', '😊', '😍', '🥺', '😭', '😤', '😴', '😏', '🙃',
+                        '👍', '👎', '👏', '🙏', '💪', '🤝', '❤️', '💔', '🔥', '✨', '🌙', '☕']
+                        .map(char => h('button', {
+                            type: 'button', class: 'mp-emoji-btn', text: char,
+                            onclick: () => { input.value += char; input.focus?.(); box?.close(); },
+                        })));
+                box = sheet({ title: '选表情', content: grid });
+                return box;
+            }
+            const url = h('input', { class: 'mp-input', type: 'text', placeholder: kind === '图片' ? '图片链接 / 描述（可留空）' : '视频链接 / 描述（可留空）' });
+            const cap = h('input', { class: 'mp-input', type: 'text', placeholder: '配一句话（可选）' });
+            const box = sheet({
+                title: '发' + kind,
+                content: h('div', { class: 'mp-field-list' }, url, cap),
+                actions: h('button', {
+                    class: 'mp-btn primary small', type: 'button', text: '发送',
+                    onclick: () => {
+                        const head = kind === '图片' ? '📷 [图片] ' : '📹 [视频] ';
+                        const body = url.value.trim() || (kind === '图片' ? '一张随手拍的照片' : '一段 15 秒的视频');
+                        box.close();
+                        send(head + body + (cap.value.trim() ? '\n' + cap.value.trim() : ''));
+                    },
+                }),
+            });
+            return box;
+        }
+
         const more = async mode => {
             if (!chat.group) return;
             toast(mode === 'replace' ? '正在重新生成…' : '正在追加…');
@@ -434,12 +477,9 @@ export function mountTelegram(host, { nav }) {
             ),
             h('div', { class: 'mp-tg-page__scroll' }, list),
             h('div', { class: 'mp-tg__media' },
-                h('button', { type: 'button', class: 'mp-chip', text: '表情', onclick: () => {
-                    input.value += ['🙂', '😂', '😭', '🥺', '👀', '👍'][Math.floor(Math.random() * 6)];
-                    input.focus?.();
-                } }),
-                h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => send('📷 [图片] 随手拍的一张') }),
-                h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => send('📹 [视频] 15 秒') }),
+                h('button', { type: 'button', class: 'mp-chip', text: '表情', onclick: () => mediaSheet('表情') }),
+                h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => mediaSheet('图片') }),
+                h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => mediaSheet('视频') }),
             ),
             h('div', { class: 'mp-cm__composer' }, input, h('button', { type: 'button', class: 'mp-cm__send', onclick: () => send() }, '发送')),
         );

@@ -2942,3 +2942,8 @@ html.mp-narrow .mp-status__float { display: grid !important; pointer-events: aut
     animation: mp-more-spin .8s linear infinite;
 }
 @keyframes mp-more-spin { to { transform: rotate(360deg); } }
+
+/* 表情选择器 */
+.mp-emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.mp-emoji-btn { border: none; background: rgba(255, 255, 255, .07); border-radius: 12px; font-size: 20px; line-height: 1; padding: 10px 0; cursor: pointer; color: inherit; }
+.mp-emoji-btn:active { background: rgba(255, 255, 255, .16); }
