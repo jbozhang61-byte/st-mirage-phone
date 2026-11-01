@@ -441,12 +441,30 @@ function mountConversation(host, nav, threadId) {
 
     /* ------------------------------ 输入区 ------------------------------ */
 
+    function videoSheet() {
+        const url = h('input', { class: 'mp-input', type: 'text', placeholder: '视频链接（留空就发一段「现场视频」）' });
+        const caption = h('input', { class: 'mp-input', type: 'text', placeholder: '配一句话（可选）' });
+        const s = sheet({
+            title: '发视频',
+            content: h('div', { class: 'mp-field-list' }, url, caption),
+            actions: h('button', {
+                class: 'mp-btn primary small', type: 'button', text: '发送',
+                onclick: () => {
+                    s.close();
+                    sendMe({ type: 'video', text: '📹 ' + (url.value.trim() || '一段现场视频') + (caption.value.trim() ? '\n' + caption.value.trim() : '') });
+                },
+            }),
+        });
+        return s;
+    }
+
     function buildComposer() {
         const input = h('textarea', { rows: '1', placeholder: '发消息…', 'aria-label': '消息输入框' });
         const sendBtn = h('button', { class: 'mp-composer__send', type: 'button', 'aria-label': '发送', disabled: true }, icon('send'));
         const plusBtn = h('button', { class: 'mp-composer__plus', type: 'button', 'aria-label': '更多', onclick: () => toggleQuick() }, icon('plus'));
         const quick = h('div', { class: 'mp-quick' },
             quickChip('图片', 'image', () => photoSheet()),
+            quickChip('视频', 'play', () => videoSheet()),
             quickChip('语音', 'mic', () => voiceSheet()),
             quickChip('红包', 'envelope', () => moneySheet('redpacket')),
             quickChip('转账', 'transfer', () => moneySheet('transfer')),
@@ -457,6 +475,7 @@ function mountConversation(host, nav, threadId) {
         const panel = h('div', { class: 'mp-composer__panel' });
         const panelItems = [
             ['图片', 'image', () => photoSheet()],
+            ['视频', 'play', () => videoSheet()],
             ['语音', 'mic', () => voiceSheet()],
             ['红包', 'envelope', () => moneySheet('redpacket')],
             ['转账', 'transfer', () => moneySheet('transfer')],

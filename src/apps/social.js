@@ -207,6 +207,7 @@ function mount(host, nav, appId) {
                     h('div', { class: 'mp-soc-page__text', text: item.text }),
                     h('div', { class: 'mp-soc__meta', text: (item.time || '刚刚') + ' · ' + num(item.votes || item.answers || item.likes || 0) + ' 喜欢' }),
                     h('div', { class: 'mp-soc-page__acts' },
+                        item.video ? h('button', { type: 'button', class: 'mp-soc__detail-btn', onclick: () => openVideo(item) }, '▶ 播放') : null,
                         h('button', { type: 'button', class: 'mp-soc__detail-btn', onclick: () => toast('已点赞') }, '♥ 赞'),
                         h('button', { type: 'button', class: 'mp-soc__detail-btn', onclick: () => comments.refresh() }, '换评论'),
                         h('button', { type: 'button', class: 'mp-soc__detail-btn', onclick: () => toast('已收藏') }, '收藏'),
