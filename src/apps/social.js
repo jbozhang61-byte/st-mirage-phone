@@ -193,6 +193,7 @@ function mount(host, nav, appId) {
         if (chip) chip.style.display = 'none';
         const closePage = () => { page.remove(); if (chip) chip.style.display = ''; };
         const input = h('input', { class: 'mp-cm__input', type: 'text', placeholder: '写评论…' });
+        comments.setQuoter?.(quote => { input.value = quote; input.focus?.(); });
         const page = h('div', { class: 'mp-soc-page' },
             h('div', { class: 'mp-soc-page__bar' },
                 h('button', { type: 'button', class: 'mp-soc-page__back', onclick: closePage }, icon('back')),

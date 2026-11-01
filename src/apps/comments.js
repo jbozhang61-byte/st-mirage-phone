@@ -1,5 +1,5 @@
 /** 评论区：全部由 API 生成，可换风格、可刷新。 */
-import { h, icon, avatar, sheet } from '../render.js';
+import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getData, getSettings, saveNow } from '../store.js';
 import { userName } from '../st.js';
 import { generateComments, friendlyError } from '../ai.js';
@@ -18,6 +18,7 @@ export function createComments(item, app = '评论') {
     let loading = false;
     let error = '';
 
+    let quoter = null;
     const head = h('div', { class: 'mp-cm__head' });
     const list = h('div', { class: 'mp-cm__list' });
     const refresh = h('button', { type: 'button', class: 'mp-cm__refresh', 'aria-label': '换一批评论' }, icon('refresh'));
@@ -43,7 +44,15 @@ export function createComments(item, app = '评论') {
                 h('div', { class: 'mp-cm__main' },
                     h('div', { class: 'mp-cm__name', text: comment.name }),
                     h('div', { class: 'mp-cm__text', text: comment.text }),
-                    h('div', { class: 'mp-cm__meta', text: '刚刚 · 回复' }),
+                    h('div', { class: 'mp-cm__meta' }, h('span', { text: '刚刚 · ' }),
+                        h('button', {
+                            type: 'button', class: 'mp-cm__reply', text: '回复',
+                            onclick: () => {
+                                const quote = '> ' + comment.name + '：' + String(comment.text || '').slice(0, 60) + '\n';
+                                if (quoter) quoter(quote);
+                                else toast('这个页面的输入框没接上');
+                            },
+                        })),
                 ),
                 h('button', { type: 'button', class: 'mp-cm__like', onclick: () => { comment.likes = (comment.likes || 0) + 1; draw(); } }, icon('heart'), String(comment.likes || 0)),
             ));
@@ -80,6 +89,7 @@ export function createComments(item, app = '评论') {
 
     return {
         el: h('div', { class: 'mp-cm' }, head, list),
+        setQuoter: fn => { quoter = typeof fn === 'function' ? fn : null; },
         refresh: () => load(true),
         add: text => {
             const value = String(text || '').trim();
@@ -99,6 +109,7 @@ export function createComments(item, app = '评论') {
 export function openComments(item, app = '评论') {
     const panel = createComments(item, app);
     const input = h('input', { type: 'text', placeholder: '说点什么…', class: 'mp-cm__input' });
+    panel.setQuoter?.(quote => { input.value = quote; input.focus?.(); });
     const send = () => {
         const text = input.value.trim();
         if (!text) return;

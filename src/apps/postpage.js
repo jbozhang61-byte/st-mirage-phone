@@ -11,6 +11,7 @@ export function openPostPage({ item, app = '帖子', title = '', body = '', meta
     if (chip) chip.style.display = 'none';
     const comments = createComments(item, app);
     const input = h('input', { class: 'mp-cm__input', type: 'text', placeholder: '写评论…' });
+    comments.setQuoter?.(quote => { input.value = quote; input.focus?.(); });
     const close = () => {
         page.classList.add('is-closing');
         setTimeout(() => { page.remove(); if (chip) chip.style.display = ''; }, 220);
