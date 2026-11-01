@@ -171,8 +171,10 @@ export function createPhone(onOpenChange) {
         type: 'button', class: 'mp-status__close', 'aria-label': '关闭小手机', title: '关闭小手机',
         onclick: event => { event.stopPropagation(); closePhone(); },
     }, icon('close'));
+    // 状态栏右边只留信号 / Wi-Fi / 电量三个图标；窗口开关走桌面悬浮球和设置
+    void floatBtn; void collapseBtn; void closeBtn;
     const statusEl = h('div', { class: 'mp-status' }, timeEl,
-        h('div', { class: 'mp-status__right' }, closeBtn, collapseBtn, floatBtn, signal, icon('wifi'), batt));
+        h('div', { class: 'mp-status__right' }, signal, icon('wifi'), batt));
 
     const wallEl = h('div', { class: 'mp-wallpaper', 'data-wall': 'aurora' });
     refs.wall = wallEl;
