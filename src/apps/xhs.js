@@ -3,7 +3,7 @@
  */
 import { h, icon, avatar, toast } from '../render.js';
 import { getCast } from '../store.js';
-import { loadFeed, refreshFeed, num, moodOf } from './feed-common.js';
+import { loadFeed, refreshFeed, bindAutoMore, num, moodOf } from './feed-common.js';
 import { openSearchSheet } from './search-sheet.js';
 import { openPostPage } from './postpage.js';
 import { artFor } from '../art.js';
@@ -112,5 +112,6 @@ export function mountXhs(host, { nav }) {
 
     renderTabs();
     loadFeed('xhs', render, value => { loading = value; });
+    bindAutoMore(body, () => { if (!loading) refresh(); });
     return { refresh: () => render(items) };
 }

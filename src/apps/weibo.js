@@ -4,7 +4,7 @@
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { openComments } from './comments.js';
 import { openPostPage } from './postpage.js';
-import { loadFeed, refreshFeed, num } from './feed-common.js';
+import { loadFeed, refreshFeed, bindAutoMore, num } from './feed-common.js';
 import { openSearchSheet } from './search-sheet.js';
 
 export function mountWeibo(host, { nav }) {
@@ -142,5 +142,6 @@ export function mountWeibo(host, { nav }) {
     }
 
     loadFeed('weibo', render, value => { loading = value; });
+    bindAutoMore(body, () => { if (!loading) refresh(); });
     return { refresh: () => render(data) };
 }

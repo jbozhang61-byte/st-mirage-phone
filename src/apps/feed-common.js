@@ -64,6 +64,22 @@ function jitter(value) {
     return value;
 }
 
+/** 列表滚到底就自动再拉一批（不用每次点刷新按钮）。 */
+export function bindAutoMore(el, loadMore, gap = 8000) {
+    if (!el || typeof loadMore !== 'function') return;
+    let last = 0;
+    let busy = false;
+    el.addEventListener('scroll', () => {
+        if (busy) return;
+        if (Date.now() - last < gap) return;
+        if (el.scrollTop + el.clientHeight < el.scrollHeight - 180) return;
+        busy = true;
+        last = Date.now();
+        try { loadMore(); } catch { /* ignore */ }
+        setTimeout(() => { busy = false; }, 1500);
+    }, { passive: true });
+}
+
 export function refreshFeed(appId, onUpdate, onLoading) {
     onLoading(true);
     toast('正在刷新…');
