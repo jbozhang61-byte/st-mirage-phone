@@ -64,6 +64,40 @@ function jitter(value) {
     return value;
 }
 
+/**
+ * 底部浮出的胶囊提示。opts: { spinner, action: { text, onClick }, timeout }
+ * 返回 { close }。
+ */
+export function showPill(text, opts = {}) {
+    const host = document.querySelector('.mp-screen') || document.body;
+    const pill = h('div', { class: 'mp-more-pill' });
+    if (opts.spinner) pill.appendChild(h('span', { class: 'mp-more-spin' }));
+    pill.appendChild(h('span', { text }));
+    if (opts.action) {
+        pill.appendChild(h('button', {
+            type: 'button', class: 'mp-more-act', text: opts.action.text,
+            onclick: event => {
+                event.stopPropagation();
+                close();
+                try { opts.action.onClick?.(); } catch { /* ignore */ }
+            },
+        }));
+    }
+    host.appendChild(pill);
+    requestAnimationFrame(() => pill.classList.add('in'));
+    let done = false;
+    let timer = 0;
+    const close = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        pill.classList.remove('in');
+        setTimeout(() => pill.remove(), 240);
+    };
+    if (opts.timeout !== 0) timer = setTimeout(close, opts.timeout || 6000);
+    return { close, el: pill };
+}
+
 /** 列表滚到底就自动再拉一批（不用每次点刷新按钮）。 */
 export function bindAutoMore(el, loadMore, gap = 8000) {
     if (!el || typeof loadMore !== 'function') return;
@@ -72,28 +106,13 @@ export function bindAutoMore(el, loadMore, gap = 8000) {
 
     /** 底部浮出「正在加载更多…」，等列表真的变了（或超时）再收起来。 */
     function showLoading() {
-        const host = document.querySelector('.mp-screen') || document.body;
-        const pill = h('div', { class: 'mp-more-pill' },
-            h('span', { class: 'mp-more-spin' }),
-            h('span', { text: '正在加载更多…' }));
-        host.appendChild(pill);
-        requestAnimationFrame(() => pill.classList.add('in'));
-        let done = false;
-        let timer = 0;
+        const pill = showPill('正在加载更多…', { spinner: true, timeout: 12000 });
         let mo = null;
-        const hide = () => {
-            if (done) return;
-            done = true;
-            try { mo?.disconnect(); } catch { /* ignore */ }
-            clearTimeout(timer);
-            pill.classList.remove('in');
-            setTimeout(() => pill.remove(), 240);
-        };
+        const hide = () => { try { mo?.disconnect(); } catch { /* ignore */ } pill.close(); };
         try {
             mo = new MutationObserver(() => setTimeout(hide, 350));
             mo.observe(el, { childList: true });
         } catch { /* ignore */ }
-        timer = setTimeout(hide, 12000);
         return hide;
     }
 
@@ -148,7 +167,19 @@ export function refreshFeed(appId, onUpdate, onLoading) {
             if (!merged.length) { toast('这次没拿到新内容'); return; }
             persistFeed(appId, merged);
             onUpdate(merged);
-            toast('又来了 ' + Math.max(0, merged.length - prev.length) + ' 条');
+            const before = Array.isArray(prev) ? prev : [];
+            showPill('又来了 ' + Math.max(0, merged.length - before.length) + ' 条', {
+                timeout: 6000,
+                action: {
+                    text: '撤销',
+                    onClick: () => {
+                        // 撤销：把列表退回加载前的那一版
+                        persistFeed(appId, before);
+                        onUpdate(before.slice());
+                        toast('已撤销这批');
+                    },
+                },
+            });
         })
         .catch(error => {
             const fallback = fallbackFor(appId);
