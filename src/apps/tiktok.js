@@ -9,7 +9,7 @@ import { getFeed, setFeed, saveNow } from '../store.js';
 import { userName } from '../st.js';
 import { openVideo } from './video.js';
 
-import { loadFeed, refreshFeed, num, moodOf } from './feed-common.js';
+import { loadFeed, bindAutoMore, refreshFeed, num, moodOf } from './feed-common.js';
 
 export function mountTikTok(host, { nav }) {
     nav.setChrome?.('dark');
@@ -270,5 +270,6 @@ export function mountTikTok(host, { nav }) {
     }
 
     loadFeed('tiktok', render, value => { loading = value; });
+    bindAutoMore(body, () => { if (!loading) refresh(); });
     return { refresh: () => render(items), destroy: () => window.removeEventListener('mp-image', applyImages) };
 }

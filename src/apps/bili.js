@@ -3,7 +3,7 @@
  */
 import { h, icon, avatar, toast } from '../render.js';
 import { openVideo } from './video.js';
-import { loadFeed, refreshFeed, moodOf } from './feed-common.js';
+import { loadFeed, bindAutoMore, refreshFeed, moodOf } from './feed-common.js';
 import { openSearchSheet } from './search-sheet.js';
 
 export function mountBili(host, { nav }) {
@@ -80,5 +80,6 @@ export function mountBili(host, { nav }) {
     }
 
     loadFeed('bili', render, value => { loading = value; });
+    bindAutoMore(body, () => { if (!loading) refresh(); });
     return { refresh: () => render(items) };
 }
