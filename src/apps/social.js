@@ -1,6 +1,6 @@
 /** 六个社交 App 的界面：同一套骨架，按 App 换布局。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
-import { num, moodOf, feedContext, bindAutoMore } from './feed-common.js';
+import { num, moodOf, feedContext, bindAutoMore, showPill } from './feed-common.js';
 import { SOCIAL } from '../social.js';
 import { generateSocial, friendlyError } from '../ai.js';
 import { getCast, getFeed, setFeed, saveNow, getData } from '../store.js';
@@ -302,9 +302,15 @@ function mount(host, nav, appId) {
     function refresh() {
         if (loading) return;
         loading = true;
-        toast('正在刷新…');
+        let cancelled = false;
+        const pill = showPill('正在加载更多…', {
+            spinner: true,
+            timeout: 15000,
+            action: { text: '取消', onClick: () => { cancelled = true; toast('已取消这次加载'); } },
+        });
         generateSocial(appId)
             .then(next => {
+                if (cancelled) return;
                 // 追加，不覆盖：原来刷出来的帖子一条不删
                 const seen = new Set(items.map(item => item && (item.id || item.title || item.text)));
                 const added = (Array.isArray(next) ? next : []).filter(item => {
@@ -318,8 +324,28 @@ function mount(host, nav, appId) {
                 render(merged);
                 toast('又来了 ' + added.length + ' 条');
             })
-            .catch(error => toast(friendlyError(error), 3200))
-            .finally(() => { loading = false; });
+            .catch(error => {
+                if (cancelled) return;
+                toast(friendlyError(error), 3200);
+                // 模型不通时也补几条本地内容，别让"加载更多"毫无反应
+                const fallback = config.fallback(feedContext());
+                const seen = new Set(items.map(item => item && (item.id || item.title || item.text)));
+                const added = (Array.isArray(fallback) ? fallback : []).filter(item => {
+                    const key = item && (item.id || item.title || item.text);
+                    if (!key || seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+                if (added.length) {
+                    const merged = [...items, ...added];
+                    try { setFeed(appId, merged); } catch { /* ignore */ }
+                    render(merged);
+                }
+            })
+            .finally(() => {
+                try { pill.close(); } catch { /* ignore */ }
+                loading = false;
+            });
     }
 
     const cached = getFeed(appId);

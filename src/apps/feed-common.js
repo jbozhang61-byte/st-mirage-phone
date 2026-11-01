@@ -101,6 +101,17 @@ export function showPill(text, opts = {}) {
 /** 列表滚到底就自动再拉一批（不用每次点刷新按钮）。 */
 export function bindAutoMore(el, loadMore, gap = 8000) {
     if (!el || typeof loadMore !== 'function') return;
+    // 传进来的可能只是内容容器，真正的滚动层在上面几层
+    try {
+        let node = el;
+        for (let depth = 0; depth < 4 && node; depth += 1) {
+            const style = getComputedStyle(node);
+            const scrollable = /(auto|scroll)/.test(style.overflowY) && node.scrollHeight > node.clientHeight + 4;
+            if (scrollable) break;
+            node = node.parentElement;
+        }
+        if (node && node !== el) el = node;
+    } catch { /* ignore */ }
     let last = 0;
     let busy = false;
 
