@@ -111,20 +111,28 @@ export function refreshFeed(appId, onUpdate, onLoading) {
     const prev = getFeed(appId)?.items || [];
     generateFeed(appId)
         .then(items => {
-            // 追加，不覆盖：原来滚动出来的帖子一条都不删
-            const merged = mergeLists(prev, items);
+            // 生成过程里 generateFeed 自己会 setFeed(新的一批)，把旧帖盖掉；
+            // 所以这里要 "生成前拿到的 prev" + "现在缓存里的" + "返回的 items" 三者合并
+            const latest = getFeed(appId)?.items || [];
+            const base = mergeLists(prev, latest);
+            const merged = mergeLists(base, items);
+            if (!merged.length) { toast('这次没拿到新内容'); return; }
             persistFeed(appId, merged);
             onUpdate(merged);
             toast('又来了 ' + Math.max(0, merged.length - prev.length) + ' 条');
         })
         .catch(error => {
             const fallback = fallbackFor(appId);
+            const latest = getFeed(appId)?.items || prev;
             if (fallback) {
-                const merged = mergeLists(prev, jitter(fallback));
-                persistFeed(appId, merged);
-                onUpdate(merged);
+                const merged = mergeLists(latest, jitter(fallback));
+                if (merged.length) {
+                    persistFeed(appId, merged);
+                    onUpdate(merged);
+                }
                 toast('AI 这次没返回，先补几条本地内容', 2600);
             } else {
+                // 没有兜底就保持现状：绝不把已有列表刷成空
                 toast(friendlyError(error), 3200);
             }
         })
