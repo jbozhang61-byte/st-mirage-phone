@@ -30,7 +30,12 @@ function seedFor(person, index) {
             ? ['私处', '大腿内侧', sensitive[hash % sensitive.length], sensitive[(hash + 3) % sensitive.length]]
             : [sensitive[hash % sensitive.length], sensitive[(hash + 3) % sensitive.length], sensitive[(hash + 6) % sensitive.length]],
         outfit: {
-            top: ['旧夹克', '针织衫', '深色衬衫', '长外套'][hash % 4],
+            // 角色卡里写过的衣着优先，别再随机生成一套跟卡面不符的
+            top: (() => {
+                const text = String(person.desc || '') + ' ' + String(person.role || '') + ' ' + String(person.style || '');
+                const hit = text.match(/穿(?:着|了)?([^，。；、\n]{2,14})/);
+                return hit ? hit[1].trim() : ['旧夹克', '针织衫', '深色衬衫', '长外套'][hash % 4];
+            })(),
             bottom: ['深色长裤', '半身裙', '牛仔裤', '工装裤'][(hash >> 1) % 4],
             underwearTop: ['白色棉质内衣', '黑色无痕内衣', '浅灰运动内衣'][(hash >> 2) % 3],
             underwearBottom: ['白色棉质内裤', '黑色无痕内裤', '浅灰平角内裤'][(hash >> 3) % 3],

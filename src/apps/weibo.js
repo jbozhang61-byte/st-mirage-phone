@@ -33,7 +33,7 @@ export function mountWeibo(host, { nav }) {
                 h('div', { class: 'mp-wb__hot-title' }, icon('flame'), h('span', { text: '微博热搜' })),
             );
             data.hot.forEach((item, index) => {
-                hot.appendChild(h('div', { class: 'mp-wb__hot-row', onclick: () => openSearch(item.title) },
+                hot.appendChild(h('div', { class: 'mp-wb__hot-row', onclick: () => openHot(item) },
                     h('span', { class: 'mp-wb__rank' + (index < 3 ? ' top' : ''), text: String(index + 1) }),
                     h('span', { class: 'mp-wb__hot-name', text: item.title }),
                     item.tag ? h('span', { class: 'mp-wb__tag ' + item.tag, text: item.tag }) : null,
@@ -104,6 +104,23 @@ export function mountWeibo(host, { nav }) {
                     render(items);
                 },
             }),
+        });
+    }
+
+    /** 热搜点开：没有对应帖子也照样能打开整页（本地兜底 + 评论区）。 */
+    function openHot(item) {
+        const topic = String(item?.title || '热搜');
+        const related = (data.posts || []).find(post => String(post.text || '').includes(topic) || String(post.topic || '').includes(topic));
+        const body = related?.text
+            ? related.text + '\n\n#' + topic + '#'
+            : '关于「' + topic + '」的讨论今天突然多了起来。\n有人说在旧城见过相关的事，也有人说只是营销号在带节奏，评论区分成了两派。\n\n#' + topic + '#';
+        openPostPage({
+            item: related || { title: topic, text: body, id: 'hot-' + topic },
+            app: '微博',
+            title: '#' + topic + '#',
+            body,
+            meta: '热搜 · ' + (item?.heat || '') + ' · 刚刚',
+            image: related?.image || '',
         });
     }
 
