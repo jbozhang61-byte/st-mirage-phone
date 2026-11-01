@@ -138,10 +138,16 @@ export function mountWeibo(host, { nav }) {
     function refresh() {
         loading = true;
         toast('正在刷新热搜…');
-        refreshFeed('weibo', render, value => { loading = value; });
+        // 刷新按钮：整页重新生成
+    refreshFeed('weibo', render, value => { loading = value; }, { replace: true });
     }
 
     loadFeed('weibo', render, value => { loading = value; });
-    bindAutoMore(body, () => { if (!loading) refresh(); });
+    // 下滑到底：追加，不覆盖
+    bindAutoMore(body, () => {
+        if (loading) return;
+        loading = true;
+        refreshFeed('weibo', render, value => { loading = value; });
+    });
     return { refresh: () => render(data) };
 }

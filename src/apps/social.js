@@ -33,7 +33,7 @@ function mount(host, nav, appId) {
         h('div', { class: 'mp-soc__tools' },
             h('button', { type: 'button', class: 'mp-soc__me', 'aria-label': '个人主页', onclick: () => openProfile(appId, items) }, avatar({ name: userName() || '我', size: 24, src: personaAvatarUrl() })),
             ['x', 'reddit', 'zhihu', 'quora'].includes(appId) ? h('button', { type: 'button', class: 'mp-soc__refresh', 'aria-label': '发帖', onclick: () => openComposer() }, icon('plus')) : null,
-            h('button', { type: 'button', class: 'mp-soc__refresh', 'aria-label': '刷新', onclick: () => refresh() }, icon('refresh')),
+            h('button', { type: 'button', class: 'mp-soc__refresh', 'aria-label': '刷新', onclick: () => refresh('replace') }, icon('refresh')),
         ),
     );
     el.append(head, body);
@@ -299,7 +299,9 @@ function mount(host, nav, appId) {
         return grid;
     }
 
-    function refresh() {
+    /** mode='replace' 是刷新按钮（整页重新生成）；默认 'append' 是下滑加载。 */
+    function refresh(mode = 'append') {
+        const replace = mode === 'replace';
         if (loading) return;
         loading = true;
         let cancelled = false;
@@ -311,6 +313,13 @@ function mount(host, nav, appId) {
         generateSocial(appId)
             .then(next => {
                 if (cancelled) return;
+                if (replace) {
+                    const fresh = Array.isArray(next) ? next : [];
+                    try { setFeed(appId, fresh); } catch { /* ignore */ }
+                    render(fresh);
+                    toast('已重新生成 ' + fresh.length + ' 条');
+                    return;
+                }
                 // 追加，不覆盖：原来刷出来的帖子一条不删
                 const seen = new Set(items.map(item => item && (item.id || item.title || item.text)));
                 const added = (Array.isArray(next) ? next : []).filter(item => {
@@ -354,6 +363,6 @@ function mount(host, nav, appId) {
         render(config.fallback(feedContext()));
         generateSocial(appId).then(render).catch(error => toast(friendlyError(error), 3000));
     }
-    bindAutoMore(body, () => refresh());
+    bindAutoMore(body, () => refresh('append'));
     return { refresh: () => render(items), destroy: () => window.removeEventListener('mp-image', applyImages) };
 }

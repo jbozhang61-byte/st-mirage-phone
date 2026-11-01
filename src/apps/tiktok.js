@@ -266,10 +266,16 @@ export function mountTikTok(host, { nav }) {
         if (loading) return;
         loading = true;
         toast('正在刷新视频…');
-        refreshFeed('tiktok', render, value => { loading = value; });
+        // 刷新按钮：整页重新生成
+    refreshFeed('tiktok', render, value => { loading = value; }, { replace: true });
     }
 
     loadFeed('tiktok', render, value => { loading = value; });
-    bindAutoMore(body, () => { if (!loading) refresh(); });
+    // 下滑到底：追加，不覆盖
+    bindAutoMore(body, () => {
+        if (loading) return;
+        loading = true;
+        refreshFeed('tiktok', render, value => { loading = value; });
+    });
     return { refresh: () => render(items), destroy: () => window.removeEventListener('mp-image', applyImages) };
 }

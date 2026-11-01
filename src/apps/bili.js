@@ -76,10 +76,16 @@ export function mountBili(host, { nav }) {
         if (loading) return;
         loading = true;
         toast('正在刷新视频…');
-        refreshFeed('bili', render, value => { loading = value; });
+        // 刷新按钮：整页重新生成
+    refreshFeed('bili', render, value => { loading = value; }, { replace: true });
     }
 
     loadFeed('bili', render, value => { loading = value; });
-    bindAutoMore(body, () => { if (!loading) refresh(); });
+    // 下滑到底：追加，不覆盖
+    bindAutoMore(body, () => {
+        if (loading) return;
+        loading = true;
+        refreshFeed('bili', render, value => { loading = value; });
+    });
     return { refresh: () => render(items) };
 }

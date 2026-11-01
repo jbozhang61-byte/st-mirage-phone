@@ -107,11 +107,17 @@ export function mountXhs(host, { nav }) {
     function refresh() {
         loading = true;
         toast('正在刷新笔记…');
-        refreshFeed('xhs', render, value => { loading = value; });
+        // 刷新按钮：整页重新生成
+    refreshFeed('xhs', render, value => { loading = value; }, { replace: true });
     }
 
     renderTabs();
     loadFeed('xhs', render, value => { loading = value; });
-    bindAutoMore(body, () => { if (!loading) refresh(); });
+    // 下滑到底：追加，不覆盖
+    bindAutoMore(body, () => {
+        if (loading) return;
+        loading = true;
+        refreshFeed('xhs', render, value => { loading = value; });
+    });
     return { refresh: () => render(items) };
 }

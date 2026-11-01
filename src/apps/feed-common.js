@@ -221,10 +221,16 @@ function countOf(value) {
     return 0;
 }
 
-export function refreshFeed(appId, onUpdate, onLoading) {
+/**
+ * 拉一批内容。
+ * @param {{replace?: boolean}} options replace=true 是「刷新按钮」语义：整页重新生成；
+ *   默认 false 是「下滑加载」语义：旧的全部保留，新的接在后面。
+ */
+export function refreshFeed(appId, onUpdate, onLoading, options = {}) {
+    const replace = !!options.replace;
     onLoading(true);
     let cancelled = false;
-    const pill = showPill('正在加载更多…', {
+    const pill = showPill(replace ? '正在重新生成…' : '正在加载更多…', {
         spinner: true,
         timeout: 15000,
         action: { text: '取消', onClick: () => { cancelled = true; toast('已取消这次加载'); } },
@@ -235,14 +241,14 @@ export function refreshFeed(appId, onUpdate, onLoading) {
             if (cancelled) return;
             // 生成过程里 generateFeed 自己会 setFeed(新的一批)，把旧帖盖掉；
             // 所以这里要 "生成前拿到的 prev" + "现在缓存里的" + "返回的 items" 三者合并
+            // 刷新按钮 = 重新生成，不保留旧的
             const latest = getFeed(appId)?.items || [];
-            const base = mergeLists(prev, latest);
-            const merged = mergeLists(base, items);
+            const merged = replace ? items : mergeLists(mergeLists(prev, latest), items);
             if (!countOf(merged)) { toast('这次没拿到新内容'); return; }
             persistFeed(appId, merged);
             onUpdate(merged);
             const before = prev;
-            showPill('又来了 ' + Math.max(0, countOf(merged) - countOf(before)) + ' 条', {
+            showPill(replace ? '已重新生成 ' + countOf(merged) + ' 条' : '又来了 ' + Math.max(0, countOf(merged) - countOf(before)) + ' 条', {
                 timeout: 6000,
                 action: {
                     text: '撤销',
@@ -260,7 +266,7 @@ export function refreshFeed(appId, onUpdate, onLoading) {
             const fallback = fallbackFor(appId);
             const latest = getFeed(appId)?.items || prev;
             if (fallback) {
-                const merged = mergeLists(latest, jitter(fallback));
+                const merged = replace ? jitter(fallback) : mergeLists(latest, jitter(fallback));
                 if (countOf(merged)) {
                     persistFeed(appId, merged);
                     onUpdate(merged);

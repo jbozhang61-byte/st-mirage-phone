@@ -166,9 +166,11 @@ export function mountTieba(host, { nav }) {
         }
     }
 
-    async function refresh() {
+    /** mode='replace' 是刷新按钮（整页重新生成）；默认 'append' 是下滑加载。 */
+    async function refresh(mode = 'append') {
+        const replace = mode === 'replace';
         const target = selected || forums()[0] || '旧城吧';
-        toast('正在刷新 ' + target + '…');
+        toast(replace ? '正在重新生成 ' + target + '…' : '正在加载更多…');
         try {
             const result = await generateMore({ kind: 'tieba', name: target, style: forumStyle(target), count: 4 });
             const cast = getCast();
@@ -183,10 +185,15 @@ export function mountTieba(host, { nav }) {
                 image: '',
             }));
             const cached = getFeed('tieba')?.items || [];
-            if (posts.length) setFeed('tieba', [...posts, ...cached]);
-            else setFeed('tieba', cached.map(post => ({ ...post, replies: post.replies + Math.floor(Math.random() * 5) })));
+            if (replace) {
+                setFeed('tieba', posts);
+            } else if (posts.length) {
+                setFeed('tieba', [...posts, ...cached]);
+            } else {
+                setFeed('tieba', cached.map(post => ({ ...post, replies: post.replies + Math.floor(Math.random() * 5) })));
+            }
             render();
-            toast('刷新好了');
+            toast(replace ? '已重新生成' : '又来了 ' + posts.length + ' 条');
         } catch (error) {
             const cached = getFeed('tieba')?.items || [];
             setFeed('tieba', cached.map(post => ({ ...post, replies: post.replies + Math.floor(Math.random() * 9), likes: post.likes + Math.floor(Math.random() * 5) })));
@@ -217,6 +224,6 @@ export function mountTieba(host, { nav }) {
             }
         }).catch(() => {});
     }
-    bindAutoMore(body, () => { if (typeof refresh === 'function') refresh(); });
+    bindAutoMore(body, () => { if (typeof refresh === 'function') refresh('append'); });
     return { refresh: render };
 }
