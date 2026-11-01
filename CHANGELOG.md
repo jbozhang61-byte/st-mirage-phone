@@ -1,5 +1,12 @@
 # 更新日志
 
+## 1.5.41 — 2026-11-01
+
+- **真正修掉 social 类「覆盖」**：X / Instagram / Reddit / 知乎 的 `refresh()` 原来是
+  `generateSocial().then(next => render(next))` —— `render` 会把 `items` 整个换成新的，旧帖全没。
+  现在先按 id/标题去重合并，写回缓存再 render，提示改成「又来了 N 条」
+- 贴吧本来就是 `setFeed('tieba', [...posts, ...cached])`（新帖接在前面），不用改
+
 ## 1.5.40 — 2026-11-01
 
 - **私聊页铺满应用**：Telegram / Signal 的对话框改成 flex 撑满整页（去掉 300px 的 max-height、去掉滚动条），

@@ -304,7 +304,20 @@ function mount(host, nav, appId) {
         loading = true;
         toast('正在刷新…');
         generateSocial(appId)
-            .then(next => { render(next); toast('刷新好了'); })
+            .then(next => {
+                // 追加，不覆盖：原来刷出来的帖子一条不删
+                const seen = new Set(items.map(item => item && (item.id || item.title || item.text)));
+                const added = (Array.isArray(next) ? next : []).filter(item => {
+                    const key = item && (item.id || item.title || item.text);
+                    if (!key || seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+                const merged = [...items, ...added];
+                try { setFeed(appId, merged); } catch { /* ignore */ }
+                render(merged);
+                toast('又来了 ' + added.length + ' 条');
+            })
             .catch(error => toast(friendlyError(error), 3200))
             .finally(() => { loading = false; });
     }
