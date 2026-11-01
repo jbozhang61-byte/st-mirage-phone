@@ -498,6 +498,60 @@ export async function browse(query) {
     return { ...webFallback({ query, world, people }), url: query, ts: Date.now() };
 }
 
+/** 浏览器：先出一个"搜索结果页"（一排排条目），点进去再生成正文。 */
+export async function searchWeb(query) {
+    const user = userName();
+    const current = currentCharacter();
+    const world = current?.group ? current.name : (current?.name || '');
+    const people = getCast().map(person => person.name);
+    const story = storyContext(80, 320);
+    const memory = memoryContext(12);
+    const value = String(query || '').slice(0, 80);
+    try {
+        const raw = await generateText({
+            system: [
+                webSystemPrompt({ world, people, user, story, memory }),
+                '这次你扮演一个搜索结果页，不是网页正文。只输出 JSON：',
+                '{"results":[{"site":"百科","title":"…","url":"…","snippet":"…"}],"related":["…"]}',
+                'site 只能是：百科 / 文库 / 新闻 / 论坛 / 知乎 / 贴吧 / 官网 / 博客 / 视频 / 地图。',
+                '给 8 到 10 条结果，snippet 40-90 字，标题像真搜索结果那样具体。',
+            ].filter(Boolean).join('\n'),
+            prompt: '搜索：' + value,
+            length: 1400,
+            json: true,
+        });
+        const json = extractJson(raw);
+        const list = Array.isArray(json?.results) ? json.results : [];
+        if (list.length) {
+            return {
+                type: 'results',
+                query: value,
+                results: list.slice(0, 10).map((entry, index) => ({
+                    site: String(entry?.site || '网页').slice(0, 8),
+                    title: String(entry?.title || '结果 ' + (index + 1)).slice(0, 80),
+                    url: String(entry?.url || '').slice(0, 80),
+                    snippet: String(entry?.snippet || '').slice(0, 180),
+                })),
+                related: (Array.isArray(json?.related) ? json.related : []).map(item => String(item).slice(0, 24)).slice(0, 6),
+                ts: Date.now(),
+            };
+        }
+    } catch { /* 本地兜底 */ }
+    const sites = ['百科', '文库', '新闻', '论坛', '知乎', '贴吧'];
+    return {
+        type: 'results',
+        query: value,
+        results: sites.map(site => ({
+            site,
+            title: value + ' · ' + site,
+            url: site + '.oldcity/' + encodeURIComponent(value.slice(0, 12)),
+            snippet: '关于「' + value + '」的' + site + '条目，收录了旧城这边的说法和几条近期更新。',
+        })),
+        related: [value + ' 怎么回事', value + ' 最新', value + ' 讨论'],
+        ts: Date.now(),
+    };
+}
+
 /** 商店里的社交 App：拉一次内容。 */
 export async function generateSocial(appId) {
     const config = SOCIAL[appId];

@@ -2955,3 +2955,23 @@ html.mp-narrow .mp-status__float { display: grid !important; pointer-events: aut
     font: inherit; font-size: 12px; cursor: pointer; pointer-events: auto;
 }
 .mp-more-act:active { background: rgba(255, 180, 84, .3); }
+
+/* 浏览器搜索结果页 */
+.mp-br__results { display: flex; flex-direction: column; gap: 14px; padding: 12px 14px 28px; }
+.mp-br__results-meta { font-size: 11px; color: rgba(255, 255, 255, .45); }
+.mp-br__result {
+    display: block; width: 100%; text-align: left; border: none; background: none;
+    color: inherit; padding: 0 0 12px; cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+.mp-br__result-top { display: flex; align-items: center; gap: 8px; font-size: 10px; color: rgba(255, 255, 255, .5); }
+.mp-br__result-site { color: #9fd0ff; flex: none; }
+.mp-br__result-url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-br__result-title { font-size: 15px; line-height: 1.35; color: #8ab4ff; margin: 3px 0 3px; }
+.mp-br__result-snippet { font-size: 12px; line-height: 1.55; color: rgba(255, 255, 255, .66); }
+.mp-br__related-label { font-size: 11px; color: rgba(255, 255, 255, .45); margin-top: 4px; }
+.mp-br__related { display: flex; flex-wrap: wrap; gap: 8px; }
+.mp-br__chip {
+    border: 1px solid rgba(255, 255, 255, .14); background: rgba(255, 255, 255, .06);
+    color: #cfd7e3; border-radius: 999px; padding: 5px 11px; font-size: 11px; cursor: pointer;
+}
