@@ -355,6 +355,8 @@ export function mountTelegram(host, { nav }) {
                 },
                     h('div', { class: 'mp-tg__bname', text: line.name }), line.text));
             }
+            // 像「消息」一样：新消息进来就贴在底部
+            requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
         };
         draw();
         const input = h('input', { class: 'mp-cm__input', type: 'text', placeholder: '发消息…' });
@@ -381,11 +383,17 @@ export function mountTelegram(host, { nav }) {
             chat.messages = messages;
             draw();
             saveChat();
+            // 8 秒还没等到模型，就先把占位换成一句能看的，别留个空气泡
+            const guard = setTimeout(() => {
+                if (pending.text === '…') { pending.text = '……'; draw(); }
+            }, 8000);
             try {
                 const reply = await replyInChat({ app: 'Telegram', chat, messages });
-                pending.text = reply || pending.text;
+                pending.text = reply || '……';
             } catch {
                 pending.text = '在的。';
+            } finally {
+                clearTimeout(guard);
             }
             chat.preview = pending.text;
             draw();
