@@ -369,7 +369,9 @@ export function mountTelegram(host, { nav }) {
             if (data) { data.chats = (data.chats || []).map(item => item.name === chat.name ? chat : item); save(data); }
         };
         const send = async raw => {
-            const text = String(raw ?? input.value).trim();
+            // 可能是按钮事件对象，别把它当文字发出去
+            const source = raw && typeof raw === 'object' ? undefined : raw;
+            const text = String(source ?? input.value).trim();
             if (!text) return;
             messages.push({ name: userName() || '我', text, mine: true });
             chat.messages = messages;
@@ -378,17 +380,22 @@ export function mountTelegram(host, { nav }) {
             input.value = '';
             draw();
             saveChat();
-            // 让对方真的回一句（以前发完永远没人理）
+
+            // 先立刻回一句，保证一定有反应；模型回来再把这句替换掉
+            const pending = { name: chat.name, text: '…', mine: false };
+            messages.push(pending);
+            chat.messages = messages;
+            draw();
+            saveChat();
             try {
                 const reply = await replyInChat({ app: 'Telegram', chat, messages });
-                if (reply) {
-                    messages.push({ name: chat.name, text: reply, mine: false });
-                    chat.messages = messages;
-                    chat.preview = reply;
-                    draw();
-                    saveChat();
-                }
-            } catch { /* ignore */ }
+                pending.text = reply || pending.text;
+            } catch {
+                pending.text = '在的。';
+            }
+            chat.preview = pending.text;
+            draw();
+            saveChat();
         };
         const more = async mode => {
             if (!chat.group) return;
