@@ -104,19 +104,48 @@ export function bindAutoMore(el, loadMore, gap = 8000) {
     let last = 0;
     let busy = false;
 
-    let armed = false;
-    el.addEventListener('scroll', () => {
+    const THRESHOLD = 110;          // 到底之后还要再"拉"这么多像素
+    let pull = 0;
+    let touchY = null;
+
+    const atBottom = () => el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
+
+    const fire = () => {
         if (busy) return;
-        const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
-        if (!atBottom) { armed = false; return; }     // 没贴底就复位
-        if (!armed) { armed = true; return; }          // 贴底的第一下只是"就位"
-        if (Date.now() - last < gap) return;           // 冷却，别一滑就刷
+        if (Date.now() - last < gap) return;
         busy = true;
-        armed = false;
+        pull = 0;
         last = Date.now();
         try { loadMore(); } catch { /* ignore */ }
         setTimeout(() => { busy = false; }, 1500);
+    };
+
+    // 滚轮 / 触控板
+    el.addEventListener('wheel', event => {
+        if (!atBottom()) { pull = 0; return; }
+        if (event.deltaY > 0) pull += event.deltaY;
+        else pull = Math.max(0, pull + event.deltaY);
+        if (pull >= THRESHOLD) fire();
     }, { passive: true });
+
+    // 手指
+    el.addEventListener('touchstart', event => {
+        touchY = event.touches?.[0]?.clientY ?? null;
+        pull = 0;
+    }, { passive: true });
+    el.addEventListener('touchmove', event => {
+        const y = event.touches?.[0]?.clientY;
+        if (touchY == null || typeof y !== 'number') return;
+        const dy = touchY - y;     // 手指往上推 = 内容往下滚
+        touchY = y;
+        if (!atBottom()) { pull = 0; return; }
+        if (dy > 0) pull += dy;
+        else pull = Math.max(0, pull + dy);
+        if (pull >= THRESHOLD) fire();
+    }, { passive: true });
+
+    // 离开底部就清零
+    el.addEventListener('scroll', () => { if (!atBottom()) pull = 0; }, { passive: true });
 }
 
 /** 把新一批接到旧的前面/后面：同 id（或同标题）的不重复，旧的永远保留。 */
@@ -141,6 +170,15 @@ function mergeArrays(prev, next) {
  */
 function mergeLists(prev, next) {
     const isObj = value => value && typeof value === 'object' && !Array.isArray(value);
+    if (isObj(prev) && Array.isArray(next)) {
+        // 微博：缓存是 {hot, posts}，但 generateFeed 回来的是 posts 数组
+        return { ...prev, posts: mergeArrays(prev.posts || [], next) };
+    }
+    if (Array.isArray(prev) && isObj(next)) {
+        return isObj(next) && Array.isArray(next.posts)
+            ? { ...next, posts: mergeArrays(prev, next.posts) }
+            : mergeArrays(prev, next.items || []);
+    }
     if (isObj(prev) && isObj(next)) {
         const out = { ...next };
         for (const key of ['posts', 'items', 'hot']) {
