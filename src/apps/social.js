@@ -1,6 +1,6 @@
 /** 六个社交 App 的界面：同一套骨架，按 App 换布局。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
-import { num, moodOf, feedContext } from './feed-common.js';
+import { num, moodOf, feedContext, bindAutoMore } from './feed-common.js';
 import { SOCIAL } from '../social.js';
 import { generateSocial, friendlyError } from '../ai.js';
 import { getCast, getFeed, setFeed, saveNow, getData } from '../store.js';
@@ -315,5 +315,6 @@ function mount(host, nav, appId) {
         render(config.fallback(feedContext()));
         generateSocial(appId).then(render).catch(error => toast(friendlyError(error), 3000));
     }
+    bindAutoMore(body, () => refresh());
     return { refresh: () => render(items), destroy: () => window.removeEventListener('mp-image', applyImages) };
 }

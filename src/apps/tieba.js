@@ -217,5 +217,6 @@ export function mountTieba(host, { nav }) {
             }
         }).catch(() => {});
     }
+    bindAutoMore(body, () => { if (typeof refresh === 'function') refresh(); });
     return { refresh: render };
 }
