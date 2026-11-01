@@ -75,6 +75,8 @@ function boot() {
         getSettings().version = VERSION;
         saveNow('settings');
     }
+    // 恢复"小号"身份（userName() 读这个全局），每次启动都要设
+    globalThis.__mpActiveAlt = String(getSettings().activeAlt || '');
     globalThis.__mpAvatarUrl = name => avatarUrl(name);
     globalThis.__mpArtPack = getSettings().artPack !== false;
     globalThis.__mpRealPhotos = getSettings().realPhotos !== false;

@@ -76,6 +76,9 @@ export function defaultSettings() {
         replyInGroup: true,
         showSpoilers: false,
         signature: '把手机放进剧情里',
+        // 小号：换一个身份去发帖，评论就不会一窝蜂地喊"主角出来了"
+        alts: [],
+        activeAlt: '',
         firstRun: true,
         installId: '',
     };

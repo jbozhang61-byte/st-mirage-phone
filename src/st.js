@@ -18,8 +18,11 @@ export function hasTavern() {
     return !!ctx();
 }
 
-/** 用户 / 角色名。 */
+/** 用户 / 角色名。切了小号时返回小号的名字。 */
 export function userName() {
+    // 用小号时全局记着当前身份（避免和 store 形成循环依赖）
+    const alt = String(globalThis.__mpActiveAlt || '').trim();
+    if (alt) return alt;
     const c = ctx();
     return String(c?.name1 || c?.name || '我').trim();
 }

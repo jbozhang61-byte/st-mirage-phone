@@ -77,6 +77,58 @@ export function mountSettings(host, { nav }) {
                 h('div', { class: 'mp-field' }, textInput(settings.signature || '', '写一句话', value => { patchSettings('signature', value); }))),
         ]));
 
+        /* ---------------- 小号 ---------------- */
+        const alts = Array.isArray(settings.alts) ? settings.alts.slice() : [];
+        const altList = h('div', { class: 'mp-field-list' },
+            h('button', {
+                type: 'button', class: 'mp-chip' + (!settings.activeAlt ? ' on' : ''), text: '本人',
+                onclick: () => {
+                    settings.activeAlt = '';
+                    globalThis.__mpActiveAlt = '';
+                    saveNow('settings');
+                    render();
+                    toast('已切回本人');
+                },
+            }),
+            ...alts.map(name => h('button', {
+                type: 'button', class: 'mp-chip' + (settings.activeAlt === name ? ' on' : ''), text: name,
+                onclick: () => {
+                    settings.activeAlt = name;
+                    globalThis.__mpActiveAlt = name;
+                    saveNow('settings');
+                    render();
+                    toast('已切到小号：' + name);
+                },
+                oncontextmenu: event => {
+                    event.preventDefault();
+                    settings.alts = (settings.alts || []).filter(item => item !== name);
+                    if (settings.activeAlt === name) { settings.activeAlt = ''; globalThis.__mpActiveAlt = ''; }
+                    saveNow('settings');
+                    render();
+                    toast('已删除小号 ' + name);
+                },
+            })),
+        );
+        const altInput = h('input', { type: 'text', placeholder: '新小号的名字', class: 'mp-input' });
+        wrap.appendChild(section('小号', [
+            row({ icon: 'users', label: '切换身份', hint: '发帖/评论用的名字；长按小号可删除' }, altList),
+            row({ icon: 'plus', label: '添加小号', hint: '比如"匿名路人""信息小道"' },
+                h('div', { class: 'mp-field-list' },
+                    altInput,
+                    h('button', {
+                        type: 'button', class: 'mp-btn primary small', text: '添加',
+                        onclick: () => {
+                            const name = String(altInput.value || '').trim().slice(0, 16);
+                            if (!name) { toast('先写个名字'); return; }
+                            settings.alts = [...new Set([...(settings.alts || []), name])];
+                            saveNow('settings');
+                            render();
+                            toast('已添加小号 ' + name);
+                        },
+                    }),
+                )),
+        ]));
+
         /* ---------------- 手机 ---------------- */
         wrap.appendChild(section('手机', [
             row({ icon: 'maximize', label: '全屏铺满', hint: '把手机撑满整个屏幕，去掉外壳和圆角' },
