@@ -139,29 +139,11 @@ export function mountDiscord(host, { nav }) {
             composerInput,
             h('button', {
                 type: 'button', class: 'mp-dc__send',
-                onclick: async () => {
+                onclick: () => {
                     const text = composerInput.value.trim();
                     if (!text) return;
-                    channel.messages = channel.messages || [];
-                    channel.messages.push({ author: userName() || '我', text, time: '刚刚' });
                     composerInput.value = '';
-                    save(data);
-                    view.render(data);
-                    // 频道里总得有人接一句（以前发完永远没人理）
-                    try {
-                        const reply = await replyInChat({
-                            app: 'Discord',
-                            chat: { name: server.name + ' / #' + channel.name, style: server.style || '' },
-                            messages: channel.messages,
-                        });
-                        if (reply) {
-                            const cast = getCast().map(person => person.name).filter(Boolean);
-                            const who = cast.length ? cast[Math.floor(Math.random() * cast.length)] : '网友';
-                            channel.messages.push({ author: who, text: reply, time: '刚刚' });
-                            save(data);
-                            view.render(data);
-                        }
-                    } catch { /* ignore */ }
+                    postMessage(text);
                 },
             }, '发送'),
         );
@@ -174,19 +156,31 @@ export function mountDiscord(host, { nav }) {
             h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => sendMedia('📹 [视频] 15 秒') }),
         );
         async function sendMedia(text) {
+            return postMessage(text);
+        }
+
+        /** 发一条消息：先插入"正在输入"的占位回复，保证有人接，再换成真话。 */
+        async function postMessage(text) {
             channel.messages = channel.messages || [];
             channel.messages.push({ author: userName() || '我', text, time: '刚刚' });
+            const pending = { author: '某人', text: '…', time: '刚刚' };
+            channel.messages.push(pending);
             save(data);
             view.render(data);
             try {
-                const reply = await replyInChat({ app: 'Discord', chat: { name: server.name, style: server.style || '' }, messages: channel.messages });
-                if (reply) {
-                    const cast = getCast().map(person => person.name).filter(Boolean);
-                    channel.messages.push({ author: cast.length ? cast[Math.floor(Math.random() * cast.length)] : '网友', text: reply, time: '刚刚' });
-                    save(data);
-                    view.render(data);
-                }
-            } catch { /* ignore */ }
+                const reply = await replyInChat({
+                    app: 'Discord',
+                    chat: { name: server.name + ' / #' + channel.name, style: server.style || '' },
+                    messages: channel.messages.filter(item => item !== pending),
+                });
+                const cast = getCast().map(person => person.name).filter(Boolean);
+                pending.author = cast.length ? cast[Math.floor(Math.random() * cast.length)] : '网友';
+                pending.text = reply || '……';
+            } catch {
+                pending.text = '……';
+            }
+            save(data);
+            view.render(data);
         }
         body.append(h('div', { class: 'mp-dc' }, rail, h('div', { class: 'mp-dc__wrap' }, main, mediaRow, composer, panel)));
 
