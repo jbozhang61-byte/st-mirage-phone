@@ -312,7 +312,14 @@ export function mountTelegram(host, { nav }) {
         const draw = () => {
             list.innerHTML = '';
             for (const line of messages) {
-                list.appendChild(h('div', { class: 'mp-tg__bubble' + (line.mine ? ' mine' : '') },
+                list.appendChild(h('div', {
+                    class: 'mp-tg__bubble' + (line.mine ? ' mine' : ''),
+                    onclick: () => {
+                        if (line.mine) return;
+                        input.value = '> ' + line.name + '：' + String(line.text || '').slice(0, 60) + '\n';
+                        input.focus?.();
+                    },
+                },
                     h('div', { class: 'mp-tg__bname', text: line.name }), line.text));
             }
         };

@@ -104,7 +104,14 @@ export function mountSignal(host, { nav }) {
         const list = h('div', { class: 'mp-sg__msgs' });
         const draw = () => {
             list.innerHTML = '';
-            for (const line of messages) list.appendChild(h('div', { class: 'mp-sg__bubble' + (line.mine ? ' mine' : '') },
+            for (const line of messages) list.appendChild(h('div', {
+                class: 'mp-sg__bubble' + (line.mine ? ' mine' : ''),
+                onclick: () => {
+                    if (line.mine) return;
+                    input.value = '> ' + (chat.name || '对方') + '：' + String(line.text || '').slice(0, 60) + '\n';
+                    input.focus?.();
+                },
+            },
                 line.name && !line.mine ? h('span', { class: 'mp-sg__bname', text: line.name }) : null,
                 line.text,
             ));
