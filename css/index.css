@@ -2912,3 +2912,11 @@ html.mp-narrow:not(.mp-mobile-float) .mp-device {
 html.mp-narrow:not(.mp-mobile-float) .mp-screen { border-radius: 0 !important; }
 html.mp-narrow:not(.mp-mobile-float) .mp-device::before { display: none !important; }
 html.mp-narrow .mp-status__float { display: grid !important; pointer-events: auto !important; }
+
+/* Telegram / Signal 的私聊页：像消息软件那样铺满整个应用 */
+.mp-tg-page__scroll, .mp-sg-page__scroll { display: flex; flex-direction: column; }
+.mp-tg__msgs, .mp-sg__msgs { flex: 1 1 auto !important; max-height: none !important; width: 100%; }
+.mp-tg__bubble, .mp-sg__bubble { max-width: 82%; align-self: flex-start; }
+.mp-tg__bubble.mine, .mp-sg__bubble.mine { align-self: flex-end; }
+.mp-tg__msgs::-webkit-scrollbar, .mp-sg__msgs::-webkit-scrollbar,
+.mp-tg-page__scroll::-webkit-scrollbar, .mp-sg-page__scroll::-webkit-scrollbar { width: 0; height: 0; }
