@@ -485,6 +485,9 @@ globalThis.MiragePhone = {
     go: (id, params) => phone?.go(id, params),
     home: () => phone?.home(),
     toggleFloat: () => phone?.toggleFloat?.(),
+    // 设置里的「全屏铺满」走这里——之前没暴露，按钮点了没有任何反应
+    setFull: value => phone?.setFull?.(value),
+    toggleFull: () => phone?.toggleFull?.(),
     refresh: () => phone?.refresh(),
     get data() { return getData(); },
     get settings() { return getSettings(); },
