@@ -9,8 +9,8 @@ export const SETTINGS_KEY = MODULE;
 export const DATA_VERSION = 1;
 
 export const LIMITS = Object.freeze({
-    threads: 24,
-    messages: 260,
+    threads: 40,
+    messages: 1200,
     moments: 80,
     notes: 120,
     photos: 40,

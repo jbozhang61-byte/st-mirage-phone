@@ -224,7 +224,8 @@ function mountConversation(host, nav, threadId) {
         let lastName = '';
         let lastName2 = '';
         const all = Array.isArray(thread.msgs) ? thread.msgs : [];
-        const visible = all.length > 120 ? all.slice(-120) : all;
+        // 全部显示，不再把更早的消息收起（以前只留 120 条）
+        const visible = all;
         if (all.length > visible.length) {
             scroll.appendChild(h('div', { class: 'mp-time-mark', text: '更早的 ' + (all.length - visible.length) + ' 条消息已收起' }));
         }
