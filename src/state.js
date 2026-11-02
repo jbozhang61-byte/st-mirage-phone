@@ -281,8 +281,15 @@ export function normalizeData(raw) {
     data.feeds = {};
     if (isObject(raw.feeds)) {
         for (const [appId, feed] of Object.entries(raw.feeds)) {
-            if (!Array.isArray(feed?.items)) continue;
-            data.feeds[appId] = { items: feed.items.slice(0, 40), at: Number(feed.at) || 0 };
+            const items = feed?.items;
+            if (Array.isArray(items)) {
+                // 数组型 feed：保留全部（之前截断到 40 条，滚动加载的内容会被吃掉）
+                data.feeds[appId] = { items: items.slice(-500), at: Number(feed.at) || 0 };
+            } else if (isObject(items)) {
+                // 对象型 feed（微博是 {hot, posts}）：以前这里直接 continue 丢掉，
+                // 每次 initStore 都会把微博内容清空，看起来就是"内容全没了"
+                data.feeds[appId] = { items, at: Number(feed.at) || 0 };
+            }
         }
     }
     data.threads = (Array.isArray(raw.threads) ? raw.threads : []).slice(0, LIMITS.threads).map(normalizeThread).filter(Boolean);
