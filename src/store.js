@@ -17,7 +17,10 @@ const store = {
 
 export function initStore() {
     store.settings = loadSettings();
-    store.data = loadData();
+    const c = typeof globalThis.SillyTavern?.getContext === 'function' ? globalThis.SillyTavern.getContext() : null;
+    // 酒馆切换聊天的瞬间可能还没有 chatMetadata，这时别把内存里的数据换成空/上一个聊天的
+    if (c?.chatMetadata) store.data = loadData();
+    else if (!store.ready) store.data = loadData();
     store.ready = true;
     emit('init');
     return store;
@@ -64,10 +67,10 @@ export function saveNow(kind = 'data') {
         saveSettings(store.settings);
         return;
     }
+    // 立刻写进当前聊天的 chatMetadata：以前延迟 260ms，
+    // 这期间要是切了聊天，数据就可能落到别的聊天里或者直接丢掉
     clearTimeout(store.saveTimer);
-    store.saveTimer = setTimeout(() => {
-        saveData(store.data);
-    }, 260);
+    saveData(store.data);
     emit('data:dirty');
 }
 

@@ -12,8 +12,8 @@ export const LIMITS = Object.freeze({
     threads: 40,
     messages: 1200,
     moments: 80,
-    notes: 120,
-    photos: 40,
+    notes: 200,
+    photos: 200,
 });
 
 export const ACCENTS = Object.freeze({
@@ -201,7 +201,9 @@ export function loadData() {
 export function saveData(data) {
     stash.data = data;
     const c = ctx();
-    if (c?.chatMetadata) c.chatMetadata[DATA_KEY] = data;
+    // 没挂上 chatMetadata 时绝对不要写盘：否则会把 A 聊天的内容写进 B 聊天
+    if (!c?.chatMetadata) return;
+    c.chatMetadata[DATA_KEY] = data;
     try {
         if (typeof c?.saveMetadataDebounced === 'function') c.saveMetadataDebounced();
         else if (typeof c?.saveMetadata === 'function') c.saveMetadata();
