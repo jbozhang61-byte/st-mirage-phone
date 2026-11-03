@@ -110,7 +110,8 @@ export function bindAutoMore(el, loadMore, gap = 8000) {
             if (scrollable) break;
             node = node.parentElement;
         }
-        if (node && node !== el) el = node;
+        const shared = n => n.matches?.('.mp-screen, body, html, .mp-root, .mp-view, .mp-shell, .mp-device');
+        if (node && node !== el && !shared(node)) el = node;
     } catch { /* ignore */ }
     let last = 0;
     let busy = false;
@@ -121,8 +122,24 @@ export function bindAutoMore(el, loadMore, gap = 8000) {
 
     const atBottom = () => el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
 
+    /** 列表必须还在手机上、还看得见，否则不触发（退出应用后不能继续刷）。 */
+    const visible = () => {
+        try {
+            if (!el.isConnected) return false;
+            if (!el.closest('.mp-screen')) return false;
+            const rect = el.getBoundingClientRect();
+            if (rect.width < 8 || rect.height < 8) return false;
+            const style = getComputedStyle(el);
+            if (style.display === 'none' || style.visibility === 'hidden') return false;
+            // 被 is-closing / 隐藏的应用
+            if (el.closest('.is-closing, [hidden], .mp-app--hidden')) return false;
+            return true;
+        } catch { return false; }
+    };
+
     const fire = () => {
         if (busy) return;
+        if (!visible()) { pull = 0; return; }
         if (Date.now() - last < gap) return;
         busy = true;
         pull = 0;
@@ -133,6 +150,7 @@ export function bindAutoMore(el, loadMore, gap = 8000) {
 
     // 滚轮 / 触控板
     el.addEventListener('wheel', event => {
+        if (!visible()) { pull = 0; return; }
         if (!atBottom()) { pull = 0; return; }
         if (event.deltaY > 0) pull += event.deltaY;
         else pull = Math.max(0, pull + event.deltaY);
@@ -149,6 +167,7 @@ export function bindAutoMore(el, loadMore, gap = 8000) {
         if (touchY == null || typeof y !== 'number') return;
         const dy = touchY - y;     // 手指往上推 = 内容往下滚
         touchY = y;
+        if (!visible()) { pull = 0; return; }
         if (!atBottom()) { pull = 0; return; }
         if (dy > 0) pull += dy;
         else pull = Math.max(0, pull + dy);
