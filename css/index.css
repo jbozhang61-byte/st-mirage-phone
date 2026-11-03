@@ -2975,3 +2975,31 @@ html.mp-narrow .mp-status__float { display: grid !important; pointer-events: aut
     border: 1px solid rgba(255, 255, 255, .14); background: rgba(255, 255, 255, .06);
     color: #cfd7e3; border-radius: 999px; padding: 5px 11px; font-size: 11px; cursor: pointer;
 }
+
+/* 微博：动态 / 八卦 切换 */
+.mp-wb__tabs { display: flex; gap: 6px; padding: 6px 14px 0; }
+.mp-wb__tab {
+    border: none; background: transparent; color: var(--mp-text-3);
+    font: inherit; font-size: 13px; padding: 6px 4px; cursor: pointer; position: relative;
+}
+.mp-wb__tab.on { color: var(--mp-text); font-weight: 750; }
+.mp-wb__tab.on::after {
+    content: ''; position: absolute; left: 4px; right: 4px; bottom: 0; height: 2px;
+    border-radius: 2px; background: var(--mp-accent, #ffb454);
+}
+.mp-wb__gossip { display: flex; flex-direction: column; gap: 10px; padding: 10px 14px 24px; }
+.mp-wb__gossip-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mp-wb__gossip-title { font-size: 15px; font-weight: 800; }
+.mp-wb__gossip-sub { font-size: 10.5px; color: var(--mp-text-3); margin-top: 2px; }
+.mp-wb__gossip-btn {
+    border: 1px solid rgba(var(--mp-accent-rgb, 255, 180, 84), .35);
+    background: rgba(var(--mp-accent-rgb, 255, 180, 84), .12);
+    color: var(--mp-accent, #ffb454); border-radius: 999px;
+    font: inherit; font-size: 11.5px; padding: 6px 12px; cursor: pointer; flex: none;
+}
+.mp-wb__gossip-card { background: var(--mp-field); border-radius: 14px; padding: 10px 12px; cursor: pointer; }
+.mp-wb__gossip-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mp-wb__gossip-author { font-size: 11px; color: var(--mp-text-3); }
+.mp-wb__hot-tag { font-size: 10px; color: #ff5a5f; }
+.mp-wb__gossip-name { font-size: 13.5px; font-weight: 750; margin: 4px 0 3px; line-height: 1.4; }
+.mp-wb__gossip-text { font-size: 12px; line-height: 1.6; color: var(--mp-text-2); }

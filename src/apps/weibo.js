@@ -5,12 +5,16 @@ import { h, icon, avatar, sheet, toast } from '../render.js';
 import { openComments } from './comments.js';
 import { openPostPage } from './postpage.js';
 import { loadFeed, refreshFeed, bindAutoMore, num } from './feed-common.js';
+import { generateGossip } from '../ai.js';
+import { getData, saveNow } from '../store.js';
 import { openSearchSheet } from './search-sheet.js';
 
 export function mountWeibo(host, { nav }) {
     nav.setChrome?.('light');
     let data = { hot: [], posts: [] };
     let loading = false;
+    let tab = 'feed';          // feed | gossip
+    let gossipBusy = false;
     const liked = new Set();
 
     const el = h('div', { class: 'mp-wb' });
@@ -21,12 +25,25 @@ export function mountWeibo(host, { nav }) {
             icon('search'), h('span', { text: '大家都在搜' })),
         h('button', { type: 'button', class: 'mp-wb__refresh', 'aria-label': '刷新', onclick: () => refresh() }, icon('refresh')),
     );
-    el.append(head, body);
+    const tabBar = h('div', { class: 'mp-wb__tabs' });
+    const setTab = value => {
+        tab = value;
+        tabBar.querySelectorAll('.mp-wb__tab').forEach(node => {
+            node.classList.toggle('on', node.dataset.tab === value);
+        });
+        render(data);
+    };
+    tabBar.append(
+        h('button', { type: 'button', class: 'mp-wb__tab on', 'data-tab': 'feed', text: '动态', onclick: () => setTab('feed') }),
+        h('button', { type: 'button', class: 'mp-wb__tab', 'data-tab': 'gossip', text: '八卦', onclick: () => setTab('gossip') }),
+    );
+    el.append(head, tabBar, body);
     host.appendChild(el);
 
     function render(next) {
         data = next || { hot: [], posts: [] };
         body.innerHTML = '';
+        if (tab === 'gossip') { renderGossip(); return; }
 
         if (data.hot?.length) {
             const hot = h('div', { class: 'mp-wb__hot' },
@@ -49,6 +66,60 @@ export function mountWeibo(host, { nav }) {
             list.appendChild(h('div', { class: 'mp-wb__empty', text: '还没有动态，点右上角刷新。' }));
         }
         body.appendChild(list);
+    }
+
+    /** 八卦区：读最近的正文，生成一堆爆料帖。 */
+    function renderGossip() {
+        const wrap = h('div', { class: 'mp-wb__gossip' });
+        const saved = getData().gossip;
+        const items = Array.isArray(saved?.items) ? saved.items : [];
+        wrap.appendChild(h('div', { class: 'mp-wb__gossip-head' },
+            h('div', {},
+                h('div', { class: 'mp-wb__gossip-title', text: '八卦区' }),
+                h('div', { class: 'mp-wb__gossip-sub', text: '根据最近的正文，听听大家在传什么' })),
+            h('button', {
+                type: 'button', class: 'mp-wb__gossip-btn', text: gossipBusy ? '正在打听…' : (items.length ? '换一批' : '听听新瓜'),
+                onclick: () => loadGossip(),
+            }),
+        ));
+        if (!items.length) {
+            wrap.appendChild(h('div', { class: 'mp-wb__empty', text: '还没有瓜。点右上「听听新瓜」，会照最近的正文写一批。' }));
+        }
+        for (const post of items) {
+            wrap.appendChild(h('div', { class: 'mp-wb__gossip-card', onclick: () => openPostPage({
+                item: post, app: '微博', title: post.title,
+                body: post.text, meta: '@' + post.author + ' · ' + (post.hot || '') + ' · 刚刚',
+            }) },
+                h('div', { class: 'mp-wb__gossip-line' },
+                    h('span', { class: 'mp-wb__gossip-author', text: '@' + post.author }),
+                    h('span', { class: 'mp-wb__hot-tag', text: post.hot || '' })),
+                h('div', { class: 'mp-wb__gossip-name', text: post.title }),
+                h('div', { class: 'mp-wb__gossip-text', text: post.text }),
+            ));
+        }
+        body.appendChild(wrap);
+    }
+
+    async function loadGossip() {
+        if (gossipBusy) return;
+        gossipBusy = true;
+        renderGossip();
+        try {
+            const list = await generateGossip({ app: '微博' });
+            const previous = Array.isArray(getData().gossip?.items) ? getData().gossip.items : [];
+            const seen = new Set(previous.map(item => item.title + item.text));
+            const added = list.filter(item => !seen.has(item.title + item.text));
+            const merged = [...added, ...previous].slice(0, 60);
+            const data2 = getData();
+            data2.gossip = { items: merged, at: Date.now() };
+            saveNow('data');
+            toast('又听到 ' + added.length + ' 条');
+        } catch (error) {
+            toast('这次没打听到什么', 2600);
+        } finally {
+            gossipBusy = false;
+            render(data);
+        }
     }
 
     function postEl(post) {

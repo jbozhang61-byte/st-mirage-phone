@@ -498,6 +498,54 @@ export async function browse(query) {
     return { ...webFallback({ query, world, people }), url: query, ts: Date.now() };
 }
 
+/** 八卦区：读最近的正文，写成一堆网友爆料帖。 */
+export async function generateGossip({ app = '微博' } = {}) {
+    const user = userName();
+    const current = currentCharacter();
+    const world = current?.group ? current.name : (current?.name || '');
+    const people = getCast().map(person => person.name);
+    const story = storyContext(60, 320).map(line => (line.isUser ? user : line.name) + '：' + line.text).join('\n');
+    const memory = memoryContext(10).map(entry => String(entry.text || '').slice(0, 280)).filter(Boolean).join('\n');
+    try {
+        const raw = await generateText({
+            system: [
+                '你在「' + app + '」的八卦区发帖，读者是一群爱看热闹的网友。',
+                world ? '世界：' + world : '',
+                people.length ? '这个世界的人：' + people.join('、') : '',
+                memory ? '背景：\n' + memory : '',
+                '根据下面的正文写 6 条八卦帖：标题像热搜/爆料，正文 30-80 字，口吻像网友在传话。',
+                '不要复述原文，要写成"听来的""有人看见"这种二手消息，可以夸张，可以有不同说法、有人辟谣。',
+                '只输出 JSON：{"posts":[{"title":"…","text":"…","author":"网名","hot":"12万"}]}',
+            ].filter(Boolean).join('\n'),
+            prompt: '最近的正文：\n' + (story || '（正文还不多，就写点这个世界流传的传闻）'),
+            length: 1200,
+            json: true,
+        });
+        const json = extractJson(raw);
+        const list = Array.isArray(json?.posts) ? json.posts : [];
+        if (list.length) {
+            return list.slice(0, 8).map((entry, index) => ({
+                id: 'gp-' + Date.now().toString(36) + index,
+                title: String(entry?.title || '听说…').slice(0, 60),
+                text: String(entry?.text || '').slice(0, 300),
+                author: String(entry?.author || '匿名网友').slice(0, 20),
+                hot: String(entry?.hot || '').slice(0, 10),
+                time: '刚刚',
+            }));
+        }
+    } catch { /* 本地兜底 */ }
+    const lines = (story || '最近没什么动静').split('\n').slice(-3);
+    const authors = ['吃瓜群众', '旧城闲人', '匿名投稿'];
+    return lines.map((line, index) => ({
+        id: 'gp-' + Date.now().toString(36) + index,
+        title: ['有人看见', '听说', '疑似'][index % 3] + '：' + String(line).slice(2, 26),
+        text: '据说' + String(line).slice(0, 90) + '……我也不确定，先发出来，有知道内情的吗？',
+        author: authors[index % authors.length],
+        hot: (Math.floor(Math.random() * 90) + 10) + '万',
+        time: '刚刚',
+    }));
+}
+
 /** 浏览器：先出一个"搜索结果页"（一排排条目），点进去再生成正文。 */
 export async function searchWeb(query) {
     const user = userName();
