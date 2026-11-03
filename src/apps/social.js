@@ -1,6 +1,7 @@
 /** 六个社交 App 的界面：同一套骨架，按 App 换布局。 */
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { num, moodOf, feedContext, bindAutoMore, showPill } from './feed-common.js';
+import { generateGossip } from '../ai.js';
 import { SOCIAL } from '../social.js';
 import { generateSocial, friendlyError } from '../ai.js';
 import { getCast, getFeed, setFeed, saveNow, getData } from '../store.js';
@@ -24,6 +25,8 @@ function mount(host, nav, appId) {
     }[appId] || { color: '#333' };
     nav.setChrome?.(dark ? 'dark' : 'light');
     let items = [];
+    let socTab = 'feed';
+    let gossipBusy = false;
     let loading = false;
 
     const el = h('div', { class: 'mp-soc' + (dark ? ' is-dark' : '') });
@@ -36,7 +39,20 @@ function mount(host, nav, appId) {
             h('button', { type: 'button', class: 'mp-soc__refresh', 'aria-label': '刷新', onclick: () => refresh('replace') }, icon('refresh')),
         ),
     );
-    el.append(head, body);
+    // 八卦页签：读最近的正文，写网友爆料
+    const tabBar = h('div', { class: 'mp-wb__tabs' });
+    const setTab = value => {
+        socTab = value;
+        tabBar.querySelectorAll('.mp-wb__tab').forEach(node => {
+            node.classList.toggle('on', node.dataset.tab === value);
+        });
+        render(items);
+    };
+    tabBar.append(
+        h('button', { type: 'button', class: 'mp-wb__tab on', 'data-tab': 'feed', text: '主页', onclick: () => setTab('feed') }),
+        h('button', { type: 'button', class: 'mp-wb__tab', 'data-tab': 'gossip', text: '八卦', onclick: () => setTab('gossip') }),
+    );
+    el.append(head, tabBar, body);
     host.appendChild(el);
     window.addEventListener('mp-image', applyImages);
 
@@ -52,6 +68,7 @@ function mount(host, nav, appId) {
     function render(list) {
         items = Array.isArray(list) ? list : [];
         body.innerHTML = '';
+        if (socTab === 'gossip') { renderGossip(); return; }
         if (appId === 'x') body.appendChild(timeline());
         else if (appId === 'instagram') body.appendChild(gallery());
         else if (appId === 'reddit') body.appendChild(threads());
@@ -59,6 +76,56 @@ function mount(host, nav, appId) {
         else body.appendChild(qa());
         if (!items.length) body.appendChild(h('div', { class: 'mp-soc__empty', text: '这里还空着，点右上角刷新。' }));
         if (appId === 'instagram' || appId === 'youtube') warmImages(items, item => [item.author, item.title, item.text].filter(Boolean).join('，'), 2);
+    }
+
+    /** 八卦区：最近正文 -> 网友爆料。 */
+    function renderGossip() {
+        const saved = getData().gossip;
+        const list = Array.isArray(saved?.items) ? saved.items : [];
+        const wrap = h('div', { class: 'mp-wb__gossip' },
+            h('div', { class: 'mp-wb__gossip-head' },
+                h('div', {},
+                    h('div', { class: 'mp-wb__gossip-title', text: '八卦' }),
+                    h('div', { class: 'mp-wb__gossip-sub', text: '照最近的正文，看看大家在传什么' })),
+                h('button', {
+                    type: 'button', class: 'mp-wb__gossip-btn',
+                    text: gossipBusy ? '正在打听…' : (list.length ? '换一批' : '听听新瓜'),
+                    onclick: () => loadGossip(),
+                }),
+            ),
+        );
+        if (!list.length) wrap.appendChild(h('div', { class: 'mp-soc__empty', text: '还没有瓜，点右上「听听新瓜」。' }));
+        for (const post of list) {
+            wrap.appendChild(h('div', { class: 'mp-wb__gossip-card', onclick: () => openDetailPage(post) },
+                h('div', { class: 'mp-wb__gossip-line' },
+                    h('span', { class: 'mp-wb__gossip-author', text: '@' + post.author }),
+                    h('span', { class: 'mp-wb__hot-tag', text: post.hot || '' })),
+                h('div', { class: 'mp-wb__gossip-name', text: post.title }),
+                h('div', { class: 'mp-wb__gossip-text', text: post.text }),
+            ));
+        }
+        body.appendChild(wrap);
+    }
+
+    async function loadGossip() {
+        if (gossipBusy) return;
+        gossipBusy = true;
+        render(items);
+        try {
+            const next = await generateGossip({ app: config.name });
+            const previous = Array.isArray(getData().gossip?.items) ? getData().gossip.items : [];
+            const seen = new Set(previous.map(item => item.title + item.text));
+            const added = next.filter(item => !seen.has(item.title + item.text));
+            const data = getData();
+            data.gossip = { items: [...added, ...previous].slice(0, 60), at: Date.now() };
+            saveNow('data');
+            toast('又听到 ' + added.length + ' 条');
+        } catch {
+            toast('这次没打听到什么', 2600);
+        } finally {
+            gossipBusy = false;
+            render(items);
+        }
     }
 
     function timeline() {
