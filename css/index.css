@@ -3003,3 +3003,16 @@ html.mp-narrow .mp-status__float { display: grid !important; pointer-events: aut
 .mp-wb__hot-tag { font-size: 10px; color: #ff5a5f; }
 .mp-wb__gossip-name { font-size: 13.5px; font-weight: 750; margin: 4px 0 3px; line-height: 1.4; }
 .mp-wb__gossip-text { font-size: 12px; line-height: 1.6; color: var(--mp-text-2); }
+
+/* Patreon 创作者主页 */
+.mp-pt__hero { display: flex; align-items: center; gap: 12px; padding: 16px 14px 10px; }
+.mp-pt__name { font-size: 16px; font-weight: 800; }
+.mp-pt__meta { font-size: 11px; color: var(--mp-text-3); margin-top: 3px; }
+.mp-pt__post { margin: 10px 14px; padding: 12px; border-radius: 14px; background: var(--mp-field); }
+.mp-pt__post.is-locked { opacity: .78; border: 1px dashed rgba(255, 255, 255, .18); }
+.mp-pt__post-top { display: flex; align-items: center; justify-content: space-between; }
+.mp-pt__post-tag { font-size: 10px; color: var(--mp-accent, #ffb454); }
+.mp-pt__post-time { font-size: 10px; color: var(--mp-text-3); }
+.mp-pt__post-title { font-size: 13.5px; font-weight: 750; margin: 6px 0 4px; line-height: 1.4; }
+.mp-pt__post-text { font-size: 12px; line-height: 1.6; color: var(--mp-text-2); }
+.mp-pt__post-act { font-size: 11px; color: var(--mp-text-3); margin-top: 8px; }
