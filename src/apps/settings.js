@@ -232,13 +232,13 @@ export function mountSettings(host, { nav }) {
             row({ icon: 'image', label: '启用', hint: '用你自己的生图接口给抖音/Ins 配图；没配就用程序化照片' },
                 toggle(settings.image?.enabled, value => { patchImage({ enabled: value }); })),
             settings.image?.enabled ? row({ icon: 'globe', label: '接口形态', hint: 'OpenAI 兼容 / SD WebUI / ComfyUI / Stability / 自定义' },
-                choices([['openai', 'OpenAI 兼容'], ['sd', 'SD WebUI'], ['comfyui', 'ComfyUI'], ['stability', 'Stability'], ['custom', '自定义']], settings.image?.provider || 'openai', value => patchImage({ provider: value }))) : null,
-            settings.image?.enabled ? row({ icon: 'link', label: '接口地址', hint: 'OpenAI: …/v1　SD: :7860　ComfyUI: :8188' },
+                choices([['openai', 'OpenAI 兼容'], ['gemini', 'Gemini / Banana'], ['sd', 'SD WebUI'], ['comfyui', 'ComfyUI'], ['stability', 'Stability'], ['custom', '自定义']], settings.image?.provider || 'openai', value => patchImage({ provider: value }))) : null,
+            settings.image?.enabled ? row({ icon: 'link', label: '接口地址', hint: 'OpenAI: …/v1　Gemini: 默认官方　SD: :7860　ComfyUI: :8188' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'text', value: settings.image?.endpoint || '', placeholder: 'https://…',
                     onchange: event => patchImage({ endpoint: event.target.value.trim() }),
                 }))) : null,
-            settings.image?.enabled && (settings.image?.provider || 'openai') === 'openai' ? row({ icon: 'key', label: 'API Key', hint: '只存在本地设置里' },
+            settings.image?.enabled && ['openai', 'gemini', 'stability'].includes(settings.image?.provider || 'openai') ? row({ icon: 'key', label: 'API Key', hint: '只存在本地设置里' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'password', value: settings.image?.apiKey || '', placeholder: 'sk-…',
                     onchange: event => patchImage({ apiKey: event.target.value.trim() }),
@@ -248,7 +248,7 @@ export function mountSettings(host, { nav }) {
                     type: 'text', value: settings.image?.quality || 'auto', placeholder: 'auto',
                     onchange: event => patchImage({ quality: event.target.value.trim() || 'auto' }),
                 }))) : null,
-            settings.image?.enabled && (settings.image?.provider || 'openai') === 'openai' ? row({ icon: 'grid', label: '模型 / 尺寸', hint: '例如 gpt-image-1 · 1024x1024' },
+            settings.image?.enabled && ['openai', 'gemini'].includes(settings.image?.provider || 'openai') ? row({ icon: 'grid', label: '模型 / 尺寸', hint: '例如 gpt-image-1 · 1024x1024' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'text', value: (settings.image?.model || '') + ' ' + (settings.image?.size || ''), placeholder: 'gpt-image-1 1024x1024',
                     onchange: event => {

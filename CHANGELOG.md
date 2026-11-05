@@ -1,5 +1,13 @@
 # 更新日志
 
+## 1.5.65 — 2026-11-05
+
+- **支持 Nano Banana（Google Gemini 生图）**：AI 配图 → 接口形态里新增「Gemini / Banana」
+  - 走 `/v1beta/models/{model}:generateContent?key=…`，`responseModalities: ["IMAGE"]`
+  - 默认模型 `gemini-2.5-flash-image`，也可以填 `gemini-3-pro-image-preview` 之类
+  - 接口地址留空就用官方 `https://generativelanguage.googleapis.com`
+  - 返回的 `inlineData` 直接转成 dataURL；被安全策略拦掉会提示「可能被安全策略拦了」
+
 ## 1.5.64 — 2026-11-05
 
 - **修复抖音打不开**：`tiktok.js` 里写的是 `bindAutoMore(body, …)`，但这个页面根本没有 `body` 变量

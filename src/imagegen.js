@@ -30,6 +30,9 @@ export async function generateImage(prompt) {
     if (config.provider === 'comfyui') {
         return generateComfy(endpoint, config, prompt);
     }
+    if (config.provider === 'gemini') {
+        return generateGemini(endpoint, config, prompt);
+    }
     if (config.provider === 'stability') {
         return generateStability(endpoint, config, prompt);
     }
@@ -95,6 +98,33 @@ function sizeToAspect(size) {
     if (ratio < 0.62) return '9:16';
     if (ratio < 0.82) return '2:3';
     return '1:1';
+}
+
+/** Google Gemini / Nano Banana：generateContent + inlineData。 */
+async function generateGemini(endpoint, config, prompt) {
+    const host = (endpoint || 'https://generativelanguage.googleapis.com').replace(/\/$/, '');
+    const model = config.model || 'gemini-2.5-flash-image';
+    const url = host + '/v1beta/models/' + encodeURIComponent(model) + ':generateContent?key=' + encodeURIComponent(config.apiKey || '');
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt + (config.negative ? '。避免：' + config.negative : '') }] }],
+            generationConfig: { responseModalities: ['IMAGE'] },
+        }),
+    });
+    if (!response.ok) {
+        let detail = '';
+        try { detail = (await response.text()).slice(0, 160); } catch { /* ignore */ }
+        throw new Error('Gemini 返回 ' + response.status + (detail ? '：' + detail : ''));
+    }
+    const data = await response.json();
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    const inline = parts.find(part => part?.inlineData?.data || part?.inline_data?.data);
+    const raw = inline?.inlineData || inline?.inline_data;
+    if (!raw?.data) throw new Error('Gemini 没有返回图片（可能被安全策略拦了）');
+    const mime = raw.mimeType || raw.mime_type || 'image/png';
+    return 'data:' + mime + ';base64,' + raw.data;
 }
 
 /** Stability AI：multipart 表单，直接回二进制。 */
