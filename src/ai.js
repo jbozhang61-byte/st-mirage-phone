@@ -16,6 +16,7 @@ import { powerRoster } from './roster.js';
 import { FEEDS } from './feed.js';
 import { SOCIAL } from './social.js';
 import { EXTRA } from './extra.js';
+import { chatFloors, memoryCursor, bestDepth, saveMemoryEntry, memoryBlock } from './memory.js';
 import { plotSystemPrompt, plotUserPrompt, plotFallback, toneOf } from './plot.js';
 import { sparkSystemPrompt, sparkUserPrompt, sparkFallback, dateSystemPrompt, dateFallback } from './spark.js';
 import { webSystemPrompt, webUserPrompt, webFallback } from './web.js';
@@ -281,7 +282,12 @@ export function recentOtherChats() {
 export function refreshInjection() {
     const settings = getSettings();
     const data = getData();
-    const text = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: getSelfProfile(), worldProfile: data.worldInfo || null, extras: recentOtherChats(), power: powerRoster({ selfProfile: getSelfProfile() }) });
+    const memoryText = settings.memory?.inject === false ? '' : memoryBlock({
+        limit: Number(settings.memory?.limit) || 4,
+        people: (data.world?.cast || []).map(person => person.name),
+    });
+    const base = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: getSelfProfile(), worldProfile: data.worldInfo || null, extras: recentOtherChats(), power: powerRoster({ selfProfile: getSelfProfile() }) });
+    const text = memoryText ? (base + '\n\n' + memoryText) : base;
     setPhonePrompt(text, { depth: settings.inject.depth, enabled: settings.inject.enabled && !!text });
     return text;
 }
@@ -523,6 +529,52 @@ export async function browse(query) {
         }
     } catch { /* 本地兜底 */ }
     return { ...webFallback({ query, world, people }), url: query, ts: Date.now() };
+}
+
+/** 把最近若干楼层总结成一条长期记忆（含隐藏楼层）。 */
+export async function summarizeMemory({ turns = 0 } = {}) {
+    const floors = chatFloors();
+    if (!floors.length) throw new Error('这个聊天还没有楼层');
+    const cursor = memoryCursor();
+    const start = Math.max(0, Math.min(floors.length - 1, cursor));
+    const depth = Math.max(6, Math.min(120, Number(turns) || bestDepth(floors.length - start)));
+    const slice = floors.slice(start, start + depth);
+    if (slice.length < 4) throw new Error('楼层太少，先多聊几句再总结');
+    const hiddenCount = slice.filter(item => item.hidden).length;
+    const transcript = slice.map(item => {
+        const who = item.isUser ? userName() : (item.name || '角色');
+        return '[#' + item.index + (item.hidden ? ' 隐藏' : '') + '] ' + who + '：' + item.text.replace(/\s+/g, ' ').slice(0, 600);
+    }).join('\n');
+    const current = currentCharacter();
+    const world = current?.group ? current.name : (current?.name || '');
+    const raw = await generateText({
+        system: [
+            '你在给一段角色扮演剧情做"长期记忆"存档，不是复述，也不是续写。',
+            world ? '世界：' + world : '',
+            '只记录已经发生、且以后还会用到的信息：谁做了什么事、关系怎么变化、答应过什么、留下了什么悬念。',
+            '不要编造没写过的动机；不确定就写"未明说"。',
+            '只输出 JSON：{"title":"8 字以内标题","summary":"120-220 字，按时间顺序","facts":["3-6 条短事实"],"people":["出场人物"]}',
+        ].filter(Boolean).join('\n'),
+        prompt: '剧情：\n' + transcript,
+        length: 900,
+        json: true,
+    });
+    const json = extractJson(raw);
+    if (!json?.summary) throw new Error('这次没总结出来，再试一次');
+    const entry = {
+        id: 'mem-' + Date.now().toString(36),
+        title: String(json.title || '一段记忆').slice(0, 24),
+        text: String(json.summary).slice(0, 600),
+        facts: (Array.isArray(json.facts) ? json.facts : []).map(item => String(item).slice(0, 60)).slice(0, 6),
+        people: (Array.isArray(json.people) ? json.people : []).map(item => String(item).slice(0, 20)).slice(0, 8),
+        from: slice[0].index,
+        to: slice[slice.length - 1].index,
+        hidden: hiddenCount,
+        ts: Date.now(),
+    };
+    saveMemoryEntry(entry);
+    saveNow('data');
+    return entry;
 }
 
 /** 八卦区：读最近的正文，写成一堆网友爆料帖。 */

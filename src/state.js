@@ -188,6 +188,7 @@ export function defaultData() {
         stocks: { companies: [], holdings: {}, cash: 100000, lastTick: 0 },
         /** 各应用缓存的内容：{ [appId]: { items: [], at: 0 } } */
         feeds: {},
+        memory: { entries: [], cursor: 0 },
         threads: [],
         moments: [],
         notes: [],
@@ -417,6 +418,20 @@ export function normalizeData(raw) {
             }
         }
     }
+    data.memory = {
+        entries: (Array.isArray(raw.memory?.entries) ? raw.memory.entries : []).slice(0, 60).map(entry => ({
+            id: String(entry?.id || ''),
+            title: String(entry?.title || '').slice(0, 24),
+            text: String(entry?.text || '').slice(0, 600),
+            facts: (Array.isArray(entry?.facts) ? entry.facts : []).map(item => String(item).slice(0, 60)).slice(0, 6),
+            people: (Array.isArray(entry?.people) ? entry.people : []).map(item => String(item).slice(0, 20)).slice(0, 8),
+            from: Number(entry?.from) || 0,
+            to: Number(entry?.to) || 0,
+            hidden: Number(entry?.hidden) || 0,
+            ts: Number(entry?.ts) || 0,
+        })).filter(entry => entry.id && entry.text),
+        cursor: Number(raw.memory?.cursor) || 0,
+    };
     data.threads = (Array.isArray(raw.threads) ? raw.threads : []).slice(0, LIMITS.threads).map(normalizeThread).filter(Boolean);
     data.moments = (Array.isArray(raw.moments) ? raw.moments : []).slice(0, LIMITS.moments).map(normalizeMoment).filter(Boolean);
     data.notes = (Array.isArray(raw.notes) ? raw.notes : []).slice(0, LIMITS.notes).map(n => ({

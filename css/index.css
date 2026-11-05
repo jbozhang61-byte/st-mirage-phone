@@ -3016,3 +3016,21 @@ html.mp-narrow .mp-status__float { display: grid !important; pointer-events: aut
 .mp-pt__post-title { font-size: 13.5px; font-weight: 750; margin: 6px 0 4px; line-height: 1.4; }
 .mp-pt__post-text { font-size: 12px; line-height: 1.6; color: var(--mp-text-2); }
 .mp-pt__post-act { font-size: 11px; color: var(--mp-text-3); margin-top: 8px; }
+
+/* 记忆 App */
+.mp-mem { height: 100%; display: flex; flex-direction: column; }
+.mp-mem__body { flex: 1 1 auto; overflow-y: auto; padding: 12px 14px 28px; }
+.mp-mem__hero { display: flex; align-items: center; gap: 12px; padding: 10px 0 14px; }
+.mp-mem__count { font-size: 30px; font-weight: 800; color: #a3b0ff; line-height: 1; }
+.mp-mem__hero-title { font-size: 13px; font-weight: 700; }
+.mp-mem__hero-sub { font-size: 10.5px; color: var(--mp-text-3); margin-top: 2px; }
+.mp-mem__actions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.mp-mem__list { display: flex; flex-direction: column; gap: 10px; }
+.mp-mem__card { background: var(--mp-field); border-radius: 14px; padding: 11px 12px; }
+.mp-mem__card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mp-mem__title { font-size: 13.5px; font-weight: 750; }
+.mp-mem__range { font-size: 9.5px; color: var(--mp-text-3); }
+.mp-mem__text { font-size: 12px; line-height: 1.6; color: var(--mp-text-2); margin-top: 5px; }
+.mp-mem__facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.mp-mem__fact { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: rgba(124, 140, 255, .16); color: #a3b0ff; }
+.mp-mem__foot { margin-top: 18px; display: flex; justify-content: center; }

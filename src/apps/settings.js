@@ -383,6 +383,16 @@ export function mountSettings(host, { nav }) {
                 h('button', { class: 'mp-btn small', type: 'button', text: '读一句', onclick: () => speak('这是幻镜手机的语音测试。') })) : null,
         ]));
 
+        /* ---------------- 记忆 ---------------- */
+        wrap.appendChild(section('记忆', [
+            row({ icon: 'book', label: '注入长期记忆', hint: '把总结出来的记忆放进正文注入，AI 会一直记得' },
+                toggle(settings.memory?.inject !== false, value => { patchSettings('memory.inject', value); render(); })),
+            row({ icon: 'slider', label: '注入条数', hint: '每次带几条记忆进正文' },
+                slider(1, 8, 1, Number(settings.memory?.limit) || 4, v => String(Math.round(v)), value => {
+                    patchSettings('memory.limit', Math.round(value));
+                })),
+        ]));
+
         /* ---------------- 数据 ---------------- */
         wrap.appendChild(section('数据', [
             row({ icon: 'download', label: '导出这部手机', hint: '聊天、朋友圈、备忘都会存成一个 JSON 文件' },
