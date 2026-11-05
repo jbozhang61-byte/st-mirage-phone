@@ -30,6 +30,9 @@ export async function generateImage(prompt) {
     if (config.provider === 'comfyui') {
         return generateComfy(endpoint, config, prompt);
     }
+    if (config.provider === 'novelai') {
+        return generateNovelAi(endpoint, config, prompt);
+    }
     if (config.provider === 'gemini') {
         return generateGemini(endpoint, config, prompt);
     }
@@ -98,6 +101,86 @@ function sizeToAspect(size) {
     if (ratio < 0.62) return '9:16';
     if (ratio < 0.82) return '2:3';
     return '1:1';
+}
+
+function bytesToBase64(bytes) {
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(binary);
+}
+
+async function inflateRaw(chunk) {
+    if (typeof DecompressionStream !== 'function') throw new Error('这个浏览器不支持解压，换 Chrome/Edge');
+    const stream = new Blob([chunk]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+/** NovelAI 回的是 zip，这里把里面第一张图拆出来。 */
+async function unzipFirstImage(bytes) {
+    let offset = 0;
+    while (offset + 30 < bytes.length) {
+        if (!(bytes[offset] === 0x50 && bytes[offset + 1] === 0x4b && bytes[offset + 2] === 0x03 && bytes[offset + 3] === 0x04)) return '';
+        const view = new DataView(bytes.buffer, bytes.byteOffset + offset);
+        const method = view.getUint16(8, true);
+        const compSize = view.getUint32(18, true);
+        const nameLen = view.getUint16(26, true);
+        const extraLen = view.getUint16(28, true);
+        const nameStart = offset + 30;
+        const name = new TextDecoder().decode(bytes.slice(nameStart, nameStart + nameLen));
+        const dataStart = nameStart + nameLen + extraLen;
+        if (!compSize) return '';
+        const chunk = bytes.slice(dataStart, dataStart + compSize);
+        if (/\.(png|jpe?g|webp)$/i.test(name)) {
+            const raw = method === 0 ? chunk : await inflateRaw(chunk);
+            const mime = /\.jpe?g$/i.test(name) ? 'image/jpeg' : /\.webp$/i.test(name) ? 'image/webp' : 'image/png';
+            return 'data:' + mime + ';base64,' + bytesToBase64(raw);
+        }
+        offset = dataStart + compSize;
+    }
+    return '';
+}
+
+/** NovelAI（nai-diffusion-4-5 / 5）：Bearer 持久 token，返回 zip 或图片。 */
+async function generateNovelAi(endpoint, config, prompt) {
+    const host = (endpoint || 'https://image.novelai.net').replace(/\/$/, '');
+    const [w, h] = String(config.size || '832x1216').split('x').map(Number);
+    const response = await fetch(host + '/ai/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (config.apiKey || '') },
+        body: JSON.stringify({
+            input: prompt,
+            model: config.model || 'nai-diffusion-4-5-full',
+            action: 'generate',
+            parameters: {
+                width: Math.max(64, Math.min(1600, w || 832)),
+                height: Math.max(64, Math.min(1600, h || 1216)),
+                scale: Math.max(1, Math.min(30, Number(config.cfg) || 6)),
+                sampler: config.sampler || 'k_euler_ancestral',
+                steps: Math.max(1, Math.min(50, Number(config.steps) || 28)),
+                n_samples: 1,
+                ucPreset: 0,
+                qualityToggle: true,
+                negative_prompt: config.negative || '',
+                uc: config.negative || 'lowres, bad anatomy, bad hands, text, error, worst quality',
+            },
+        }),
+    });
+    if (!response.ok) {
+        let detail = '';
+        try { detail = (await response.text()).slice(0, 160); } catch { /* ignore */ }
+        throw new Error('NovelAI 返回 ' + response.status + (detail ? '：' + detail : ''));
+    }
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes[0] === 0x50 && bytes[1] === 0x4b) {
+        const image = await unzipFirstImage(bytes);
+        if (image) return image;
+        throw new Error('NovelAI 返回了压缩包，但没拆出图片');
+    }
+    const type = String(response.headers.get('content-type') || 'image/png');
+    return 'data:' + (type.startsWith('image/') ? type : 'image/png') + ';base64,' + bytesToBase64(bytes);
 }
 
 /** Google Gemini / Nano Banana：generateContent + inlineData。 */

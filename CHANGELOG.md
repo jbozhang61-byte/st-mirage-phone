@@ -1,5 +1,13 @@
 # 更新日志
 
+## 1.5.66 — 2026-11-05
+
+- **支持 NovelAI（nai-diffusion-4-5 / 5）**：AI 配图 → 接口形态选「NovelAI」
+  - 走 `/ai/generate-image`，Bearer 持久 token（不是账号密码，是 NovelAI 设置里生成的 API Token）
+  - 模型默认 `nai-diffusion-4-5-full`，也可填 `nai-diffusion-4-5-curated` / `nai-diffusion-3` / 你那边可用的 v5 模型名
+  - NovelAI 回的是 **zip**，这里用 `DecompressionStream('deflate-raw')` 从里面拆出第一张图
+  - 接口地址留空就用官方 `https://image.novelai.net`
+
 ## 1.5.65 — 2026-11-05
 
 - **支持 Nano Banana（Google Gemini 生图）**：AI 配图 → 接口形态里新增「Gemini / Banana」
