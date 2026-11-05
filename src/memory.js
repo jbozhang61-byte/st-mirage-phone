@@ -55,17 +55,60 @@ export function bestDepth(total) {
   return 80;
 }
 
+/** 粗估 token：中文约 1.4 字/token，英文约 4 字符/token。 */
+function estimateTokens(text) {
+  const value = String(text || '');
+  const cjk = (value.match(/[\u4e00-\u9fff]/g) || []).length;
+  const rest = Math.max(0, value.length - cjk);
+  return Math.ceil(cjk / 1.4 + rest / 4) + 4;
+}
+
+/**
+ * 自动读取"隐藏助手 / 上下文窗口"实际能看到多少层：
+ * 从最后一条往前数，直到吃掉上下文预算的 35%（剩下的留给设定、注入和回复）。
+ * 酒馆没暴露 token 数时按 4096 估算。
+ */
+export function autoWindow() {
+  try {
+    const c = globalThis.SillyTavern?.getContext?.();
+    const budget = Number(
+      c?.maxContextTokens
+      || c?.power_user?.openai_max_context
+      || c?.power_user?.context?.max_context
+      || c?.chat_completion_settings?.openai_max_context
+      || 4096,
+    ) || 4096;
+    const floors = chatFloors();
+    if (!floors.length) return 0;
+    const limit = Math.max(256, budget * 0.35);
+    let used = 0;
+    let count = 0;
+    for (let i = floors.length - 1; i >= 0 && count < 200; i -= 1) {
+      const cost = estimateTokens(floors[i].text);
+      if (used + cost > limit) break;
+      used += cost;
+      count += 1;
+    }
+    // 至少 4 层，最多 120 层
+    return Math.max(4, Math.min(120, count || 4));
+  } catch {
+    return 0;
+  }
+}
+
 /**
  * 实际用多少层：
  *  - 设置里写了固定值（比如 7）就用它
- *  - 写 0 = 自动，取 bestDepth，但不超出现有未总结的楼层
+ *  - 写 0 = 自动：按上下文窗口能装下的层数来（读不到就退回 bestDepth）
  */
 export function plannedDepth(available = 0) {
   const settings = getSettings();
   const window = Number(settings.memory?.window) || 0;
   const total = Math.max(0, Number(available) || 0);
   if (window > 0) return Math.min(window, Math.max(1, total));
-  return Math.min(bestDepth(Math.max(1, total)), Math.max(1, total));
+  const auto = autoWindow();
+  const base = auto > 0 ? auto : bestDepth(Math.max(1, total));
+  return Math.min(base, Math.max(1, total));
 }
 
 /** 还差几层才该自动总结；返回 0 表示现在就该跑。 */

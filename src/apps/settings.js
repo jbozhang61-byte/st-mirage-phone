@@ -391,8 +391,8 @@ export function mountSettings(host, { nav }) {
                 slider(4, 60, 1, Number(settings.memory?.every) || 20, v => Math.round(v) + ' 层', value => {
                     patchSettings('memory.every', Math.round(value));
                 })) : null,
-            row({ icon: 'book', label: '每次总结几层', hint: '0 = 自动（≤30 全读，往上 40/60/80）；填 7 就每次只读 7 层' },
-                slider(0, 80, 1, Number(settings.memory?.window) || 0, v => (Number(v) ? Math.round(v) + ' 层' : '自动'), value => {
+            row({ icon: 'book', label: '每次总结几层', hint: '0 = 自动：读酒馆的上下文窗口，算出隐藏助手实际能看到几层；填数字则固定' },
+                slider(0, 80, 1, Number(settings.memory?.window) || 0, v => (Number(v) ? Math.round(v) + ' 层' : '自动（约 ' + autoWindow() + ' 层）'), value => {
                     patchSettings('memory.window', Math.round(value));
                 })),
             row({ icon: 'book', label: '注入长期记忆', hint: '把总结出来的记忆放进正文注入，AI 会一直记得' },

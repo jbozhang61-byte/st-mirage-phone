@@ -7,7 +7,7 @@ import { getData, saveNow } from '../store.js';
 import { summarizeMemory } from '../ai.js';
 import {
   memoryEntries, clearMemory, plannedDepth, chatFloors, memoryCursor,
-  searchMemory, updateMemoryEntry, removeMemoryEntry,
+  searchMemory, updateMemoryEntry, removeMemoryEntry, autoWindow,
 } from '../memory.js';
 
 export function mountMemory(host, { nav }) {
@@ -38,7 +38,7 @@ export function mountMemory(host, { nav }) {
       h('div', { class: 'mp-mem__count', text: String(entries.length) }),
       h('div', {},
         h('div', { class: 'mp-mem__hero-title', text: '条长期记忆' }),
-        h('div', { class: 'mp-mem__hero-sub', text: '共 ' + floors.length + ' 层 · 隐藏楼层 ' + hidden + ' 条也会读' })),
+        h('div', { class: 'mp-mem__hero-sub', text: '共 ' + floors.length + ' 层 · 隐藏楼层 ' + hidden + ' 条也会读 · 自动窗口约 ' + (autoWindow() || '—') + ' 层' })),
     ));
 
     const search = h('input', {
