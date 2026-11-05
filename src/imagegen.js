@@ -30,6 +30,12 @@ export async function generateImage(prompt) {
     if (config.provider === 'comfyui') {
         return generateComfy(endpoint, config, prompt);
     }
+    if (config.provider === 'stability') {
+        return generateStability(endpoint, config, prompt);
+    }
+    if (config.provider === 'custom') {
+        return generateCustom(endpoint, config, prompt);
+    }
     if (config.provider === 'sd') {
         const response = await fetch(endpoint + '/sdapi/v1/txt2img', {
             method: 'POST',
@@ -68,6 +74,71 @@ export async function generateImage(prompt) {
     if (item.b64_json) return 'data:image/png;base64,' + item.b64_json;
     if (item.url) return item.url;
     throw new Error('生图接口返回格式不对');
+}
+
+function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('图片转码失败'));
+        reader.readAsDataURL(blob);
+    });
+}
+
+function sizeToAspect(size) {
+    const text = String(size || '1024x1024');
+    const [w, h] = text.split('x').map(Number);
+    if (!w || !h) return '1:1';
+    const ratio = w / h;
+    if (ratio > 1.6) return '16:9';
+    if (ratio > 1.2) return '3:2';
+    if (ratio < 0.62) return '9:16';
+    if (ratio < 0.82) return '2:3';
+    return '1:1';
+}
+
+/** Stability AI：multipart 表单，直接回二进制。 */
+async function generateStability(endpoint, config, prompt) {
+    const form = new FormData();
+    form.append('prompt', prompt);
+    if (config.negative) form.append('negative_prompt', config.negative);
+    form.append('output_format', 'png');
+    form.append('aspect_ratio', sizeToAspect(config.size));
+    const response = await fetch((endpoint || 'https://api.stability.ai').replace(/\/$/, '') + '/v2beta/stable-image/generate/core', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + (config.apiKey || ''), Accept: 'image/*' },
+        body: form,
+    });
+    if (!response.ok) throw new Error('Stability 返回 ' + response.status);
+    return blobToDataUrl(await response.blob());
+}
+
+/** 自定义接口：自己填 URL / 请求头 / 请求体，再用路径取出图片。 */
+async function generateCustom(endpoint, config, prompt) {
+    let headers = {};
+    try {
+        headers = config.customHeaders ? JSON.parse(config.customHeaders) : {};
+    } catch { toast?.('自定义请求头不是合法 JSON'); }
+    if (!headers['Content-Type'] && !headers['content-type']) headers['Content-Type'] = 'application/json';
+    if (config.apiKey && !headers.Authorization) headers.Authorization = 'Bearer ' + config.apiKey;
+    let body = config.customBody
+        ? String(config.customBody).split('{{prompt}}').join(prompt).split('{{negative}}').join(config.negative || '')
+        : JSON.stringify({ prompt, negative_prompt: config.negative || '' });
+    const response = await fetch(endpoint, { method: 'POST', headers, body });
+    if (!response.ok) throw new Error('自定义接口返回 ' + response.status);
+    const type = String(response.headers.get('content-type') || '');
+    if (type.startsWith('image/')) return blobToDataUrl(await response.blob());
+    const data = await response.json();
+    const path = String(config.customPath || 'data.0.b64_json').trim();
+    let value = data;
+    for (const part of path.split('.')) {
+        if (value == null) break;
+        value = Array.isArray(value) ? value[Number(part)] : value[part];
+    }
+    const text = String(value || '');
+    if (!text) throw new Error('自定义接口没找到图片字段（' + path + '）');
+    if (text.startsWith('data:') || text.startsWith('http')) return text;
+    return 'data:image/png;base64,' + text;
 }
 
 function fillComfy(node, prompt, negative) {

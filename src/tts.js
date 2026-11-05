@@ -63,7 +63,95 @@ export function stopTts() {
     if (audioUrl) { try { URL.revokeObjectURL(audioUrl); } catch { /* ignore */ } audioUrl = ''; }
 }
 
+function escapeXml(text) {
+    return String(text || '').replace(/[<>&'"]/g, char => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[char]));
+}
+
+/** ElevenLabs */
+async function elevenLabsSpeak(text, config) {
+    const baseUrl = String(config.baseUrl || 'https://api.elevenlabs.io').replace(/\/$/, '');
+    const voice = config.apiVoice || '21m00Tcm4TlvDq8ikWAM';
+    const response = await fetch(baseUrl + '/v1/text-to-speech/' + encodeURIComponent(voice), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'xi-api-key': config.apiKey || '' },
+        body: JSON.stringify({
+            text,
+            model_id: config.model || 'eleven_multilingual_v2',
+            voice_settings: { stability: 0.45, similarity_boost: 0.75 },
+        }),
+    });
+    if (!response.ok) throw new Error('ElevenLabs 返回 ' + response.status);
+    return response.blob();
+}
+
+/** Azure / Edge 认知服务（SSML） */
+async function azureSpeak(text, config) {
+    const region = config.region || 'eastasia';
+    const baseUrl = String(config.baseUrl || ('https://' + region + '.tts.speech.microsoft.com')).replace(/\/$/, '');
+    const voice = config.apiVoice || 'zh-CN-XiaoxiaoNeural';
+    const ssml = "<speak version='1.0' xml:lang='zh-CN'><voice name='" + voice + "'>" + escapeXml(text) + '</voice></speak>';
+    const response = await fetch(baseUrl + '/cognitiveservices/v1', {
+        method: 'POST',
+        headers: {
+            'Ocp-Apim-Subscription-Key': config.apiKey || '',
+            'Content-Type': 'application/ssml+xml',
+            'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3',
+        },
+        body: ssml,
+    });
+    if (!response.ok) throw new Error('Azure TTS 返回 ' + response.status);
+    return response.blob();
+}
+
+/** 自定义：自己填 URL / 请求头 / 请求体，返回音频二进制或 base64。 */
+async function customSpeak(text, config) {
+    const baseUrl = String(config.baseUrl || '').replace(/\/$/, '');
+    if (!baseUrl) throw new Error('没有填 TTS 接口地址');
+    let headers = {};
+    try { headers = config.customHeaders ? JSON.parse(config.customHeaders) : {}; } catch { /* ignore */ }
+    if (!headers['Content-Type'] && !headers['content-type']) headers['Content-Type'] = 'application/json';
+    if (config.apiKey && !headers.Authorization) headers.Authorization = 'Bearer ' + config.apiKey;
+    const body = config.customBody
+        ? String(config.customBody)
+            .split('{{text}}').join(text)
+            .split('{{voice}}').join(config.apiVoice || '')
+            .split('{{speed}}').join(String(clamp(Number(config.rate) || 1, 0.5, 2)))
+        : JSON.stringify({ text, voice: config.apiVoice || '', speed: clamp(Number(config.rate) || 1, 0.5, 2) });
+    const response = await fetch(baseUrl, { method: 'POST', headers, body });
+    if (!response.ok) throw new Error('自定义 TTS 返回 ' + response.status);
+    const type = String(response.headers.get('content-type') || '');
+    if (type.includes('json')) {
+        const data = await response.json();
+        const path = String(config.customPath || 'data').trim();
+        let value = data;
+        for (const part of path.split('.')) {
+            if (value == null) break;
+            value = Array.isArray(value) ? value[Number(part)] : value[part];
+        }
+        const raw = String(value || '');
+        if (!raw) throw new Error('自定义 TTS 没找到音频字段（' + path + '）');
+        const binary = atob(raw.replace(/^data:[^,]*,/, ''));
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+        return new Blob([bytes], { type: 'audio/mpeg' });
+    }
+    return response.blob();
+}
+
 async function apiSpeak(text, config) {
+    const provider = config.provider || 'openai';
+    if (provider === 'elevenlabs') {
+        const blob = await elevenLabsSpeak(text, config);
+        return playBlob(blob, config);
+    }
+    if (provider === 'azure') {
+        const blob = await azureSpeak(text, config);
+        return playBlob(blob, config);
+    }
+    if (provider === 'custom') {
+        const blob = await customSpeak(text, config);
+        return playBlob(blob, config);
+    }
     const baseUrl = String(config.baseUrl || '').replace(/\/$/, '');
     if (!baseUrl) throw new Error('没有填 TTS 接口地址');
     const response = await fetch(baseUrl + '/audio/speech', {
@@ -83,6 +171,10 @@ async function apiSpeak(text, config) {
         throw new Error('TTS 接口返回 ' + response.status + (detail ? '：' + detail : ''));
     }
     const blob = await response.blob();
+    return playBlob(blob, config);
+}
+
+async function playBlob(blob, config) {
     stopTts();
     audioUrl = URL.createObjectURL(blob);
     audioEl = new Audio(audioUrl);

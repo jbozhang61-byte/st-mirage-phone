@@ -65,10 +65,18 @@ export function defaultSettings() {
         perf: 'auto',             // auto | lite | full
         autoOpen: false,          // 打开酒馆时是否自动弹出手机
         home: { order: [], folders: [] },
-        image: { enabled: false, provider: 'openai', endpoint: '', apiKey: '', model: 'gpt-image-1', size: '1024x1024', quality: 'auto', negative: '', steps: 24, cfg: 6 },
+        image: {
+            enabled: false, provider: 'openai', endpoint: '', apiKey: '', model: 'gpt-image-1',
+            size: '1024x1024', quality: 'auto', negative: '', steps: 24, cfg: 6,
+            customHeaders: '', customBody: '', customPath: 'data.0.b64_json',
+        },
         inject: { enabled: true, depth: 2 },
         proactive: { enabled: false, cooldown: 120, perHour: 4, rounds: 1 },
-        tts: { enabled: false, auto: false, rate: 1, pitch: 1, volume: 1, voice: '', provider: 'browser', baseUrl: '', apiKey: '', model: 'tts-1', apiVoice: 'alloy' },
+        tts: {
+            enabled: false, auto: false, rate: 1, pitch: 1, volume: 1, voice: '', provider: 'browser',
+            baseUrl: '', apiKey: '', model: 'tts-1', apiVoice: 'alloy', region: 'eastasia',
+            customHeaders: '', customBody: '', customPath: 'data',
+        },
         aiApp: { provider: 'inherit', baseUrl: '', apiKey: '', model: '' },
         aiApps: {},
         ai: {

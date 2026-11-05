@@ -231,8 +231,8 @@ export function mountSettings(host, { nav }) {
         wrap.appendChild(section('AI 配图', [
             row({ icon: 'image', label: '启用', hint: '用你自己的生图接口给抖音/Ins 配图；没配就用程序化照片' },
                 toggle(settings.image?.enabled, value => { patchImage({ enabled: value }); })),
-            settings.image?.enabled ? row({ icon: 'globe', label: '接口形态', hint: 'OpenAI / SD WebUI / ComfyUI' },
-                choices([['openai', 'OpenAI'], ['sd', 'SD WebUI'], ['comfyui', 'ComfyUI']], settings.image?.provider || 'openai', value => patchImage({ provider: value }))) : null,
+            settings.image?.enabled ? row({ icon: 'globe', label: '接口形态', hint: 'OpenAI 兼容 / SD WebUI / ComfyUI / Stability / 自定义' },
+                choices([['openai', 'OpenAI 兼容'], ['sd', 'SD WebUI'], ['comfyui', 'ComfyUI'], ['stability', 'Stability'], ['custom', '自定义']], settings.image?.provider || 'openai', value => patchImage({ provider: value }))) : null,
             settings.image?.enabled ? row({ icon: 'link', label: '接口地址', hint: 'OpenAI: …/v1　SD: :7860　ComfyUI: :8188' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'text', value: settings.image?.endpoint || '', placeholder: 'https://…',
@@ -265,6 +265,21 @@ export function mountSettings(host, { nav }) {
                         patchImage({ negative, steps: Number(steps) || 24, cfg: Number(cfg) || 6 });
                     },
                 }))) : null,
+            settings.image?.enabled && (settings.image?.provider || 'openai') === 'custom' ? row({ icon: 'settings', label: '自定义请求', hint: '请求头 JSON / 请求体（{{prompt}} 占位）/ 取图路径' },
+                h('div', { class: 'mp-field-list' },
+                    h('input', {
+                        type: 'text', value: settings.image?.customHeaders || '', placeholder: '{"Authorization":"Bearer …"}',
+                        onchange: event => patchImage({ customHeaders: event.target.value.trim() }),
+                    }),
+                    h('input', {
+                        type: 'text', value: settings.image?.customBody || '', placeholder: '{"prompt":"{{prompt}}","n":1}',
+                        onchange: event => patchImage({ customBody: event.target.value.trim() }),
+                    }),
+                    h('input', {
+                        type: 'text', value: settings.image?.customPath || 'data.0.b64_json', placeholder: 'data.0.b64_json 或 data.0.url',
+                        onchange: event => patchImage({ customPath: event.target.value.trim() }),
+                    }),
+                )) : null,
             settings.image?.enabled && (settings.image?.provider || 'openai') === 'comfyui' ? row({ icon: 'grid', label: '模型文件名', hint: 'ComfyUI 的 CheckpointLoaderSimple 里填的 ckpt 名' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'text', value: settings.image?.comfyCheckpoint || '', placeholder: 'sd_xl_base_1.0.safetensors',
@@ -313,19 +328,39 @@ export function mountSettings(host, { nav }) {
             settings.tts?.enabled ? row({ icon: 'bell', label: '自动朗读', hint: '手机收到新回复时自动读出来' },
                 toggle(settings.tts?.auto, value => patchTTS({ auto: value }))) : null,
             settings.tts?.enabled ? row({ icon: 'globe', label: '语音来源', hint: '系统语音免费；接口 TTS 需要 OpenAI 兼容的 /audio/speech' },
-                choices([['browser', '系统语音'], ['openai', '接口 TTS']], ttsProvider, value => patchTTS({ provider: value }))) : null,
-            settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'link', label: 'TTS 接口', hint: '例如 https://api.openai.com/v1' },
+                choices([['browser', '系统语音'], ['openai', 'OpenAI 兼容'], ['elevenlabs', 'ElevenLabs'], ['azure', 'Azure'], ['custom', '自定义']], ttsProvider, value => patchTTS({ provider: value }))) : null,
+            settings.tts?.enabled && ttsProvider !== 'browser' ? row({ icon: 'link', label: 'TTS 接口', hint: ttsProvider === 'elevenlabs' ? '默认 https://api.elevenlabs.io' : ttsProvider === 'azure' ? '默认 https://<区域>.tts.speech.microsoft.com' : '例如 https://api.openai.com/v1' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'text', value: settings.tts?.baseUrl || '', placeholder: 'https://…/v1',
                     onchange: event => patchTTS({ baseUrl: event.target.value.trim() }),
                 }))) : null,
-            settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'key', label: 'TTS Key', hint: '只存在本地设置里' },
+            settings.tts?.enabled && ttsProvider !== 'browser' ? row({ icon: 'key', label: 'TTS Key', hint: '只存在本地设置里' },
                 h('div', { class: 'mp-field' }, h('input', {
                     type: 'password', value: settings.tts?.apiKey || '', placeholder: 'sk-…',
                     onchange: event => patchTTS({ apiKey: event.target.value.trim() }),
                 }))) : null,
             settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'grid', label: '模型', hint: 'tts-1 便宜、tts-1-hd 清晰；4o-mini-tts 更自然但贵' },
                 choices([['tts-1', 'tts-1'], ['tts-1-hd', 'tts-1-hd'], ['gpt-4o-mini-tts', '4o-mini-tts']], settings.tts?.model || 'tts-1', value => patchTTS({ model: value }))) : null,
+            settings.tts?.enabled && ttsProvider === 'custom' ? row({ icon: 'settings', label: '自定义请求', hint: '请求头 JSON / 请求体（{{text}} {{voice}} {{speed}}）/ 音频路径' },
+                h('div', { class: 'mp-field-list' },
+                    h('input', {
+                        type: 'text', value: settings.tts?.customHeaders || '', placeholder: '{"Content-Type":"application/json"}',
+                        onchange: event => patchTTS({ customHeaders: event.target.value.trim() }),
+                    }),
+                    h('input', {
+                        type: 'text', value: settings.tts?.customBody || '', placeholder: '{"text":"{{text}}","voice":"{{voice}}"}',
+                        onchange: event => patchTTS({ customBody: event.target.value.trim() }),
+                    }),
+                    h('input', {
+                        type: 'text', value: settings.tts?.customPath || 'data', placeholder: 'data 或 audio.base64',
+                        onchange: event => patchTTS({ customPath: event.target.value.trim() }),
+                    }),
+                )) : null,
+            settings.tts?.enabled && ttsProvider === 'azure' ? row({ icon: 'globe', label: '区域', hint: 'eastasia / eastus 等' },
+                h('div', { class: 'mp-field' }, h('input', {
+                    type: 'text', value: settings.tts?.region || 'eastasia', placeholder: 'eastasia',
+                    onchange: event => patchTTS({ region: event.target.value.trim() || 'eastasia' }),
+                }))) : null,
             settings.tts?.enabled && ttsProvider === 'openai' ? row({ icon: 'user', label: '接口音色', hint: 'nova / shimmer 偏女声，onyx / echo 偏男声' },
                 choices([['alloy', 'alloy'], ['nova', 'nova'], ['shimmer', 'shimmer'], ['echo', 'echo'], ['fable', 'fable'], ['onyx', 'onyx'], ['coral', 'coral'], ['sage', 'sage']], settings.tts?.apiVoice || 'alloy', value => patchTTS({ apiVoice: value }))) : null,
             settings.tts?.enabled && ttsProvider === 'browser' ? row({ icon: 'user', label: '声音', hint: voices.length ? '系统里可用的语音' : '系统没有返回语音包' },
