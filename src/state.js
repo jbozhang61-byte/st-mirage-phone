@@ -188,13 +188,112 @@ export function defaultData() {
     };
 }
 
+/* ------------- 每个聊天的内存快照：来回切换时兜底，不会再被清空 ------------- */
+const snapshots = new Map();      // chatKey -> { data, at }
+
+function chatKeyOf() {
+    try {
+        const c = ctx();
+        const raw = c?.chatId || c?.chatMetadata?.chat_id || c?.chatMetadata?.chat
+            || c?.chatMetadata?.name || c?.name2 || '';
+        return String(raw).trim().slice(0, 160);
+    } catch { return ''; }
+}
+
+function isEmptyData(data) {
+    if (!isObject(data)) return true;
+    const count = value => (Array.isArray(value) ? value.length : 0);
+    return count(data.threads) === 0
+        && count(data.moments) === 0
+        && count(data.notes) === 0
+        && count(data.world?.cast) === 0
+        && count(data.plot?.history) === 0
+        && Object.keys(data.feeds || {}).length === 0;
+}
+
+/* ---------- 本地备份：页面重载后 metadata 丢了也能救回来 ---------- */
+const BACKUP_PREFIX = 'mp-backup:';
+let backupTimer = 0;
+
+function slimData(data) {
+    const copy = { ...data };
+    copy.threads = (data.threads || []).slice(-40).map(thread => ({
+        ...thread,
+        msgs: (thread.msgs || []).slice(-80),
+    }));
+    copy.moments = (data.moments || []).slice(-40);
+    copy.notes = (data.notes || []).slice(-80);
+    const feeds = {};
+    for (const [appId, feed] of Object.entries(data.feeds || {})) {
+        const items = feed?.items;
+        if (Array.isArray(items)) feeds[appId] = { ...feed, items: items.slice(-60) };
+        else if (items && typeof items === 'object') {
+            feeds[appId] = {
+                ...feed,
+                items: {
+                    ...items,
+                    posts: Array.isArray(items.posts) ? items.posts.slice(-60) : items.posts,
+                },
+            };
+        }
+    }
+    copy.feeds = feeds;
+    return copy;
+}
+
+function writeBackup(data) {
+    try {
+        const key = chatKeyOf();
+        if (!key || isEmptyData(data)) return;
+        globalThis.localStorage?.setItem(BACKUP_PREFIX + key, JSON.stringify({ at: Date.now(), data: slimData(data) }));
+    } catch { /* 容量满了就算了 */ }
+}
+
+export function readBackup(key) {
+    try {
+        const raw = globalThis.localStorage?.getItem(BACKUP_PREFIX + (key || chatKeyOf()));
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return isObject(parsed?.data) ? parsed.data : null;
+    } catch { return null; }
+}
+
+export function rememberSnapshot(data) {
+    const key = chatKeyOf();
+    if (!key || !isObject(data)) return;
+    clearTimeout(backupTimer);
+    backupTimer = setTimeout(() => writeBackup(data), 1500);
+    snapshots.set(key, { data, at: Date.now() });
+    if (snapshots.size > 12) {
+        const oldest = [...snapshots.entries()].sort((a, b) => a[1].at - b[1].at)[0];
+        if (oldest) snapshots.delete(oldest[0]);
+    }
+}
+
 export function loadData() {
     const c = ctx();
     const store = c?.chatMetadata;
     if (!store) return normalizeData(stash.data || defaultData());
-    if (!isObject(store[DATA_KEY])) store[DATA_KEY] = defaultData();
-    store[DATA_KEY] = normalizeData(store[DATA_KEY]);
+    const key = chatKeyOf();
+    const snap = key ? snapshots.get(key) : null;
+
+    if (!isObject(store[DATA_KEY])) {
+        // 这个聊天的 metadata 里没有数据，但内存里有快照 → 恢复快照
+        store[DATA_KEY] = normalizeData(snap?.data || defaultData());
+    } else {
+        const current = normalizeData(store[DATA_KEY]);
+        // metadata 看着是空的，但内存快照 / 本地备份里有内容 → 用它，别当内容丢了
+        if (isEmptyData(current)) {
+            const fromSnap = snap && !isEmptyData(snap.data) ? snap.data : null;
+            const backup = fromSnap ? null : readBackup(key);
+            const rescue = fromSnap || (backup && !isEmptyData(backup) ? backup : null);
+            store[DATA_KEY] = normalizeData(rescue || current);
+        } else {
+            store[DATA_KEY] = current;
+        }
+    }
     stash.data = store[DATA_KEY];
+    rememberSnapshot(store[DATA_KEY]);
     return store[DATA_KEY];
 }
 
@@ -204,6 +303,7 @@ export function saveData(data) {
     // 没挂上 chatMetadata 时绝对不要写盘：否则会把 A 聊天的内容写进 B 聊天
     if (!c?.chatMetadata) return;
     c.chatMetadata[DATA_KEY] = data;
+    rememberSnapshot(data);
     try {
         if (typeof c?.saveMetadataDebounced === 'function') c.saveMetadataDebounced();
         else if (typeof c?.saveMetadata === 'function') c.saveMetadata();
