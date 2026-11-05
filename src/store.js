@@ -5,6 +5,7 @@
 import {
     defaultData, defaultSettings, loadData, loadSettings, saveData, saveSettings,
     normalizeData, normalizeThread, normalizeMoment, normalizePerson, uid, LIMITS, emit, onChange,
+    currentChatKey, rememberSnapshotFor,
 } from './state.js';
 import { characterAvatar } from './st.js';
 
@@ -13,6 +14,7 @@ const store = {
     settings: defaultSettings(),
     saveTimer: 0,
     ready: false,
+    chatKey: '',       // 当前这份 data 属于哪个聊天
 };
 
 export function initStore() {
@@ -21,6 +23,7 @@ export function initStore() {
     // 酒馆切换聊天的瞬间可能还没有 chatMetadata，这时别把内存里的数据换成空/上一个聊天的
     if (c?.chatMetadata) store.data = loadData();
     else if (!store.ready) store.data = loadData();
+    try { store.chatKey = currentChatKey(); } catch { /* ignore */ }
     store.ready = true;
     emit('init');
     return store;
@@ -67,8 +70,16 @@ export function saveNow(kind = 'data') {
         saveSettings(store.settings);
         return;
     }
-    // 立刻写进当前聊天的 chatMetadata：以前延迟 260ms，
-    // 这期间要是切了聊天，数据就可能落到别的聊天里或者直接丢掉
+    // 聊天已经切走：这份数据属于旧聊天，只留快照，绝不写进新聊天
+    try {
+        const key = currentChatKey();
+        if (store.chatKey && key && store.chatKey !== key) {
+            rememberSnapshotFor(store.chatKey, store.data);
+            return;
+        }
+        if (key) store.chatKey = key;
+    } catch { /* ignore */ }
+    // 立刻写进当前聊天的 chatMetadata
     clearTimeout(store.saveTimer);
     saveData(store.data);
     emit('data:dirty');

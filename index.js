@@ -4,7 +4,7 @@
  */
 import { ctx, subscribe, toast, characterAvatar, chatId, currentCharacter, memoryContext, importantStoryContext } from './src/st.js';
 import {
-    initStore, getSettings, getData, onChange, saveNow, flushSave, findThread,
+    initStore, getSettings, getData, onChange, saveNow, flushSave, findThread, appendMessages,
 } from './src/store.js';
 import { ACCENTS } from './src/state.js';
 import { createPhone, openPhone, refreshTheme } from './src/phone.js';
@@ -212,10 +212,20 @@ function scheduleProactive() {
         if (isBusy()) return;
         proactiveRounds = 0;
         const result = await runProactive();
-        if (result) {
+        if (!result) return;
+        // 以前这里只刷新角标，消息根本没写进会话里 → 看起来"自动发消息没用"
+        try {
+            appendMessages(result.threadId, result.messages);
             const thread = findThread(result.threadId);
+            if (thread) {
+                thread.updated = Date.now();
+                thread.unread = Math.max(1, Number(thread.unread) || 0) + result.messages.length;
+            }
+            saveNow('data');
             phone?.refreshBadges();
-            if (!thread?.unread) return;
+            phone?.notifyIncoming?.(result.threadId, result.messages);
+        } catch (error) {
+            console.warn('[幻镜手机] 主动来信写入失败', error);
         }
     }, 1600);
 }

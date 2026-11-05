@@ -258,6 +258,21 @@ export function readBackup(key) {
     } catch { return null; }
 }
 
+export function currentChatKey() {
+    return chatKeyOf();
+}
+
+export function rememberSnapshotFor(key, data) {
+    if (!key || !isObject(data)) return;
+    snapshots.set(key, { data, at: Date.now() });
+    clearTimeout(backupTimer);
+    backupTimer = setTimeout(() => {
+        try {
+            globalThis.localStorage?.setItem(BACKUP_PREFIX + key, JSON.stringify({ at: Date.now(), data: slimData(data) }));
+        } catch { /* ignore */ }
+    }, 1500);
+}
+
 export function rememberSnapshot(data) {
     const key = chatKeyOf();
     if (!key || !isObject(data)) return;
