@@ -3034,3 +3034,6 @@ html.mp-narrow .mp-status__float { display: grid !important; pointer-events: aut
 .mp-mem__facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .mp-mem__fact { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: rgba(124, 140, 255, .16); color: #a3b0ff; }
 .mp-mem__foot { margin-top: 18px; display: flex; justify-content: center; }
+.mp-mem__search { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mp-mem__search .mp-input { flex: 1 1 auto; }
+.mp-mem__search .mp-ic { width: 16px; height: 16px; color: var(--mp-text-3); }

@@ -16,7 +16,9 @@ import { powerRoster } from './roster.js';
 import { FEEDS } from './feed.js';
 import { SOCIAL } from './social.js';
 import { EXTRA } from './extra.js';
-import { chatFloors, memoryCursor, bestDepth, saveMemoryEntry, memoryBlock } from './memory.js';
+import {
+    chatFloors, memoryCursor, bestDepth, plannedDepth, summarizeDue, saveMemoryEntry, memoryBlock,
+} from './memory.js';
 import { plotSystemPrompt, plotUserPrompt, plotFallback, toneOf } from './plot.js';
 import { sparkSystemPrompt, sparkUserPrompt, sparkFallback, dateSystemPrompt, dateFallback } from './spark.js';
 import { webSystemPrompt, webUserPrompt, webFallback } from './web.js';
@@ -531,13 +533,30 @@ export async function browse(query) {
     return { ...webFallback({ query, world, people }), url: query, ts: Date.now() };
 }
 
+/** 自动总结：够 N 层就悄悄跑一次（失败不打扰）。 */
+let autoMemoryBusy = false;
+export async function autoSummarizeMemory() {
+    if (autoMemoryBusy) return null;
+    if (!summarizeDue()) return null;
+    autoMemoryBusy = true;
+    try {
+        return await summarizeMemory({});
+    } catch (error) {
+        console.warn('[幻镜手机] 自动总结失败', error);
+        return null;
+    } finally {
+        autoMemoryBusy = false;
+    }
+}
+
 /** 把最近若干楼层总结成一条长期记忆（含隐藏楼层）。 */
 export async function summarizeMemory({ turns = 0 } = {}) {
     const floors = chatFloors();
     if (!floors.length) throw new Error('这个聊天还没有楼层');
     const cursor = memoryCursor();
     const start = Math.max(0, Math.min(floors.length - 1, cursor));
-    const depth = Math.max(6, Math.min(120, Number(turns) || bestDepth(floors.length - start)));
+    const available = Math.max(1, floors.length - start);
+    const depth = Math.max(4, Math.min(120, Number(turns) || plannedDepth(available)));
     const slice = floors.slice(start, start + depth);
     if (slice.length < 4) throw new Error('楼层太少，先多聊几句再总结');
     const hiddenCount = slice.filter(item => item.hidden).length;

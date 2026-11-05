@@ -9,7 +9,7 @@ import {
 import { ACCENTS } from './src/state.js';
 import { createPhone, openPhone, refreshTheme } from './src/phone.js';
 import { avatarUrl } from './src/avatars.js';
-import { aiEvents, runProactive, refreshInjection, isBusy } from './src/ai.js';
+import { aiEvents, runProactive, refreshInjection, isBusy, autoSummarizeMemory } from './src/ai.js';
 
 let bootErrorTimer = 0;
 function showBootError(message) {
@@ -153,7 +153,11 @@ function wireEvents() {
         phone.refreshBadges();
     });
     subscribe('GENERATION_STARTED', () => refreshInjection());
-    subscribe('CHARACTER_MESSAGE_RENDERED', () => phone?.refreshBadges());
+    subscribe('CHARACTER_MESSAGE_RENDERED', () => {
+        phone?.refreshBadges();
+        // 每 N 层自动总结一次（设置里开启才跑）
+        autoSummarizeMemory?.();
+    });
 
     aiEvents.addEventListener('typing', event => {
         const { threadId, typing } = event.detail || {};

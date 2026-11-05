@@ -385,6 +385,16 @@ export function mountSettings(host, { nav }) {
 
         /* ---------------- 记忆 ---------------- */
         wrap.appendChild(section('记忆', [
+            row({ icon: 'refresh', label: '自动总结', hint: '每攒够 N 层就悄悄总结一次' },
+                toggle(settings.memory?.auto === true, value => { patchSettings('memory.auto', value); render(); })),
+            settings.memory?.auto === true ? row({ icon: 'hash', label: '每几层总结', hint: '默认 20 层一次' },
+                slider(4, 60, 1, Number(settings.memory?.every) || 20, v => Math.round(v) + ' 层', value => {
+                    patchSettings('memory.every', Math.round(value));
+                })) : null,
+            row({ icon: 'book', label: '每次总结几层', hint: '0 = 自动（≤30 全读，往上 40/60/80）；填 7 就每次只读 7 层' },
+                slider(0, 80, 1, Number(settings.memory?.window) || 0, v => (Number(v) ? Math.round(v) + ' 层' : '自动'), value => {
+                    patchSettings('memory.window', Math.round(value));
+                })),
             row({ icon: 'book', label: '注入长期记忆', hint: '把总结出来的记忆放进正文注入，AI 会一直记得' },
                 toggle(settings.memory?.inject !== false, value => { patchSettings('memory.inject', value); render(); })),
             row({ icon: 'slider', label: '注入条数', hint: '每次带几条记忆进正文' },

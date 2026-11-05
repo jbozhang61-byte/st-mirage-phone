@@ -3,7 +3,7 @@
  * 灵感来自 ST-Persistent-Memory（现场快照 / 事实分级）和 fish-memory（动态世界书），
  * 但这里只管"手机这一侧"要记住什么。
  */
-import { getData } from './store.js';
+import { getData, getSettings } from './store.js';
 
 /** 当前聊天的全部楼层（包括隐藏楼层，隐藏的也算剧情）。 */
 export function chatFloors() {
@@ -53,6 +53,62 @@ export function bestDepth(total) {
   if (total <= 120) return 40;
   if (total <= 400) return 60;
   return 80;
+}
+
+/**
+ * 实际用多少层：
+ *  - 设置里写了固定值（比如 7）就用它
+ *  - 写 0 = 自动，取 bestDepth，但不超出现有未总结的楼层
+ */
+export function plannedDepth(available = 0) {
+  const settings = getSettings();
+  const window = Number(settings.memory?.window) || 0;
+  const total = Math.max(0, Number(available) || 0);
+  if (window > 0) return Math.min(window, Math.max(1, total));
+  return Math.min(bestDepth(Math.max(1, total)), Math.max(1, total));
+}
+
+/** 还差几层才该自动总结；返回 0 表示现在就该跑。 */
+export function summarizeDue() {
+  const settings = getSettings();
+  if (!settings.memory?.auto) return false;
+  const every = Math.max(2, Number(settings.memory?.every) || 20);
+  const floors = chatFloors();
+  const pending = floors.length - memoryCursor();
+  return pending >= every;
+}
+
+/** 按人 / 关键词检索记忆。 */
+export function searchMemory(query = '') {
+  const text = String(query || '').trim().toLowerCase();
+  const entries = memoryEntries();
+  if (!text) return entries;
+  return entries.filter(entry => {
+    const hay = [entry.title, entry.text, ...(entry.facts || []), ...(entry.people || [])].join(' ').toLowerCase();
+    return hay.includes(text);
+  });
+}
+
+export function updateMemoryEntry(id, patch = {}) {
+  const data = getData();
+  if (!Array.isArray(data.memory?.entries)) return [];
+  data.memory.entries = data.memory.entries.map(entry => entry.id === id
+    ? {
+        ...entry,
+        title: String(patch.title ?? entry.title).slice(0, 24),
+        text: String(patch.text ?? entry.text).slice(0, 600),
+        facts: Array.isArray(patch.facts) ? patch.facts.map(item => String(item).slice(0, 60)).slice(0, 6) : entry.facts,
+        people: Array.isArray(patch.people) ? patch.people.map(item => String(item).slice(0, 20)).slice(0, 8) : entry.people,
+      }
+    : entry);
+  return data.memory.entries;
+}
+
+export function removeMemoryEntry(id) {
+  const data = getData();
+  if (!Array.isArray(data.memory?.entries)) return [];
+  data.memory.entries = data.memory.entries.filter(entry => entry.id !== id);
+  return data.memory.entries;
 }
 
 /** 注入用的记忆块：新的、带人物词的优先。 */
