@@ -323,7 +323,34 @@ export async function extractCast() {
         .filter(person => person.name && person.name !== user)
         .slice(0, 8);
     if (!cast.length) throw new Error('没找到可以放进通讯录的人');
-    return setCast(cast, { extracted: true });
+
+    // 已有的人以"第一次认出来的"为准：模型后面把货车司机说成屠夫，也不许改掉
+    const existing = new Map(getCast().map(person => [person.name, person]));
+    const merged = cast.map(person => {
+        const prev = existing.get(person.name);
+        if (!prev) return person;
+        return {
+            ...prev,
+            role: prev.role || person.role,
+            relation: prev.relation || person.relation,
+            desc: prev.desc || person.desc,
+            style: prev.style || person.style,
+        };
+    });
+    // 新一版没提到的人也别丢
+    for (const person of existing.values()) {
+        if (!merged.some(item => item.name === person.name)) merged.push(person);
+    }
+    // 主角本人的描述以角色卡为准（比模型猜的可靠）
+    const cardName = String(card?.name || '').trim();
+    if (cardName) {
+        const target = merged.find(item => item.name === cardName);
+        const cardText = String(card?.description || card?.persona || '').trim();
+        if (target && cardText && cardText.length > String(target.desc || '').length) {
+            target.desc = cardText.slice(0, 1200);
+        }
+    }
+    return setCast(merged, { extracted: true });
 }
 
 /** 应用商店里的内容类 App：拉一次新内容。 */

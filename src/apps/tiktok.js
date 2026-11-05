@@ -272,7 +272,7 @@ export function mountTikTok(host, { nav }) {
 
     loadFeed('tiktok', render, value => { loading = value; });
     // 下滑到底：追加，不覆盖
-    bindAutoMore(body, () => {
+    bindAutoMore(feed, () => {
         if (loading) return;
         loading = true;
         refreshFeed('tiktok', render, value => { loading = value; });
