@@ -3,6 +3,7 @@ import { h, icon, avatar, sheet, toast } from '../render.js';
 import { createMusicPlayer } from '../audio.js';
 import { getData, getCast, getFeed, setFeed, saveNow } from '../store.js';
 import { generateExtra, friendlyError, replyInChat } from '../ai.js';
+import { groupSheet } from './group-sheet.js';
 import { EXTRA } from '../extra.js';
 import { feedContext } from './feed-common.js';
 import { openGroupCreate, generateMore } from '../groupgen.js';
@@ -96,10 +97,14 @@ export function mountDiscord(host, { nav }) {
 
         const main = h('div', { class: 'mp-dc__main' });
         main.appendChild(h('div', { class: 'mp-dc__server' },
-            h('span', { class: 'mp-dc__hash', text: '#' }), server.name,
+            h('span', { class: 'mp-dc__hash', text: '#', onclick: () => openDcGroup() }), h('span', { onclick: () => openDcGroup(), text: server.name }),
             h('button', { type: 'button', class: 'mp-dc__addch', text: '+ 频道', onclick: () => addChannel(data, server) }),
             h('span', { class: 'mp-dc__members', text: (server.channels?.length || 0) + ' 个频道' + (server.style ? ' · ' + server.style : '') }),
         ));
+        if (server.notice) {
+            main.appendChild(h('div', { class: 'mp-conv__notice', onclick: () => openDcGroup() },
+                h('span', { class: 'mp-conv__notice-text', text: server.notice })));
+        }
         (server.channels || []).forEach((item, index) => {
             main.appendChild(h('div', {
                 class: 'mp-dc__channel' + (index === channelIndex ? ' on' : ''),
@@ -126,6 +131,28 @@ export function mountDiscord(host, { nav }) {
             ));
         }
         if (!(channel.messages || []).length) main.appendChild(h('div', { class: 'mp-dc__empty', text: '这个频道还很安静。' }));
+
+        /** Discord 服务器设置：服务器名 / 公告 / 成员。 */
+        function openDcGroup() {
+            const cast = getCast().map(person => person.name).filter(Boolean);
+            if (!Array.isArray(server.memberList) || !server.memberList.length) {
+                server.memberList = cast.slice(0, 6);
+                if (!server.memberList.length) server.memberList = [server.name];
+            }
+            groupSheet({
+                title: '服务器设置 · ' + server.name,
+                name: server.name,
+                notice: server.notice || '',
+                members: server.memberList,
+                onSave: saved => {
+                    server.name = saved.name || server.name;
+                    server.notice = saved.notice;
+                    server.memberList = saved.members;
+                    save(data);
+                    view.render(data);
+                },
+            });
+        }
 
         const panel = h('div', { class: 'mp-dc__panel' },
             avatar({ name: userName() || '我', size: 30 }),
@@ -410,6 +437,31 @@ export function mountTelegram(host, { nav }) {
             draw();
             saveChat();
         };
+        /** Telegram 群设置：群名 / 公告 / 成员。 */
+        function openTgGroup() {
+            const cast = getCast().map(person => person.name).filter(Boolean);
+            if (!Array.isArray(chat.memberList) || !chat.memberList.length) {
+                chat.memberList = cast.slice(0, 6);
+                if (!chat.memberList.length) chat.memberList = [chat.name];
+            }
+            groupSheet({
+                title: '群聊设置 · ' + chat.name,
+                name: chat.name,
+                notice: chat.notice || '',
+                members: chat.memberList,
+                onSave: saved => {
+                    chat.name = saved.name || chat.name;
+                    chat.notice = saved.notice;
+                    chat.memberList = saved.members;
+                    chat.members = saved.members.length;
+                    saveChat();
+                    page.remove();
+                    // 重新打开对话，让标题和公告生效
+                    setTimeout(() => openChat(chat), 60);
+                },
+            });
+        }
+
         /** 表情 / 图片 / 视频都能自己填，不再是一句写死的文字。 */
         function mediaSheet(kind) {
             if (kind === '表情') {
@@ -469,12 +521,17 @@ export function mountTelegram(host, { nav }) {
         const page = h('div', { class: 'mp-tg-page' },
             h('div', { class: 'mp-tg-page__bar' },
                 h('button', { type: 'button', class: 'mp-tg-page__back', onclick: close }, icon('back')),
-                h('div', { class: 'mp-tg-page__title', text: chat.name + (chat.group ? ' · ' + (chat.members || 0) + ' 人' : '') + (chat.style ? ' · ' + chat.style : '') }),
+                h('div', {
+                    class: 'mp-tg-page__title',
+                    onclick: () => { if (chat.group) openTgGroup(); },
+                    text: chat.name + (chat.group ? ' · ' + ((chat.memberList || []).length || chat.members || 0) + ' 人' : '') + (chat.style ? ' · ' + chat.style : '') }),
                 chat.group ? h('div', { class: 'mp-tg-page__actions' },
                     h('button', { type: 'button', class: 'mp-tg-page__more', text: '重新生成', onclick: () => more('replace') }),
                     h('button', { type: 'button', class: 'mp-tg-page__more', text: '追加', onclick: () => more('append') }),
                 ) : null,
             ),
+            chat.notice ? h('div', { class: 'mp-conv__notice', onclick: () => openTgGroup() },
+                h('span', { class: 'mp-conv__notice-text', text: chat.notice })) : null,
             h('div', { class: 'mp-tg-page__scroll' }, list),
             h('div', { class: 'mp-tg__media' },
                 h('button', { type: 'button', class: 'mp-chip', text: '表情', onclick: () => mediaSheet('表情') }),

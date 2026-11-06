@@ -3,6 +3,7 @@ import { h, icon, avatar } from '../render.js';
 import { getCast, getFeed, setFeed } from '../store.js';
 import { characterAvatar } from '../st.js';
 import { openGroupCreate, generateMore } from '../groupgen.js';
+import { groupSheet } from './group-sheet.js';
 import { generateSignal } from '../storyseed.js';
 import { replyInChat } from '../ai.js';
 
@@ -171,15 +172,43 @@ export function mountSignal(host, { nav }) {
                 toast(String(error?.message || '生成失败'), 3000);
             }
         };
+        /** Signal 群设置：群名 / 公告 / 成员。 */
+        function openSgGroup() {
+            const cast = getCast().map(person => person.name).filter(Boolean);
+            if (!Array.isArray(chat.memberList) || !chat.memberList.length) {
+                chat.memberList = cast.slice(0, 6);
+                if (!chat.memberList.length) chat.memberList = [chat.name];
+            }
+            groupSheet({
+                title: '群聊设置 · ' + chat.name,
+                name: chat.name,
+                notice: chat.notice || '',
+                members: chat.memberList,
+                onSave: saved => {
+                    chat.name = saved.name || chat.name;
+                    chat.notice = saved.notice;
+                    chat.memberList = saved.members;
+                    const stored = getFeed('signal')?.items;
+                    if (stored) setFeed('signal', stored.map(item => item.id === chat.id ? chat : item));
+                    page.remove();
+                    setTimeout(() => openChat(chat), 60);
+                },
+            });
+        }
+
         const page = h('div', { class: 'mp-sg-page' },
             h('div', { class: 'mp-sg-page__bar' },
                 h('button', { type: 'button', class: 'mp-sg-page__back', onclick: close }, icon('back')),
-                h('div', {}, h('div', { class: 'mp-sg-page__title', text: chat.name }), h('div', { class: 'mp-sg-page__sub', text: chat.group ? '端到端加密 · ' + (chat.style || '群组') : '端到端加密' })),
+                h('div', {
+                    onclick: () => { if (chat.group) openSgGroup(); },
+                }, h('div', { class: 'mp-sg-page__title', text: chat.name }), h('div', { class: 'mp-sg-page__sub', text: chat.group ? '端到端加密 · ' + (chat.style || '群组') : '端到端加密' })),
                 chat.group ? h('div', { class: 'mp-sg-page__actions' },
                     h('button', { type: 'button', class: 'mp-sg-page__more', text: '重新生成', onclick: () => more('replace') }),
                     h('button', { type: 'button', class: 'mp-sg-page__more', text: '追加', onclick: () => more('append') }),
                 ) : null,
             ),
+            chat.notice ? h('div', { class: 'mp-conv__notice', onclick: () => openSgGroup() },
+                h('span', { class: 'mp-conv__notice-text', text: chat.notice })) : null,
             h('div', { class: 'mp-sg-page__scroll' }, list),
             h('div', { class: 'mp-tg__media' },
                 h('button', { type: 'button', class: 'mp-chip', text: '表情', onclick: () => {
