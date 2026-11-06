@@ -508,6 +508,7 @@ export function normalizeThread(t) {
         members,
         msgs,
         unread: Math.max(0, Math.round(Number(t.unread) || 0)),
+        notice: String(t.notice || '').slice(0, 400),
         pinned: !!t.pinned,
         muted: !!t.muted,
         draft: String(t.draft || '').slice(0, 2000),

@@ -185,6 +185,21 @@ export function markRead(threadId) {
     emit('badges');
 }
 
+/** 改会话（群名 / 群公告 / 成员）。 */
+export function updateThread(threadId, patch = {}) {
+    const thread = findThread(threadId);
+    if (!thread) return null;
+    if (patch.name !== undefined) thread.name = String(patch.name).slice(0, 60);
+    if (patch.notice !== undefined) thread.notice = String(patch.notice).slice(0, 400);
+    if (Array.isArray(patch.members) && patch.members.length) {
+        thread.members = [...new Set(patch.members.map(name => String(name).trim()).filter(Boolean))].slice(0, 12);
+        thread.kind = thread.members.length > 1 ? 'group' : 'dm';
+        if (!thread.name) thread.name = thread.members.join('、');
+    }
+    saveNow('data');
+    return thread;
+}
+
 export function removeThread(threadId) {
     store.data.threads = store.data.threads.filter(t => t.id !== threadId);
     saveNow('data');

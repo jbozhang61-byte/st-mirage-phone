@@ -2,7 +2,7 @@
  * 消息：会话列表 + 对话。手机里最重要的一页。
  */
 import { h, icon, avatar, timeText, dayText, sheet, confirmSheet, toast, haptic, hashOf } from '../render.js';
-import { getData, getSettings, findThread, appendMessages, markRead, removeThread, saveNow, uid } from '../store.js';
+import { getData, getSettings, findThread, appendMessages, markRead, removeThread, saveNow, uid, updateThread, getCast } from '../store.js';
 import { characterAvatar, personaAvatarUrl, userName, setOneShot } from '../st.js';
 import { findPerson } from '../store.js';
 import { replyToThread, isBusy, aiEvents, quoteForBring, friendlyError, refreshInjection } from '../ai.js';
@@ -167,11 +167,94 @@ function mountConversation(host, nav, threadId) {
         h('div', { class: 'mp-nav__spacer' }),
         h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '更多', onclick: () => openMenu() }, icon('more')),
     );
-    head.appendChild(h('div', { class: 'mp-conv__head' }, headAvatar, h('div', {}, titleEl, statusEl)));
+    head.appendChild(h('div', {
+        class: 'mp-conv__head',
+        onclick: () => { if (thread.members.length > 1) openGroupSheet(); },
+    }, headAvatar, h('div', {}, titleEl, statusEl)));
 
+    const noticeEl = h('div', { class: 'mp-conv__notice' });
     const scroll = h('div', { class: 'mp-conv__scroll' });
     const composer = buildComposer();
-    el.append(bg, head, scroll, composer.root);
+    el.append(bg, head, noticeEl, scroll, composer.root);
+
+    /** 群公告：有就显示，点一下能改。 */
+    function renderNotice() {
+        const notice = String(thread.notice || '').trim();
+        noticeEl.textContent = '';
+        if (!notice) { noticeEl.style.display = 'none'; return; }
+        noticeEl.style.display = '';
+        noticeEl.append(
+            h('span', { class: 'mp-conv__notice-icon' }, icon('bell')),
+            h('span', { class: 'mp-conv__notice-text', text: notice }),
+        );
+        noticeEl.onclick = () => openGroupSheet();
+    }
+
+    /** 群信息：群名、公告、成员增删。 */
+    function openGroupSheet() {
+        const nameInput = h('input', { class: 'mp-input', type: 'text', value: thread.name || thread.members.join('、') });
+        const noticeInput = h('textarea', { class: 'mp-input', rows: '2', placeholder: '群公告（可留空）' });
+        noticeInput.value = thread.notice || '';
+        const memberList = h('div', { class: 'mp-group__members' });
+        const picker = h('div', { class: 'mp-group__picker' });
+
+        const redraw = () => {
+            memberList.innerHTML = '';
+            for (const name of thread.members) {
+                memberList.appendChild(h('div', { class: 'mp-group__member' },
+                    avatar({ name, size: 28, link: false }),
+                    h('span', { class: 'mp-group__member-name', text: name }),
+                    thread.members.length > 1 ? h('button', {
+                        type: 'button', class: 'mp-group__kick', text: '移除',
+                        onclick: () => {
+                            updateThread(thread.id, { members: thread.members.filter(item => item !== name) });
+                            thread = findThread(thread.id) || thread;
+                            redraw();
+                            renderHead();
+                        },
+                    }) : null,
+                ));
+            }
+            picker.innerHTML = '';
+            const cast = getCast().map(person => person.name).filter(name => !thread.members.includes(name));
+            for (const name of cast.slice(0, 12)) {
+                picker.appendChild(h('button', {
+                    type: 'button', class: 'mp-group__pick', text: '+ ' + name,
+                    onclick: () => {
+                        updateThread(thread.id, { members: [...thread.members, name] });
+                        thread = findThread(thread.id) || thread;
+                        redraw();
+                        renderHead();
+                    },
+                }));
+            }
+            if (!cast.length) picker.appendChild(h('span', { class: 'mp-st-hint', text: '通讯录里的人都已在群里' }));
+        };
+        redraw();
+
+        const dialog = sheet({
+            title: '群聊设置',
+            content: h('div', { class: 'mp-field-list' },
+                h('div', { class: 'mp-group__label', text: '群名' }), nameInput,
+                h('div', { class: 'mp-group__label', text: '群公告' }), noticeInput,
+                h('div', { class: 'mp-group__label', text: '成员（' + thread.members.length + '）' }), memberList,
+                h('div', { class: 'mp-group__label', text: '添加成员' }), picker,
+            ),
+            actions: h('button', {
+                class: 'mp-btn primary small', type: 'button', text: '保存',
+                onclick: () => {
+                    updateThread(thread.id, { name: nameInput.value.trim(), notice: noticeInput.value.trim() });
+                    thread = findThread(thread.id) || thread;
+                    dialog.close();
+                    renderHead();
+                    renderNotice();
+                    render();
+                    toast('群聊已更新');
+                },
+            }),
+        });
+        return dialog;
+    }
     host.appendChild(el);
 
     function renderHead() {
@@ -253,6 +336,7 @@ function mountConversation(host, nav, threadId) {
             scroll.scrollTop = Math.max(0, prevTop + (scroll.scrollHeight - prevHeight));
         }
         renderHead();
+        renderNotice();
     }
 
     function starterBlock() {

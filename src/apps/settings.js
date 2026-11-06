@@ -9,6 +9,7 @@ import { previewInjection } from '../ai.js';
 import { isNarrow } from '../st.js';
 import { generateImage } from '../imagegen.js';
 import { ttsVoices, ttsVoiceList, ttsSupported, speak } from '../tts.js';
+import { autoWindow } from '../memory.js';
 
 export function mountSettings(host, { nav }) {
     const body = h('div', { class: 'mp-body' });
