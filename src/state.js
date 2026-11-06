@@ -250,11 +250,23 @@ function slimData(data) {
     return copy;
 }
 
+/** 当前角色/群的名字——换新聊天时 chat key 会变，但这个名字不变。 */
+function characterKeyOf() {
+    try {
+        const c = ctx();
+        return String(c?.name2 || c?.chatMetadata?.name || '').trim().slice(0, 80);
+    } catch { return ''; }
+}
+
 function writeBackup(data) {
     try {
         const key = chatKeyOf();
         if (!key || isEmptyData(data)) return;
-        globalThis.localStorage?.setItem(BACKUP_PREFIX + key, JSON.stringify({ at: Date.now(), data: slimData(data) }));
+        const payload = JSON.stringify({ at: Date.now(), data: slimData(data) });
+        globalThis.localStorage?.setItem(BACKUP_PREFIX + key, payload);
+        // 再按角色存一份：换新聊天（chat key 变了）也照样能救回来
+        const character = characterKeyOf();
+        if (character) globalThis.localStorage?.setItem(BACKUP_PREFIX + 'char:' + character, payload);
     } catch { /* 容量满了就算了 */ }
 }
 
@@ -301,17 +313,29 @@ export function loadData() {
     const key = chatKeyOf();
     const snap = key ? snapshots.get(key) : null;
 
+    /** 依次找：内存快照 → 本聊天备份 → 同角色备份（换了新聊天也能救回）。 */
+    const rescue = () => {
+        if (snap && !isEmptyData(snap.data)) return { data: snap.data, from: '内存快照' };
+        const byChat = readBackup(key);
+        if (byChat && !isEmptyData(byChat)) return { data: byChat, from: '本聊天备份' };
+        const character = characterKeyOf();
+        if (character) {
+            const byCharacter = readBackup('char:' + character);
+            if (byCharacter && !isEmptyData(byCharacter)) return { data: byCharacter, from: '同角色备份' };
+        }
+        return null;
+    };
+
     if (!isObject(store[DATA_KEY])) {
-        // 这个聊天的 metadata 里没有数据，但内存里有快照 → 恢复快照
-        store[DATA_KEY] = normalizeData(snap?.data || defaultData());
+        const saved = rescue();
+        store[DATA_KEY] = normalizeData(saved?.data || defaultData());
+        if (saved) console.info('[幻镜手机] 已从' + saved.from + '恢复数据');
     } else {
         const current = normalizeData(store[DATA_KEY]);
-        // metadata 看着是空的，但内存快照 / 本地备份里有内容 → 用它，别当内容丢了
         if (isEmptyData(current)) {
-            const fromSnap = snap && !isEmptyData(snap.data) ? snap.data : null;
-            const backup = fromSnap ? null : readBackup(key);
-            const rescue = fromSnap || (backup && !isEmptyData(backup) ? backup : null);
-            store[DATA_KEY] = normalizeData(rescue || current);
+            const saved = rescue();
+            store[DATA_KEY] = normalizeData(saved?.data || current);
+            if (saved) console.info('[幻镜手机] 已从' + saved.from + '恢复数据');
         } else {
             store[DATA_KEY] = current;
         }
