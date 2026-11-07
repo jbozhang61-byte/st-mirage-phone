@@ -24,6 +24,18 @@ export function mountSettings(host, { nav }) {
     host.appendChild(el);
 
     function render() {
+      try {
+        renderInner();
+      } catch (error) {
+        console.error('[幻镜手机] 设置渲染失败', error);
+        body.innerHTML = '';
+        body.appendChild(h('div', { class: 'mp-st-hint', style: { padding: '16px', lineHeight: '1.6', color: '#ff8a8a' } },
+            '设置渲染出错了：' + String(error?.message || error),
+            h('div', { style: { marginTop: '8px', color: 'var(--mp-text-3)' }, text: '把这句话发给作者就能定位。' })));
+      }
+    }
+
+    function renderInner() {
         const settings = getSettings();
         const keep = body.scrollTop;
         body.innerHTML = '';

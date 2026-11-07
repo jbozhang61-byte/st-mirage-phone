@@ -179,11 +179,31 @@ export function mountDiscord(host, { nav }) {
                 composerInput.value += ['🙂', '😂', '😭', '🥺', '👀', '👍'][Math.floor(Math.random() * 6)];
                 composerInput.focus?.();
             } }),
-            h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => sendMedia('📷 [图片] 随手拍的一张') }),
-            h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => sendMedia('📹 [视频] 15 秒') }),
+            h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => dcMediaSheet('图片') }),
+            h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => dcMediaSheet('视频') }),
         );
         async function sendMedia(text) {
             return postMessage(text);
+        }
+
+        /** Discord 的图片 / 视频：可以自己填链接或描述 + 配文。 */
+        function dcMediaSheet(kind) {
+            const url = h('input', { class: 'mp-input', type: 'text', placeholder: kind === '图片' ? '图片链接 / 描述（可留空）' : '视频链接 / 描述（可留空）' });
+            const cap = h('input', { class: 'mp-input', type: 'text', placeholder: '配一句话（可选）' });
+            const box = sheet({
+                title: '发' + kind,
+                content: h('div', { class: 'mp-field-list' }, url, cap),
+                actions: h('button', {
+                    class: 'mp-btn primary small', type: 'button', text: '发送',
+                    onclick: () => {
+                        const head = kind === '图片' ? '📷 [图片] ' : '📹 [视频] ';
+                        const body = url.value.trim() || (kind === '图片' ? '一张随手拍的照片' : '一段 15 秒的视频');
+                        box.close();
+                        sendMedia(head + body + (cap.value.trim() ? '\n' + cap.value.trim() : ''));
+                    },
+                }),
+            });
+            return box;
         }
 
         /** 发一条消息：先插入"正在输入"的占位回复，保证有人接，再换成真话。 */
