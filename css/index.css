@@ -3089,6 +3089,54 @@ html.mp-narrow .mp-screen { border-radius: 0 !important; height: 100dvh !importa
 /* 真机上稍微放大一点正文，看得更舒服 */
 html.mp-narrow .mp-device { font-size: 14.5px; }
 
+/* ===== Discord 原生观感（只动样式，不动结构） ===== */
+.mp-dc { background: #1e1f22 !important; }
+.mp-dc__rail { background: #1e1f22 !important; padding: 8px 0 !important; gap: 6px !important; }
+.mp-dc__railicon, .mp-dc__railhome {
+    width: 42px !important; height: 42px !important; border-radius: 50% !important;
+    transition: border-radius .18s ease, background .18s ease;
+}
+.mp-dc__railicon:hover, .mp-dc__railhome:hover { border-radius: 16px !important; }
+.mp-dc__railicon.on, .mp-dc__railhome.on { border-radius: 16px !important; box-shadow: inset 0 0 0 2px #fff; }
+.mp-dc__railadd { width: 42px !important; height: 42px !important; border-radius: 50% !important; background: #313338 !important; color: #3ba55d !important; }
+.mp-dc__main { background: #313338 !important; }
+.mp-dc__server {
+    font-size: 15px !important; font-weight: 800 !important; color: #f2f3f5 !important;
+    padding: 12px 14px !important; border-bottom: 1px solid rgba(0, 0, 0, .35) !important;
+}
+.mp-dc__hash { color: #80848e !important; font-weight: 500 !important; }
+.mp-dc__members { color: #949ba4 !important; font-size: 11px !important; }
+.mp-dc__addch { background: #248046 !important; color: #fff !important; border-radius: 4px !important; font-weight: 600 !important; }
+.mp-dc__channel {
+    border-radius: 6px !important; margin: 1px 8px !important; padding: 6px 8px !important;
+    color: #949ba4 !important; font-size: 13.5px !important; font-weight: 500 !important;
+}
+.mp-dc__channel:hover { background: #35373c !important; color: #dbdee1 !important; }
+.mp-dc__channel.on { background: #404249 !important; color: #f2f3f5 !important; }
+.mp-dc__channel-title { color: #f2f3f5 !important; font-size: 15px !important; font-weight: 800 !important; padding: 10px 14px 2px !important; }
+.mp-dc__msg {
+    display: grid !important; grid-template-columns: 40px 1fr !important; gap: 10px !important;
+    padding: 6px 14px !important; border-radius: 0 !important; background: transparent !important; margin: 0 !important;
+}
+.mp-dc__msg:hover { background: rgba(4, 4, 5, .07) !important; }
+.mp-dc__line { display: flex !important; align-items: baseline !important; gap: 6px !important; }
+.mp-dc__line b { color: #f2f3f5 !important; font-size: 13.5px !important; font-weight: 600 !important; }
+.mp-dc__line span { color: #949ba4 !important; font-size: 10.5px !important; }
+.mp-dc__text { color: #dbdee1 !important; font-size: 13.5px !important; line-height: 1.5 !important; margin-top: 1px !important; }
+.mp-dc__composer { background: #313338 !important; padding: 0 12px 12px !important; }
+.mp-dc__input {
+    background: #383a40 !important; border: none !important; border-radius: 10px !important;
+    color: #dbdee1 !important; padding: 10px 12px !important; font-size: 13.5px !important;
+}
+.mp-dc__send {
+    width: 34px !important; height: 34px !important; border-radius: 50% !important;
+    background: #5865f2 !important; color: #fff !important;
+    display: grid !important; place-items: center !important; padding: 0 !important;
+    font-size: 0 !important;
+}
+.mp-dc__send::after { content: '➤'; font-size: 14px; }
+.mp-dc__reply { background: transparent !important; border: none !important; color: #949ba4 !important; }
+
 /* 真机上用系统字体栈：iOS 的 SF / 安卓的 Roboto，观感更像原生 App */
 html.mp-narrow .mp-root {
     --mp-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
