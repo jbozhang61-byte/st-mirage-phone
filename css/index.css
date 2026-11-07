@@ -3054,3 +3054,37 @@ html.mp-narrow .mp-status__float { display: grid !important; pointer-events: aut
 .mp-group__kick { border: none; background: rgba(255, 90, 95, .14); color: #ff6b70; border-radius: 999px; font: inherit; font-size: 10.5px; padding: 3px 9px; cursor: pointer; }
 .mp-group__picker { display: flex; flex-wrap: wrap; gap: 6px; }
 .mp-group__pick { border: 1px solid rgba(255, 255, 255, .14); background: rgba(255, 255, 255, .06); color: var(--mp-text-2); border-radius: 999px; font: inherit; font-size: 11px; padding: 4px 10px; cursor: pointer; }
+
+/* ===== 手机原生全屏：外壳也不再缩放、不再留边 =====
+   以前只改了 .mp-device，外壳本身还带着 right/bottom 和 scale()，
+   所以 100vw 的真机也会被缩小再往右下角挪，看起来就是"没铺满"。 */
+html.mp-narrow .mp-shell,
+html.mp-narrow .mp-shell.is-full {
+    position: fixed !important;
+    inset: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    display: block !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transform: none !important;
+    transform-origin: center center !important;
+}
+html.mp-narrow .mp-device {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: var(--mp-bg, #0b0c10) !important;
+}
+html.mp-narrow .mp-device::before { display: none !important; }
+html.mp-narrow .mp-screen { border-radius: 0 !important; height: 100dvh !important; }
+/* 真机上稍微放大一点正文，看得更舒服 */
+html.mp-narrow .mp-device { font-size: 14.5px; }
