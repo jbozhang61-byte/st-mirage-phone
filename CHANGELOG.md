@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.6.2 — 2026-11-09
+
+- **桌面打包流程（Windows .exe）**：`desktop/build-web.mjs` 把 preview/src/css 复制到 `desktop/www`；main.js 优先用 www 作静态根；`npm run dist` = 构建 + electron-builder 出 NSIS 安装包（`desktop/dist/`）
+
 ## 1.6.1 — 2026-11-09
 
 - **桌面版联动对接到界面**：新增 `src/desktop-bridge.js`，桌面壳收到酒馆推来的状态后，写入 ST context（角色卡名字/设定、最近 30 条消息含隐藏层、手机数据），并广播 `mp-bridge` 事件；启动时自动接上（浏览器里跑酒馆扩展时该模块不做事）

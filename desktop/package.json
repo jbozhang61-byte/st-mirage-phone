@@ -5,9 +5,12 @@
   "description": "幻镜手机独立桌面版（离线模式骨架）",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build:web": "node build-web.mjs",
+    "dist": "npm run build:web && electron-builder --win"
   },
   "devDependencies": {
-    "electron": "^31.0.0"
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
   }
 }

@@ -7,10 +7,9 @@ files:
   - main.js
   - bridge.js
   - preload.js
+  - build-web.mjs
   - package.json
-  - "../preview/**/*"
-  - "../src/**/*"
-  - "../css/**/*"
+  - www/**/*
 extraMetadata:
   main: main.js
 win:

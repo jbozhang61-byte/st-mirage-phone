@@ -10,7 +10,9 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ROOT = path.resolve(__dirname, '..');
+const REPO = path.resolve(__dirname, '..');
+// 打包后自带 www；开发时直接用源码目录
+const ROOT = fs.existsSync(path.join(__dirname, 'www')) ? path.join(__dirname, 'www') : REPO;
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
