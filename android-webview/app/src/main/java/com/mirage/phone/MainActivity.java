@@ -71,6 +71,30 @@ public class MainActivity extends Activity {
             root.addView(btn);
         } catch (Throwable ignored) { }
 
+        // 内置中继：ws://127.0.0.1:17650，不需要 Python
+        try {
+            LocalRelay.start();
+            TextView status = new TextView(this);
+            status.setTextSize(10f);
+            status.setTextColor(0x99FFFFFF);
+            status.setPadding(26, 6, 26, 6);
+            FrameLayout.LayoutParams sp = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+            sp.gravity = Gravity.TOP | Gravity.START;
+            sp.leftMargin = 16;
+            sp.topMargin = 10;
+            status.setLayoutParams(sp);
+            root.addView(status);
+            final TextView statusRef = status;
+            status.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    statusRef.setText("中继 " + (LocalRelay.isRunning() ? "已开" : "未开") + " · " + LocalRelay.clientCount() + " 连接");
+                    statusRef.postDelayed(this, 3000);
+                }
+            }, 1000);
+        } catch (Throwable ignored) { }
+
         setContentView(root);
     }
 
