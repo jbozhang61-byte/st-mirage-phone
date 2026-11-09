@@ -1,0 +1,11 @@
+{
+  "display_name": "幻镜手机 · 桥接",
+  "loading_order": 100,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "",
+  "author": "Mirage Phone",
+  "version": "0.1.0",
+  "homePage": "https://github.com/jbozhang61-byte/st-mirage-phone"
+}

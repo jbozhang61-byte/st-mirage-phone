@@ -5,7 +5,7 @@
  *   2. 开一个无边框全屏窗口，关掉窗口 = 收进后台（不退出进程）
  *   3. 留出桥接入口（第 3 步接酒馆，见 bridge.js 注释）
  */
-const { app, BrowserWindow, Menu, globalShortcut, shell } = require('electron');
+const { app, BrowserWindow, Menu, globalShortcut, shell, ipcMain } = require('electron');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -58,10 +58,17 @@ async function createWindow() {
     backgroundColor: '#0b0c10',
     autoHideMenuBar: true,
     title: '幻镜手机',
-    webPreferences: { contextIsolation: true, nodeIntegration: false },
+    webPreferences: { contextIsolation: true, nodeIntegration: false, preload: path.join(__dirname, 'preload.js') },
   });
   Menu.setApplicationMenu(null);
   await win.loadURL('http://127.0.0.1:' + port + '/preview/?theme=dark&apps=all');
+  ipcMain.on('mp-bridge-request', () => {
+    try {
+      const { latestState } = require('./bridge.js');
+      const state = latestState();
+      if (state) win?.webContents.send('mp-bridge-state', state);
+    } catch { /* ignore */ }
+  });
   win.webContents.setWindowOpenHandler(({ url }) => { shell.openExternal(url); return { action: 'deny' }; });
 
   // 关窗口 = 收进后台，不退出（对应"手机挂后台照常"）
@@ -71,6 +78,15 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // 第 3 步：本地桥接服务（酒馆插件连上来后手机进入联动模式）
+  try {
+    const { startBridge } = require('./bridge.js');
+    const port = await startBridge(Number(process.env.MP_BRIDGE_PORT) || 17650);
+    if (port) console.log('[幻镜手机] 桥接已启动 ws://127.0.0.1:' + port);
+    else console.log('[幻镜手机] 桥接未启动（离线模式）');
+  } catch (error) {
+    console.warn('[幻镜手机] 桥接不可用，走离线模式', error);
+  }
   await createWindow();
   // 全局快捷键唤出/收起
   globalShortcut.register('CommandOrControl+Shift+P', () => {
