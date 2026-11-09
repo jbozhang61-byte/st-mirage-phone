@@ -3115,7 +3115,7 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dt__publish { display: flex; gap: 8px; margin-top: 14px; }
 .mp-dt__me-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .mp-dt__now { font-size: 9px; padding: 1px 6px; border-radius: 999px; background: rgba(255, 92, 92, .22); color: #ff7a7a; }
-.mp-dt__need { font-size: 10.5px; color: #ffb1b1; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-dt__need { font-size: 10.5px; color: #ffb1b1; margin-top: 4px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .mp-dt__needbox { background: rgba(255, 77, 109, .1); border-radius: 12px; padding: 10px 12px; }
 .mp-dt__needlabel { font-size: 10px; color: #ff8a9c; display: block; margin-bottom: 4px; }
 

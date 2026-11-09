@@ -185,9 +185,20 @@ export function mountDating(host, { nav }) {
         }))));
         continue;
       }
-      const input = h('input', { class: 'mp-input', type: 'text', placeholder, value: profile[key] || '' });
+      const isLong = key === 'need' || key === 'note';
+      const input = isLong
+        ? h('textarea', { class: 'mp-input', rows: key === 'need' ? '4' : '2', placeholder })
+        : h('input', { class: 'mp-input', type: 'text', placeholder, value: profile[key] || '' });
+      if (isLong) input.value = profile[key] || '';
+      else input.value = profile[key] || '';
       input.addEventListener('change', () => { profile[key] = input.value.trim(); saveNow('data'); });
-      rows.append(h('div', { class: 'mp-group__label', text: label }), input);
+      if (key === 'need') {
+        input.placeholder = '写详细一点：要求什么、不能接受什么、想怎么约';
+        rows.append(h('div', { class: 'mp-group__label', text: label }),
+          h('div', { class: 'mp-st-hint', text: '长要求也行，会完整显示在你卡片的详情里' }), input);
+      } else {
+        rows.append(h('div', { class: 'mp-group__label', text: label }), input);
+      }
     }
     view.appendChild(rows);
     view.appendChild(h('div', { class: 'mp-dt__publish' },
