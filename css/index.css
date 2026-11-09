@@ -3225,6 +3225,48 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dc__send::after { content: '➤'; font-size: 14px; }
 .mp-dc__reply { background: transparent !important; border: none !important; color: #949ba4 !important; }
 
+/* ===== 原生 App 观感 · 全局设计规范 =====
+   Android 的 Material / iOS 的 SF 体系：17/15/13 三档字号、更大的行高、
+   分组卡片、圆角输入框。这一层只动尺寸与间距，不改结构。 */
+.mp-root {
+    --mp-r-card: 16px;
+    --mp-r-btn: 10px;
+    --mp-nav-h: 52px;
+    --mp-row-h: 56px;
+    --fs-title: 17px;
+    --fs-body: 15px;
+    --fs-caption: 13px;
+    --fs-micro: 11.5px;
+}
+/* 导航栏：统一高度、更粗的标题、更小的副标题 */
+.mp-nav { height: var(--mp-nav-h); padding: 0 10px; }
+.mp-nav__title { font-size: var(--fs-title); font-weight: 700; letter-spacing: .01em; }
+.mp-nav__title small { font-size: 10px; opacity: .55; letter-spacing: .12em; }
+.mp-nav__btn { width: 34px; height: 34px; border-radius: 50%; }
+/* 列表行：56px 高、分隔线内缩，像系统设置 */
+.mp-row { min-height: var(--mp-row-h); padding: 12px 14px; }
+.mp-row__label { font-size: var(--fs-body); font-weight: 600; }
+.mp-row__hint { font-size: var(--fs-caption); line-height: 1.45; }
+.mp-row__icon, .mp-ic { width: 20px; height: 20px; }
+/* 输入框与按钮：圆角 pill，点击区域更大 */
+.mp-input {
+    min-height: 42px; padding: 10px 14px; border-radius: 12px;
+    font-size: var(--fs-body);
+}
+.mp-btn { min-height: 38px; padding: 0 16px; border-radius: var(--mp-r-btn); font-size: 14px; font-weight: 600; }
+.mp-btn.small { min-height: 32px; font-size: 13px; }
+/* 卡片：更大的圆角与内边距 */
+.mp-field, .mp-field-list, .mp-st-hint { font-size: var(--fs-caption); }
+.mp-cm__input, .mp-dc__input, .mp-sg-page .mp-input, .mp-tg-page .mp-input { font-size: var(--fs-body); }
+/* 底部输入条：仿聊天 App，上圆角 + 安全区 */
+.mp-cm__composer, .mp-dc__composer { padding: 8px 12px; }
+.mp-cm__send, .mp-dc__send { min-width: 64px; height: 38px; border-radius: 19px; font-size: 14px; }
+/* 消息气泡：更大字号与行高 */
+.mp-bubble, .mp-cm__bubble, .mp-tg__bubble, .mp-sg__bubble { font-size: var(--fs-body); line-height: 1.55; }
+.mp-msg__sender, .mp-tg__bname, .mp-sg__bname, .mp-dc__line b { font-size: var(--fs-caption); font-weight: 600; }
+/* 头像圆角与尺寸 */
+.mp-avatar img, .mp-avatar { border-radius: 50%; }
+
 /* APK 里：真机自己的状态栏/灵动岛已经在，隐藏我们自绘的那一套，内容占满整屏 */
 html.mp-native .mp-status,
 html.mp-native .mp-island { display: none !important; }
