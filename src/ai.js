@@ -273,6 +273,14 @@ export function recentOtherChats() {
         }
     }
 
+    const dating = getData().dating?.chats || {};
+    for (const [name, chat] of Object.entries(dating).slice(0, 4)) {
+        const msgs = (chat?.messages || []).slice(-4);
+        if (!msgs.length) continue;
+        const body = msgs.map(msg => (msg.from === 'me' ? userName() : name) + '：' + clean(msg.text || msg.url || '')).join(' / ');
+        lines.push('· 夜约「' + name + '」：' + body);
+    }
+
     const emails = getFeed('gmail')?.emails || [];
     for (const mail of emails.filter(item => item.replies?.length).slice(0, 3)) {
         const body = mail.replies.slice(-2).map(reply => (reply.mine ? userName() : (reply.from || mail.from)) + '：' + clean(reply.text)).join(' / ');
@@ -478,17 +486,26 @@ export async function replyInChat({ app = 'Chat', chat = {}, messages = [] } = {
     const current = currentCharacter();
     const world = current?.name || '';
     const style = chat.style || '';
-    const recent = messages.slice(-8).map(line => (line.mine ? user : (line.name || chat.name)) + '：' + String(line.text || '').slice(0, 80)).join('\n');
+    const person = chat.name ? findPerson(chat.name) : null;
+    const persona = person
+        ? [person.role && '身份：' + person.role, person.desc, person.style && '说话方式：' + person.style].filter(Boolean).join('；')
+        : '';
+    // 让私聊的人知道正文发生了什么，否则像两个互不相识的人
+    const story = storyContext(24, 260).map(line => (line.isUser ? user : line.name) + '：' + line.text).join('\n');
+    const recent = messages.slice(-10).map(line => (line.mine ? user : (line.name || chat.name)) + '：' + String(line.text || '').slice(0, 100)).join('\n');
     try {
         const raw = await generateText({
             system: [
                 '你在扮演故事世界里的聊天对象，用中文回一条消息。',
                 world ? '世界：' + world : '',
+                persona ? '你（' + (chat.name || '对方') + '）的设定：' + persona : '',
                 style ? '说话风格：' + style : '',
-                '只回一句话，20 字以内，像真人发消息，不要旁白、不要加引号。',
+                story ? '正文里最近发生的事（你们都知道）：\n' + story.slice(-1200) : '',
+                app === '夜约' ? '这是约炮/交友软件的私聊，可以直接聊要不要见面、什么时间、什么条件，别装正经。' : '',
+                '只回一句话，40 字以内，像真人发消息，不要旁白、不要加引号。',
             ].filter(Boolean).join('\n'),
             prompt: '聊天记录：\n' + recent + '\n\n现在你是『' + (chat.name || '对方') + '』，回一条。',
-            length: 120,
+            length: 160,
         });
         const text = String(raw || '').split('\n').map(line => line.trim()).filter(Boolean).pop() || '';
         if (text) return text.replace(/^["「]|["」]$/g, '').slice(0, 60);
