@@ -37,10 +37,11 @@ jobs:
           npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
 
       - name: Add Android platform
-        run: npx cap add android
-
-      - name: Sync web assets
-        run: npx cap sync android
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+          npx cap sync android
 
       - name: Build debug APK
         run: |
