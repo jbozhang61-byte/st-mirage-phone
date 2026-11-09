@@ -1,7 +1,7 @@
 {
   "appId": "com.mirage.phone",
   "appName": "幻镜手机",
-  "webDir": "www",
+  "webDir": "desktop/www",
   "server": {
     "androidScheme": "https"
   }
