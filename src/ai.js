@@ -600,14 +600,20 @@ export async function summarizeMemory({ turns = 0 } = {}) {
 export async function generateDatingBoard({ group = '附近的人', tier = 0, count = 10, self = null } = {}) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
-    const people = getCast().map(person => person.name);
+    const cast = getCast();
+    const people = cast.map(person => person.name);
+    const castLines = cast.slice(0, 8).map(person => person.name + (person.role ? '（' + person.role + '）' : '') + (person.desc ? '：' + String(person.desc).slice(0, 60) : '')).join('\n');
+    const cardText = String(current?.description || current?.persona || '').slice(0, 400);
+    const story = storyContext(40, 240).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
     const levels = ['普通圈（学生、店员、上班族）', '夜生活圈（调酒师、模特、驻唱）', '名媛圈（千金、影后、画廊主人）', '贵族圈（伯爵夫人、世家继承人、公主）'];
     try {
         const raw = await generateText({
             system: [
                 '你在给一个成人交友软件「夜约」生成附近的人。',
                 world ? '世界：' + world : '',
-                people.length ? '这个世界的人：' + people.join('、') : '',
+                cardText ? '当前角色卡：\n' + cardText : '',
+                castLines ? '这个世界已有的人（优先用他们，身份/描述要跟设定一致）：\n' + castLines : '',
+                story ? '最近的剧情：\n' + story.slice(-700) : '',
                 self && Object.keys(self).length
                     ? '发帖的人（看帖的人就是 TA）：' + [
                         self.name ? '名字 ' + self.name : '',

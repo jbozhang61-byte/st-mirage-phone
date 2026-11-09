@@ -167,7 +167,7 @@ function seedBoard(groupId, me) {
     age: 20 + ((name.length * 3 + index) % 14),
     height: 155 + ((name.length * 7 + index * 3) % 30),
     build: ['匀称', '瘦', '有线条', '丰满'][index % 4],
-    role: pick(group.levels, index + name.length),
+    role: (getCast().find(person => person.name === name)?.role) || pick(group.levels, index + name.length),
     tierName: high.tier > group.tier ? high.name : group.name,
     intent: pick(INTENTS, index + name.length),
     when: ['现在', '今晚', '周末', '下班后'][index % 4],
