@@ -3114,6 +3114,10 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dt__chip.on { border-color: #ff4d6d; color: #ff8a9c; background: rgba(255,77,109,.14); }
 .mp-dt__publish { display: flex; gap: 8px; margin-top: 14px; }
 .mp-dt__me-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.mp-dt__now { font-size: 9px; padding: 1px 6px; border-radius: 999px; background: rgba(255, 92, 92, .22); color: #ff7a7a; }
+.mp-dt__need { font-size: 10.5px; color: #ffb1b1; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-dt__needbox { background: rgba(255, 77, 109, .1); border-radius: 12px; padding: 10px 12px; }
+.mp-dt__needlabel { font-size: 10px; color: #ff8a9c; display: block; margin-bottom: 4px; }
 
 /* ===== Discord 原生观感（只动样式，不动结构） ===== */
 .mp-dc { background: #1e1f22 !important; }
