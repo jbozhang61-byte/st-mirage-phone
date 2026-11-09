@@ -1,0 +1,22 @@
+# 桌面版打包配置（生成 Windows 安装包）
+appId: com.mirage.phone.desktop
+productName: 幻镜手机
+directories:
+  output: dist
+files:
+  - main.js
+  - bridge.js
+  - preload.js
+  - package.json
+  - "../preview/**/*"
+  - "../src/**/*"
+  - "../css/**/*"
+extraMetadata:
+  main: main.js
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
