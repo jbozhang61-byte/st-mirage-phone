@@ -5,6 +5,7 @@ import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getData, getCast, saveNow, getSettings, getSelfProfile } from '../store.js';
 import { userName } from '../st.js';
 import { replyInChat, generateDatingBoard } from '../ai.js';
+import { powerOf } from '../power.js';
 
 const GROUPS = [
   { id: 'nearby', name: '附近的人', tier: 0, levels: ['学生', '店员', '自由职业', '上班族', '送货的'] },
@@ -42,7 +43,14 @@ function profile() {
   const settings = getSettings();
   if (!settings.dating || typeof settings.dating !== 'object') settings.dating = {};
   settings.dating.profile = settings.dating.profile || {};
-  return settings.dating.profile;
+  const me = settings.dating.profile;
+  // 第一次进来自动从「心」里补：名字 + 自我描述
+  if (!me.name) me.name = userName() || '我';
+  if (!me.desc) {
+    const intro = heartIntro();
+    if (intro) me.desc = intro;
+  }
+  return me;
 }
 
 function state() {
@@ -55,19 +63,39 @@ function state() {
   return data.dating;
 }
 
-/** 读「心」里的自画像：攻略力（没有就用四维折算）。 */
-function powerTier() {
+/**
+ * 读「心」里的自画像。
+ * 注意：心里存的是 power 对象（颜值/谈吐/金钱/家境四维），不是单个数字，
+ * 以前 Number(self.power) 得到 NaN → 永远 0 档，所以 9999 也显示"不够"。
+ */
+function heartScore() {
   try {
     const self = getSelfProfile() || {};
-    let raw = Number(self.power) || 0;
-    if (!raw) {
-      raw = (Number(self.looks) || 0) + (Number(self.talk) || 0) + (Number(self.money) || 0) + (Number(self.family) || 0);
-    }
-    if (raw >= 800) return 3;
-    if (raw >= 300) return 2;
-    if (raw >= 120) return 1;
-    return 0;
+    return powerOf({ name: userName() || '我', desc: self.personality || '', power: self.power }).score;
   } catch { return 0; }
+}
+
+function powerTier() {
+  const score = heartScore();
+  if (score >= 900) return 3;
+  if (score >= 500) return 2;
+  if (score >= 250) return 1;
+  return 0;
+}
+
+/** 把「心」里的自画像拼成一段自我简介，夜约这边没写的时候自动填。 */
+function heartIntro() {
+  try {
+    const self = getSelfProfile() || {};
+    const parts = [
+      self.appearance ? '长相：' + self.appearance : '',
+      self.body ? '身体：' + self.body : '',
+      self.family ? '家世：' + self.family : '',
+      self.personality ? '性格：' + self.personality : '',
+      (self.custom || []).length ? '另外：' + self.custom.join('、') : '',
+    ].filter(Boolean);
+    return parts.join('；').slice(0, 400);
+  } catch { return ''; }
 }
 
 const groupOf = id => GROUPS.find(group => group.id === id) || GROUPS[0];
@@ -387,7 +415,11 @@ export function mountDating(host, { nav }) {
           render();
         },
       }),
-      h('button', { class: 'mp-btn ghost small', type: 'button', text: '能接触到：「' + GROUPS[Math.min(powerTier(), 3)].name + '」', onclick: () => nav.go('heart') }),
+      h('button', {
+        class: 'mp-btn ghost small', type: 'button',
+        text: '心：攻略力 ' + heartScore() + ' · ' + GROUPS[Math.min(powerTier(), 3)].name,
+        onclick: () => nav.go('heart'),
+      }),
     ));
   }
 
