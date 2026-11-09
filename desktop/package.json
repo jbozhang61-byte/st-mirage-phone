@@ -1,0 +1,13 @@
+{
+  "name": "mirage-phone-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "幻镜手机独立桌面版（离线模式骨架）",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
