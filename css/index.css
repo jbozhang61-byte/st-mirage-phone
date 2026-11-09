@@ -3089,6 +3089,32 @@ html.mp-narrow .mp-screen { border-radius: 0 !important; height: 100dvh !importa
 /* 真机上稍微放大一点正文，看得更舒服 */
 html.mp-narrow .mp-device { font-size: 14.5px; }
 
+/* 夜约 */
+.mp-dt { height: 100%; display: flex; flex-direction: column; background: #101014; }
+.mp-dt__body { flex: 1 1 auto; overflow-y: auto; padding: 10px 14px 28px; }
+.mp-dt__tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+.mp-dt__tab { border: none; background: rgba(255,255,255,.06); color: var(--mp-text-3); border-radius: 999px; font: inherit; font-size: 12px; padding: 6px 14px; cursor: pointer; }
+.mp-dt__tab.on { background: rgba(255, 77, 109, .2); color: #ff8a9c; font-weight: 700; }
+.mp-dt__search { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mp-dt__search .mp-input { flex: 1 1 auto; }
+.mp-dt__list { display: flex; flex-direction: column; gap: 8px; }
+.mp-dt__card { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,.05); border-radius: 14px; padding: 10px 12px; cursor: pointer; }
+.mp-dt__main { flex: 1 1 auto; min-width: 0; }
+.mp-dt__line { display: flex; align-items: center; gap: 6px; }
+.mp-dt__name { font-size: 14px; font-weight: 750; }
+.mp-dt__mine { font-size: 9px; padding: 1px 6px; border-radius: 999px; background: rgba(255,77,109,.22); color: #ff8a9c; }
+.mp-dt__dist { margin-left: auto; font-size: 10px; color: var(--mp-text-3); }
+.mp-dt__meta { font-size: 10.5px; color: var(--mp-text-3); margin-top: 2px; }
+.mp-dt__tags { display: flex; gap: 6px; margin-top: 5px; }
+.mp-dt__tag { font-size: 9.5px; padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,.07); color: var(--mp-text-2); }
+.mp-dt__detail { display: flex; align-items: center; gap: 12px; }
+.mp-dt__detail-name { font-size: 15px; font-weight: 800; }
+.mp-dt__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.mp-dt__chip { border: 1px solid rgba(255,255,255,.14); background: transparent; color: var(--mp-text-3); border-radius: 999px; font: inherit; font-size: 11px; padding: 5px 10px; cursor: pointer; }
+.mp-dt__chip.on { border-color: #ff4d6d; color: #ff8a9c; background: rgba(255,77,109,.14); }
+.mp-dt__publish { display: flex; gap: 8px; margin-top: 14px; }
+.mp-dt__me-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+
 /* ===== Discord 原生观感（只动样式，不动结构） ===== */
 .mp-dc { background: #1e1f22 !important; }
 .mp-dc__rail { background: #1e1f22 !important; padding: 8px 0 !important; gap: 6px !important; }

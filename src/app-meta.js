@@ -45,6 +45,7 @@ export const STORE_APPS = [
     { id: 'quora', name: 'Quora', sub: 'Q&A', label: 'Quora', icon: 'quora', cls: 'g-quora', category: '社区', size: '82 MB', rating: '4.2', color: '#b92b27', accent: '#d9584f', desc: 'A place to share knowledge' },
     { id: 'youtube', name: 'YouTube', sub: 'YT', label: 'YouTube', icon: 'youtube', cls: 'g-yt', category: '视频', size: '210 MB', rating: '4.7', color: '#ff0000', accent: '#ff4d4d', desc: '你感兴趣的视频都在这里' },
     { id: 'discord', name: 'Discord', sub: 'Discord', label: 'Discord', icon: 'discord', cls: 'g-dc', category: '社交', size: '96 MB', rating: '4.4', color: '#5865f2', accent: '#7983f5', desc: '服务器、频道和深夜消息' },
+    { id: 'dating', name: '夜约', sub: 'Nearby', label: '夜约', icon: 'heart', cls: 'g-dating', category: '社交', size: '64 MB', rating: '4.1', color: '#ff4d6d', accent: '#ff8a9c', desc: '附近的人，约一个晚上' },
     { id: 'memory', name: '记忆', sub: 'Memory', label: '记忆', icon: 'book', cls: 'g-memory', category: '工具', size: '12 MB', rating: '4.8', color: '#7c8cff', accent: '#a3b0ff', desc: '把聊过的剧情收成长期记忆' },
     { id: 'patreon', name: 'Patreon', sub: '订阅', label: 'Patreon', icon: 'heart', cls: 'g-patreon', category: '社交', size: '76 MB', rating: '4.5', color: '#f96854', accent: '#ff8a7a', desc: '给创作者打钱，看会员内容' },
     { id: 'telegram', name: 'Telegram', sub: 'TG', label: 'Telegram', icon: 'telegram', cls: 'g-tg', category: '社交', size: '78 MB', rating: '4.6', color: '#229ed9', accent: '#54b9e8', desc: '轻、快、能装下所有对话' },
