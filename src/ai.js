@@ -597,7 +597,7 @@ export async function summarizeMemory({ turns = 0 } = {}) {
 }
 
 /** 夜约：按圈子生成一批人（描述和需求都让模型写，不套模板）。 */
-export async function generateDatingBoard({ group = '附近的人', tier = 0, count = 6, self = null } = {}) {
+export async function generateDatingBoard({ group = '附近的人', tier = 0, count = 10, self = null } = {}) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
@@ -629,13 +629,13 @@ export async function generateDatingBoard({ group = '附近的人', tier = 0, co
                 '注意反差：看起来含蓄、正经、斯文的人（比如学姐、老师、医生），需求也可以很直接很大胆——这是这个 App 的看点。',
                 '只输出 JSON：{"people":[{"name":"…","age":24,"height":168,"build":"匀称","role":"…","intent":"现在就要","desc":"…","need":"…","demand":"…","now":true}]}',
             ].filter(Boolean).join('\n'),
-            prompt: '圈子：' + levels[Math.max(0, Math.min(3, tier))] + '。生成 ' + count + ' 个人。',
+            prompt: '圈子：' + levels[Math.max(0, Math.min(3, tier))] + '。生成 ' + Math.max(8, count) + ' 个人，至少要 8 个。',
             length: 1800,
             json: true,
         });
         const json = extractJson(raw);
         const list = Array.isArray(json?.people) ? json.people : [];
-        return list.slice(0, 10).map((entry, index) => ({
+        return list.slice(0, 14).map((entry, index) => ({
             id: 'ai-' + Date.now().toString(36) + index,
             name: String(entry?.name || '匿名').slice(0, 20),
             age: Math.max(18, Math.min(60, Number(entry?.age) || 24)),

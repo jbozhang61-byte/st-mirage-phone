@@ -151,10 +151,17 @@ function addGroupSheet(onDone) {
 function seedBoard(groupId, me) {
   const group = groupOf(groupId);
   const cast = getCast().map(person => person.name).filter(Boolean);
-  const names = cast.length ? cast : ['白璃', '小林', '阿岚', '苏姐', '旧城的猫'];
+  const base = cast.length ? cast : ['白璃', '小林', '阿岚', '苏姐', '旧城的猫'];
+  // 人少的时候补足到 8 个，别刷出来就一两个人
+  const extra = ['阿澈', '小叙', '宁姐', '沈七', '唐棠', '老K', '林间', '程一'];
+  const names = [...base];
+  for (const name of extra) {
+    if (names.length >= 8) break;
+    if (!names.includes(name)) names.push(name);
+  }
   const tier = Math.max(group.tier, Math.min(powerTier(), GROUPS.length - 1));
   const high = GROUPS[tier];
-  return names.slice(0, 8).map((name, index) => ({
+  return names.slice(0, 10).map((name, index) => ({
     id: 'dt-' + groupId + '-' + index,
     name,
     age: 20 + ((name.length * 3 + index) % 14),
@@ -180,6 +187,20 @@ export function mountDating(host, { nav }) {
   let chatWith = '';
   let busy = false;
 
+  /** AI 给的人不足 8 个时，用本地样例补足（名字不重复）。 */
+  function padBoard(list, groupId, me) {
+    const out = Array.isArray(list) ? list.slice() : [];
+    if (out.length >= 8) return out.slice(0, 12);
+    const seen = new Set(out.map(item => item.name));
+    for (const person of seedBoard(groupId, me)) {
+      if (out.length >= 8) break;
+      if (seen.has(person.name)) continue;
+      seen.add(person.name);
+      out.push(person);
+    }
+    return out;
+  }
+
   /** 先让模型按圈子写一批人（描述和需求都是它写的），失败再用本地样例。 */
   async function refreshBoard(data) {
     if (busy) return;
@@ -195,9 +216,10 @@ export function mountDating(host, { nav }) {
         need: me.need,
         demand: me.demand,
       };
-      const list = await generateDatingBoard({ group: group.name, tier: group.tier, count: 6, self });
-      data.board[data.group] = list.length ? list : seedBoard(data.group, profile());
-      toast(list.length ? '来了 ' + list.length + ' 个人' : 'AI 没返回，先用本地的');
+      const list = await generateDatingBoard({ group: group.name, tier: group.tier, count: 10, self });
+      const merged = padBoard(list, data.group, me);
+      data.board[data.group] = merged;
+      toast('来了 ' + merged.length + ' 个人');
     } catch (error) {
       data.board[data.group] = seedBoard(data.group, profile());
       toast('AI 没返回：' + String(error?.message || '未知').slice(0, 30), 3200);
