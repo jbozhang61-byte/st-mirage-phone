@@ -35,6 +35,7 @@ jobs:
       - name: Create capacitor workspace
         run: |
           set -x
+          exec > >(tee -a cap-setup.log) 2>&1
           rm -rf build-app
           mkdir -p build-app/www
           cp -r desktop/www/. build-app/www/
@@ -46,6 +47,15 @@ jobs:
           ls -la
           npx cap add android
           npx cap sync android
+
+      - name: Save log on failure
+        if: failure()
+        run: |
+          git config user.email "ci@mirage.local"
+          git config user.name "mirage-ci"
+          git add -A
+          git commit -m "ci: capacitor setup failure log" || true
+          git push || true
 
       - name: Build debug APK
         run: |
