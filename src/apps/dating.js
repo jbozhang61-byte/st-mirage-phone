@@ -4,7 +4,7 @@
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { getData, getCast, saveNow, getSettings, getSelfProfile } from '../store.js';
 import { userName } from '../st.js';
-import { replyInChat } from '../ai.js';
+import { replyInChat, generateDatingBoard } from '../ai.js';
 
 const GROUPS = [
   { id: 'nearby', name: '附近的人', tier: 0, levels: ['学生', '店员', '自由职业', '上班族', '送货的'] },
@@ -90,6 +90,27 @@ export function mountDating(host, { nav }) {
   let tab = 'browse';
   let filter = '';
   let chatWith = '';
+  let busy = false;
+
+  /** 先让模型按圈子写一批人（描述和需求都是它写的），失败再用本地样例。 */
+  async function refreshBoard(data) {
+    if (busy) return;
+    busy = true;
+    render();
+    try {
+      const group = groupOf(data.group);
+      const list = await generateDatingBoard({ group: group.name, tier: group.tier, count: 6 });
+      data.board[data.group] = list.length ? list : seedBoard(data.group, profile());
+      toast(list.length ? '来了 ' + list.length + ' 个人' : 'AI 没返回，先用本地的');
+    } catch {
+      data.board[data.group] = seedBoard(data.group, profile());
+      toast('AI 没返回，先用本地的');
+    } finally {
+      busy = false;
+      saveNow('data');
+      render();
+    }
+  }
   const el = h('div', { class: 'mp-dt' });
   const body = h('div', { class: 'mp-dt__body' });
   el.append(
@@ -136,13 +157,9 @@ export function mountDating(host, { nav }) {
     body.appendChild(list);
     body.appendChild(h('div', { class: 'mp-dt__publish' },
       h('button', {
-        class: 'mp-btn small', type: 'button', text: '刷新附近的人',
-        onclick: () => {
-          data.board[data.group] = seedBoard(data.group, profile());
-          saveNow('data');
-          render();
-          toast('换了一批');
-        },
+        class: 'mp-btn small', type: 'button', text: busy ? '正在找…' : '刷新附近的人',
+        disabled: busy,
+        onclick: () => refreshBoard(data),
       }),
       h('button', {
         class: 'mp-btn ghost small', type: 'button', text: '收件箱（' + data.inbox.length + '）',

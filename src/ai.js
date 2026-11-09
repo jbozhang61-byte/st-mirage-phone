@@ -596,6 +596,50 @@ export async function summarizeMemory({ turns = 0 } = {}) {
     return entry;
 }
 
+/** 夜约：按圈子生成一批人（描述和需求都让模型写，不套模板）。 */
+export async function generateDatingBoard({ group = '附近的人', tier = 0, count = 6 } = {}) {
+    const current = currentCharacter();
+    const world = current?.group ? current.name : (current?.name || '');
+    const people = getCast().map(person => person.name);
+    const levels = ['普通圈（学生、店员、上班族）', '夜生活圈（调酒师、模特、驻唱）', '名媛圈（千金、影后、画廊主人）', '贵族圈（伯爵夫人、世家继承人、公主）'];
+    try {
+        const raw = await generateText({
+            system: [
+                '你在给一个成人交友软件「夜约」生成附近的人。',
+                world ? '世界：' + world : '',
+                people.length ? '这个世界的人：' + people.join('、') : '',
+                '每个人都要有：名字、年龄、身高、体型、职业、想找什么、一句自我描述、一条需求。',
+                '需求要写具体的、直接的要求（身体条件、时间、能接受什么、不能接受什么），100 字以内，口吻像真人在发帖，不要模板句。',
+                '注意反差：看起来含蓄、正经、斯文的人（比如学姐、老师、医生），需求也可以很直接很大胆——这是这个 App 的看点。',
+                '只输出 JSON：{"people":[{"name":"…","age":24,"height":168,"build":"匀称","role":"…","intent":"现在就要","desc":"…","need":"…","now":true}]}',
+            ].filter(Boolean).join('\n'),
+            prompt: '圈子：' + levels[Math.max(0, Math.min(3, tier))] + '。生成 ' + count + ' 个人。',
+            length: 1800,
+            json: true,
+        });
+        const json = extractJson(raw);
+        const list = Array.isArray(json?.people) ? json.people : [];
+        return list.slice(0, 10).map((entry, index) => ({
+            id: 'ai-' + Date.now().toString(36) + index,
+            name: String(entry?.name || '匿名').slice(0, 20),
+            age: Math.max(18, Math.min(60, Number(entry?.age) || 24)),
+            height: Math.max(140, Math.min(210, Number(entry?.height) || 168)),
+            build: String(entry?.build || '匀称').slice(0, 10),
+            role: String(entry?.role || '').slice(0, 20),
+            intent: String(entry?.intent || '现在就要').slice(0, 12),
+            when: String(entry?.when || '今晚').slice(0, 12),
+            desc: String(entry?.desc || '').slice(0, 200),
+            need: String(entry?.need || '').slice(0, 200),
+            note: '',
+            distance: (0.3 + index * 0.7).toFixed(1),
+            now: !!entry?.now,
+            mine: false,
+        }));
+    } catch {
+        return [];
+    }
+}
+
 /** 八卦区：读最近的正文，写成一堆网友爆料帖。 */
 export async function generateGossip({ app = '微博' } = {}) {
     const user = userName();
