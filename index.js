@@ -10,6 +10,7 @@ import { ACCENTS } from './src/state.js';
 import { createPhone, openPhone, refreshTheme } from './src/phone.js';
 import { avatarUrl } from './src/avatars.js';
 import { aiEvents, runProactive, refreshInjection, isBusy, autoSummarizeMemory } from './src/ai.js';
+import { initDesktopBridge } from './src/desktop-bridge.js';
 
 let bootErrorTimer = 0;
 function showBootError(message) {
@@ -69,6 +70,8 @@ function boot() {
         return;
     }
     started = true;
+    // 独立桌面版：先接上桥接状态，再初始化数据
+    initDesktopBridge();
     initStore();
     // 「我」页显示的版本号跟着 manifest 走，别一直停在旧版本
     if (getSettings().version !== VERSION) {
