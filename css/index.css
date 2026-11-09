@@ -3117,6 +3117,22 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dt__media-url { font-size: 10.5px; color: #9fd0ff; word-break: break-all; margin-bottom: 3px; }
 .mp-dt__media-desc { font-size: 12.5px; }
 
+/* Discord 细节对齐真实版 */
+.mp-dc__server { position: sticky; top: 0; z-index: 3; backdrop-filter: blur(6px); }
+.mp-dc__msg { align-items: start; padding-top: 8px !important; padding-bottom: 8px !important; }
+.mp-dc__msg .mp-avatar, .mp-dc__msg img { margin-top: 2px; }
+.mp-dc__line b { letter-spacing: .01em; }
+.mp-dc__actions { display: flex; gap: 6px; padding: 6px 14px 0; }
+.mp-dc__actions button {
+    background: #4e5058 !important; color: #f2f3f5 !important;
+    border: none !important; border-radius: 4px !important;
+    font-size: 11.5px !important; padding: 5px 10px !important; cursor: pointer;
+    font-weight: 600;
+}
+.mp-dc__actions button:hover { background: #5865f2 !important; }
+.mp-dc__input { border-radius: 8px !important; }
+.mp-dc__composer { gap: 8px; }
+
 /* Discord 频道分组 / 搜索 / 未读 */
 .mp-dc__search {
     margin: 8px 8px 4px; padding: 8px 10px; border-radius: 6px;
