@@ -429,6 +429,25 @@ export function mountDating(host, { nav }) {
     }
   }
 
+  /** 一键把《心》里的资料抄过来（长相/身体/家世/性格/自定义/喜好）。 */
+  function fillFromHeart() {
+    const me = profile();
+    const self = getSelfProfile() || {};
+    me.name = String(me.name || userName() || '我').slice(0, 20);
+    const parts = [
+      self.appearance ? '长相：' + self.appearance : '',
+      self.body ? '身体：' + self.body : '',
+      self.family ? '家世：' + self.family : '',
+      self.personality ? '性格：' + self.personality : '',
+      (self.custom || []).length ? '另外：' + self.custom.join('、') : '',
+    ].filter(Boolean);
+    if (parts.length) me.desc = parts.join('；').slice(0, 400);
+    if (!me.need && (self.likes || []).length) me.need = '喜欢：' + self.likes.join('、');
+    if (!me.demand && (self.dislikes || []).length) me.demand = '不接受：' + self.dislikes.join('、');
+    saveNow('settings');
+    return me;
+  }
+
   function renderMe(data) {
     const me = profile();
     body.appendChild(h('div', { class: 'mp-dt__me-head' },
@@ -461,6 +480,14 @@ export function mountDating(host, { nav }) {
     }
     body.appendChild(rows);
     body.appendChild(h('div', { class: 'mp-dt__publish' },
+      h('button', {
+        class: 'mp-btn small', type: 'button', text: '从《心》自动填入',
+        onclick: () => {
+          fillFromHeart();
+          render();
+          toast('已从心里填入资料');
+        },
+      }),
       h('button', {
         class: 'mp-btn primary small', type: 'button',
         text: me.published ? '已发布，等别人来约' : '发布，让别人来约我',
