@@ -1,8 +1,7 @@
 node_modules/
-shots/
-.chrome-*/
-.smoke*/
+desktop/node_modules/
+desktop/dist/
+desktop/www/
+*.zip
+*.exe
 *.log
-.DS_Store
-Thumbs.db
-.env.gh-enter.txt
