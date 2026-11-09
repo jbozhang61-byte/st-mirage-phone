@@ -1,67 +1,100 @@
 /**
- * 夜约：附近的人。可以搜人，也可以发布自己的资料等人来约。
- * 资料完全自定义；发布后广场上会出现你的卡片。
+ * 夜约：附近的人。独立私聊（不跟「消息」混用），资料全局保存，可切人群圈子。
  */
 import { h, icon, avatar, sheet, toast } from '../render.js';
-import { getData, getCast, saveNow, ensureThread, appendMessages } from '../store.js';
+import { getData, getCast, saveNow, getSettings, getSelfProfile } from '../store.js';
 import { userName } from '../st.js';
+import { replyInChat } from '../ai.js';
 
-const INTENTS = ['随便聊聊', '一起喝酒', '缺个伴', '今晚有空', '长期'];
-const CARD_FIELDS = [
-  ['age', '年龄', '23'],
-  ['desc', '自我描述', '平时做什么、性格、身体情况，随便写'],
-  ['height', '身高', '170'],
-  ['build', '体型', '匀称'],
-  ['role', '职业', '学生'],
-  ['intent', '想找', '随便聊聊'],
-  ['when', '时间', '周末晚上'],
-  ['note', '一句话', '不装，直说'],
+const GROUPS = [
+  { id: 'nearby', name: '附近的人', tier: 0, levels: ['学生', '店员', '自由职业', '上班族', '送货的'] },
+  { id: 'nights', name: '夜店后巷', tier: 1, levels: ['调酒师', '夜班模特', '驻唱', '摄影师'] },
+  { id: 'debutante', name: '名媛圈', tier: 2, levels: ['名媛', '千金', '新晋影后', '画廊主人'] },
+  { id: 'noble', name: '贵族厅', tier: 3, levels: ['伯爵夫人', '世家继承人', '财阀独女', '公主'] },
+];
+const INTENTS = ['现在就要', '今晚有空', '先喝酒', '长期固定', '不聊只做'];
+const NEEDS = [
+  '今晚就要，别聊太久。要求身体好、时间长，磨叽的别来。',
+  '想被抱着睡到天亮，体型看着舒服就行，别问东问西。',
+  '只约固定的人，长期。要干净、会看眼色，别装。',
+  '先喝一杯，看对眼再说。尺寸和体力能撑住就行，别的可以谈。',
+  '凌晨有空，白天别找我。直接一点，别黏人。',
+  '我不绕弯子。看得上就现在来，看不上别浪费我时间。',
+];
+const DESCS = [
+  '在便利店上夜班，白天基本在睡。不太会讲话，但很直接。',
+  '跑货运的，常年在路上。见面就见面，不拖。',
+  '做设计的，一个人住，家里很干净。喜欢安静的人。',
+  '开酒吧的，作息颠倒。想找个不用解释太多的人。',
+  '刚毕业，租在旧城边上。有点怕生，但熟了很黏人。',
 ];
 
-function store() {
+const pick = (list, index) => list[index % list.length];
+
+function profile() {
+  const settings = getSettings();
+  if (!settings.dating || typeof settings.dating !== 'object') settings.dating = {};
+  settings.dating.profile = settings.dating.profile || {};
+  return settings.dating.profile;
+}
+
+function state() {
   const data = getData();
   if (!data.dating || typeof data.dating !== 'object') data.dating = {};
-  data.dating.profile = data.dating.profile || {};
-  if (!Array.isArray(data.dating.board)) data.dating.board = [];
-  if (!Array.isArray(data.dating.invites)) data.dating.invites = [];
+  if (typeof data.dating.group !== 'string') data.dating.group = 'nearby';
+  if (!data.dating.board || typeof data.dating.board !== 'object') data.dating.board = {};
+  if (!data.dating.chats || typeof data.dating.chats !== 'object') data.dating.chats = {};
+  if (!Array.isArray(data.dating.inbox)) data.dating.inbox = [];
   return data.dating;
 }
 
-function seedBoard(profile) {
+function powerTier() {
+  try {
+    const self = getSelfProfile() || {};
+    const raw = Number(self.power) || 0;
+    if (raw >= 800) return 3;
+    if (raw >= 300) return 2;
+    if (raw >= 120) return 1;
+    return 0;
+  } catch { return 0; }
+}
+
+const groupOf = id => GROUPS.find(group => group.id === id) || GROUPS[0];
+
+function seedBoard(groupId, me) {
+  const group = groupOf(groupId);
   const cast = getCast().map(person => person.name).filter(Boolean);
-  const names = cast.length ? cast.slice(0, 8) : ['白璃', '小林', '阿岚', '苏姐', '旧城的猫'];
-  return names.map((name, index) => ({
-    id: 'dt-' + index + '-' + name.length,
+  const names = cast.length ? cast : ['白璃', '小林', '阿岚', '苏姐', '旧城的猫'];
+  const tier = Math.max(group.tier, Math.min(powerTier(), GROUPS.length - 1));
+  const high = GROUPS[tier];
+  return names.slice(0, 8).map((name, index) => ({
+    id: 'dt-' + groupId + '-' + index,
     name,
     age: 20 + ((name.length * 3 + index) % 14),
     height: 155 + ((name.length * 7 + index * 3) % 30),
-    build: ['匀称', '瘦', '偏瘦', '有线条'][index % 4],
-    role: ['学生', '店员', '自由职业', '上班族', '酒吧常客'][index % 5],
-    intent: INTENTS[index % INTENTS.length],
-    when: ['今晚', '周末', '随时', '下班后'][index % 4],
-    desc: [
-      '在便利店上夜班，白天基本在睡。不太会讲话，但很直接。',
-      '做设计的，一个人住，家里很干净。喜欢安静的人。',
-      '跑货运的，常年在路上。见面就见面，不拖。',
-      '刚毕业，租在旧城边上。有点怕生，但熟了很黏人。',
-      '开酒吧的，作息颠倒。想找个不用解释太多的人。',
-    ][index % 5],
-    need: ['今晚就要，别聊太久', '想被抱着睡一觉', '找个固定的人，长期', '先喝酒，再看感觉', '凌晨也有空'][index % 5],
-    now: index % 3 === 0,
+    build: ['匀称', '瘦', '有线条', '丰满'][index % 4],
+    role: pick(group.levels, index + name.length),
+    tierName: high.tier > group.tier ? high.name : group.name,
+    intent: pick(INTENTS, index + name.length),
+    when: ['现在', '今晚', '周末', '下班后'][index % 4],
+    need: pick(NEEDS, index + name.length),
+    desc: pick(DESCS, index + name.length),
     note: '别问太多，见面再说。',
-    distance: (0.4 + index * 0.7).toFixed(1),
-    mine: !!profile?.published && profile?.name && name === profile.name,
+    distance: (0.3 + index * 0.8).toFixed(1),
+    now: index % 3 === 0,
+    mine: !!(me?.published && me?.name && name === me.name),
   }));
 }
 
 export function mountDating(host, { nav }) {
   let tab = 'browse';
   let filter = '';
+  let chatWith = '';
   const el = h('div', { class: 'mp-dt' });
   const body = h('div', { class: 'mp-dt__body' });
   el.append(
     h('div', { class: 'mp-nav' },
-      h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => nav.home() }, icon('back')),
+      h('button', { class: 'mp-nav__btn', type: 'button', 'aria-label': '返回', onclick: () => (chatWith ? closeChat() : nav.home()) }, icon('back')),
       h('div', { class: 'mp-nav__title' }, '夜约', h('small', { text: 'NEARBY' })),
       h('div', { class: 'mp-nav__spacer' }),
     ),
@@ -70,208 +103,249 @@ export function mountDating(host, { nav }) {
   host.appendChild(el);
 
   function render() {
-    const data = store();
+    if (chatWith) return renderChat();
+    const data = state();
     body.innerHTML = '';
-    const bar = h('div', { class: 'mp-dt__tabs' },
-      h('button', { type: 'button', class: 'mp-dt__tab' + (tab === 'browse' ? ' on' : ''), text: '附近的人', onclick: () => { tab = 'browse'; render(); } }),
-      h('button', { type: 'button', class: 'mp-dt__tab' + (tab === 'me' ? ' on' : ''), text: '我的资料', onclick: () => { tab = 'me'; render(); } }),
-    );
-    body.appendChild(bar);
+    body.appendChild(h('div', { class: 'mp-dt__tabs' },
+      ...[['browse', '附近的人'], ['me', '我的资料'], ['mail', '私信邮箱']].map(([id, label]) => h('button', {
+        type: 'button', class: 'mp-dt__tab' + (tab === id ? ' on' : ''), text: label,
+        onclick: () => { tab = id; render(); },
+      }))));
+    body.appendChild(h('div', { class: 'mp-dt__groups' }, ...GROUPS.map(group => h('button', {
+      type: 'button',
+      class: 'mp-dt__group' + (data.group === group.id ? ' on' : '') + (powerTier() < group.tier ? ' locked' : ''),
+      text: group.name + (powerTier() < group.tier ? ' 🔒' : ''),
+      onclick: () => {
+        if (powerTier() < group.tier) { toast('攻略力还不够，进不去' + group.name); return; }
+        data.group = group.id;
+        data.board[group.id] = seedBoard(group.id, profile());
+        saveNow('data');
+        render();
+      },
+    }))));
     if (tab === 'me') return renderMe(data);
+    if (tab === 'mail') return renderMail(data);
+    renderBrowse(data);
+  }
+
+  function renderBrowse(data) {
     const input = h('input', { class: 'mp-input', type: 'text', placeholder: '搜名字 / 职业 / 想找什么', value: filter,
       oninput: event => { filter = event.target.value.trim(); renderList(); } });
     body.appendChild(h('div', { class: 'mp-dt__search' }, icon('search'), input));
     const list = h('div', { class: 'mp-dt__list' });
     body.appendChild(list);
+    body.appendChild(h('div', { class: 'mp-dt__publish' },
+      h('button', {
+        class: 'mp-btn small', type: 'button', text: '刷新附近的人',
+        onclick: () => {
+          data.board[data.group] = seedBoard(data.group, profile());
+          saveNow('data');
+          render();
+          toast('换了一批');
+        },
+      }),
+      h('button', {
+        class: 'mp-btn ghost small', type: 'button', text: '收件箱（' + data.inbox.length + '）',
+        onclick: () => { tab = 'mail'; render(); },
+      }),
+    ));
     function renderList() {
       list.innerHTML = '';
-      const board = data.board.length ? data.board : (data.board = seedBoard(data.profile));
-      const shown = filter
-        ? board.filter(item => [item.name, item.role, item.intent].join(' ').includes(filter))
-        : board;
+      const board = data.board[data.group]?.length ? data.board[data.group] : (data.board[data.group] = seedBoard(data.group, profile()));
+      const shown = filter ? board.filter(item => [item.name, item.role, item.intent].join(' ').includes(filter)) : board;
       if (!shown.length) list.appendChild(h('div', { class: 'mp-st-hint', text: '没搜到人，换个词试试。' }));
-      for (const item of shown) list.appendChild(cardEl(item));
+      for (const item of shown) {
+        list.appendChild(h('div', { class: 'mp-dt__card', onclick: () => openDetail(item) },
+          avatar({ name: item.name, size: 46, link: false }),
+          h('div', { class: 'mp-dt__main' },
+            h('div', { class: 'mp-dt__line' },
+              h('span', { class: 'mp-dt__name', text: item.name }),
+              item.mine ? h('span', { class: 'mp-dt__mine', text: '我' }) : null,
+              item.now ? h('span', { class: 'mp-dt__now', text: '现在就要' }) : null,
+              h('span', { class: 'mp-dt__dist', text: item.distance + ' km' })),
+            h('div', { class: 'mp-dt__meta', text: [item.age + ' 岁', item.height + 'cm', item.build, item.role].join(' · ') }),
+            h('div', { class: 'mp-dt__tags' },
+              h('span', { class: 'mp-dt__tag', text: item.intent }),
+              h('span', { class: 'mp-dt__tag', text: item.when })),
+            item.need ? h('div', { class: 'mp-dt__need', text: '需求：' + item.need }) : null,
+            item.desc ? h('div', { class: 'mp-dt__meta', text: item.desc }) : null,
+          )));
+      }
     }
     renderList();
   }
 
-  function cardEl(item) {
-    return h('div', { class: 'mp-dt__card', onclick: () => openDetail(item) },
-      avatar({ name: item.name, size: 46, link: false }),
-      h('div', { class: 'mp-dt__main' },
-        h('div', { class: 'mp-dt__line' },
-          h('span', { class: 'mp-dt__name', text: item.name }),
-          item.mine ? h('span', { class: 'mp-dt__mine', text: '我' }) : null,
-          item.now ? h('span', { class: 'mp-dt__now', text: '现在就要' }) : null,
-          h('span', { class: 'mp-dt__dist', text: item.distance + ' km' })),
-        h('div', { class: 'mp-dt__meta', text: [item.age + ' 岁', item.height + 'cm', item.build, item.role].join(' · ') }),
-        h('div', { class: 'mp-dt__tags' },
-          h('span', { class: 'mp-dt__tag', text: item.intent }),
-          h('span', { class: 'mp-dt__tag', text: item.when })),
-        item.need ? h('div', { class: 'mp-dt__need', text: '需求：' + item.need }) : null,
-      ),
-    );
-  }
-
   function openDetail(item) {
-    const dialog = sheet({
+    return sheet({
       title: item.name,
       content: h('div', { class: 'mp-field-list' },
         h('div', { class: 'mp-dt__detail' },
           avatar({ name: item.name, size: 60, link: false }),
           h('div', {}, h('div', { class: 'mp-dt__detail-name', text: item.name }),
-            h('div', { class: 'mp-dt__meta', text: [item.age + ' 岁', item.height + 'cm', item.build, item.role].join(' · ') }))),
-        h('div', { class: 'mp-st-hint', text: '想找：' + item.intent + '　时间：' + item.when + '　距离：' + item.distance + ' km' }),
+            h('div', { class: 'mp-dt__meta', text: [item.age + ' 岁', item.height + 'cm', item.build, item.role].filter(Boolean).join(' · ') }),
+            h('div', { class: 'mp-dt__meta', text: item.tierName || '' }))),
         item.desc ? h('div', { class: 'mp-dt__descbox' }, h('span', { class: 'mp-dt__needlabel', text: 'TA 的自我描述' }), h('div', { class: 'mp-me__bio', text: item.desc })) : null,
         item.need ? h('div', { class: 'mp-dt__needbox' }, h('span', { class: 'mp-dt__needlabel', text: 'TA 的需求' }), h('div', { class: 'mp-me__bio', text: item.need })) : null,
-        h('div', { class: 'mp-me__bio', text: item.note || '' }),
       ),
-      actions: item.mine
-        ? h('button', { class: 'mp-btn small', type: 'button', text: '编辑我的资料', onclick: () => { dialog.close(); tab = 'me'; render(); } })
-        : h('div', { style: { display: 'flex', gap: '8px' } },
-            h('button', {
-              class: 'mp-btn small', type: 'button', text: '先私聊',
-              onclick: () => {
-                dialog.close();
-                const thread = ensureThread([item.name]);
-                nav.go('chat', { threadId: thread.id });
-              },
-            }),
-            h('button', {
-              class: 'mp-btn primary small', type: 'button', text: '约时间',
-              onclick: () => { dialog.close(); openWhen(item, nav); },
-            }),
-          ),
+      actions: h('div', { style: { display: 'flex', gap: '8px' } },
+        h('button', { class: 'mp-btn small', type: 'button', text: '私聊',
+          onclick: () => { close(); openChatWith(item.name); } }),
+        h('button', { class: 'mp-btn primary small', type: 'button', text: '约时间',
+          onclick: () => { close(); openWhen(item); } }),
+      ),
     });
-    return dialog;
+    function close() { try { document.querySelector('.mp-sheet-backdrop')?.click(); } catch { /* ignore */ } }
   }
 
-  /** 约时间：填个时间和地点，直接把第一条消息发过去。 */
-  function openWhen(item, navApi) {
-    const when = h('input', { class: 'mp-input', type: 'text', placeholder: '什么时候？比如 今晚 11 点 / 现在', value: item.now ? '现在' : '' });
-    const where = h('input', { class: 'mp-input', type: 'text', placeholder: '哪儿见？比如 我那儿 / 酒店 / 你家' });
+  function openWhen(item) {
+    const when = h('input', { class: 'mp-input', type: 'text', placeholder: '什么时候', value: item.now ? '现在' : '' });
+    const where = h('input', { class: 'mp-input', type: 'text', placeholder: '在哪儿见' });
     const extra = h('textarea', { class: 'mp-input', rows: '2', placeholder: '再说一句（可选）' });
-    const dialog = sheet({
+    return sheet({
       title: '约 ' + item.name,
-      content: h('div', { class: 'mp-field-list' }, when, where, extra,
-        h('div', { class: 'mp-st-hint', text: '会开一个和 TA 的会话，把这条消息发出去。' })),
+      content: h('div', { class: 'mp-field-list' }, when, where, extra),
       actions: h('button', {
         class: 'mp-btn primary small', type: 'button', text: '发过去',
         onclick: () => {
-          const parts = [];
-          if (when.value.trim()) parts.push(when.value.trim());
-          if (where.value.trim()) parts.push(where.value.trim());
-          if (extra.value.trim()) parts.push(extra.value.trim());
-          const text = parts.length ? parts.join(' · ') : '现在有空吗？';
-          dialog.close();
-          const thread = ensureThread([item.name]);
-          appendMessages(thread.id, [{ from: 'me', type: 'text', text }]);
-          navApi.go('chat', { threadId: thread.id });
-          toast('已发过去，等 TA 回');
+          const parts = [when.value.trim(), where.value.trim(), extra.value.trim()].filter(Boolean);
+          openChatWith(item.name, parts.join(' · ') || '现在有空吗？');
         },
       }),
     });
-    return dialog;
+  }
+
+  function openChatWith(name, seedText = '') {
+    const data = state();
+    if (!data.chats[name]) data.chats[name] = { messages: [], at: Date.now() };
+    if (seedText) data.chats[name].messages.push({ from: 'me', text: seedText, ts: Date.now() });
+    saveNow('data');
+    chatWith = name;
+    render();
+  }
+
+  function closeChat() { chatWith = ''; render(); }
+
+  function renderChat() {
+    const data = state();
+    const chat = data.chats[chatWith] || { messages: [] };
+    if (!chat.messages) chat.messages = [];
+    body.innerHTML = '';
+    body.appendChild(h('div', { class: 'mp-dt__chat-head' },
+      h('button', { type: 'button', class: 'mp-dt__chat-back', text: '‹ 返回', onclick: closeChat }),
+      h('div', { class: 'mp-dt__chat-name', text: chatWith }),
+      h('button', { type: 'button', class: 'mp-dt__chat-clear', text: '清空', onclick: () => {
+        chat.messages = [];
+        saveNow('data');
+        render();
+      } }),
+    ));
+    const list = h('div', { class: 'mp-dt__msgs' });
+    for (const msg of chat.messages) {
+      list.appendChild(h('div', { class: 'mp-dt__msg' + (msg.from === 'me' ? ' mine' : '') },
+        h('div', { class: 'mp-dt__bubble', text: msg.text })));
+    }
+    body.appendChild(list);
+    const input = h('input', { class: 'mp-input', type: 'text', placeholder: '说点什么…' });
+    const send = async () => {
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      chat.messages.push({ from: 'me', text, ts: Date.now() });
+      saveNow('data');
+      render();
+      const pending = { from: 'them', text: '…' };
+      chat.messages.push(pending);
+      render();
+      try {
+        const reply = await replyInChat({
+          app: '夜约',
+          chat: { name: chatWith },
+          messages: chat.messages.map(m => ({ mine: m.from === 'me', text: m.text, name: m.from === 'me' ? userName() : chatWith })),
+        });
+        pending.text = reply || '……';
+      } catch { pending.text = '……'; }
+      saveNow('data');
+      render();
+    };
+    body.appendChild(h('div', { class: 'mp-cm__composer' }, input,
+      h('button', { type: 'button', class: 'mp-cm__send', onclick: send }, '发送')));
+    requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });
+  }
+
+  function renderMail(data) {
+    body.appendChild(h('div', { class: 'mp-group__label', text: '来约你的人（' + data.inbox.length + '）' }));
+    if (!data.inbox.length) {
+      body.appendChild(h('div', { class: 'mp-st-hint', text: '还没有人发邮件。去「我的资料」发布一下，会有人来约你。' }));
+    }
+    for (const mail of data.inbox) {
+      body.appendChild(h('div', { class: 'mp-dt__invite', onclick: () => openChatWith(mail.name, '') },
+        h('div', { class: 'mp-dt__line' },
+          h('span', { class: 'mp-dt__name', text: mail.name }),
+          h('span', { class: 'mp-dt__dist', text: '回 TA' })),
+        mail.desc ? h('div', { class: 'mp-dt__need', text: mail.desc }) : null,
+        mail.need ? h('div', { class: 'mp-dt__need', text: '需求：' + mail.need }) : null,
+        h('div', { class: 'mp-dt__invite-text', text: mail.text }),
+      ));
+    }
   }
 
   function renderMe(data) {
-    const profile = data.profile;
-    const view = h('div', { class: 'mp-dt__me' });
-    view.appendChild(h('div', { class: 'mp-dt__me-head' },
-      avatar({ name: profile.name || userName() || '我', size: 56, link: false }),
+    const me = profile();
+    body.appendChild(h('div', { class: 'mp-dt__me-head' },
+      avatar({ name: me.name || userName() || '我', size: 56, link: false }),
       h('div', {},
-        h('div', { class: 'mp-dt__name', text: profile.name || userName() || '我' }),
-        h('div', { class: 'mp-dt__meta', text: [profile.age, profile.height && profile.height + 'cm', profile.build, profile.role].filter(Boolean).join(' · ') || '还没填资料' })),
+        h('div', { class: 'mp-dt__name', text: me.name || userName() || '我' }),
+        h('div', { class: 'mp-dt__meta', text: [me.age, me.height && me.height + 'cm', me.build, me.role].filter(Boolean).join(' · ') || '还没填资料' })),
     ));
     const rows = h('div', { class: 'mp-field-list' });
-    for (const [key, label, placeholder] of CARD_FIELDS) {
-      if (key === 'intent') {
-        rows.appendChild(h('div', { class: 'mp-group__label', text: label }));
-        rows.appendChild(h('div', { class: 'mp-dt__chips' }, ...INTENTS.map(value => h('button', {
-          type: 'button', class: 'mp-dt__chip' + (profile.intent === value ? ' on' : ''), text: value,
-          onclick: () => { profile.intent = value; saveNow('data'); render(); },
-        }))));
-        continue;
-      }
-      const isLong = key === 'need' || key === 'note';
-      const input = isLong
-        ? h('textarea', { class: 'mp-input', rows: key === 'need' ? '4' : '2', placeholder })
-        : h('input', { class: 'mp-input', type: 'text', placeholder, value: profile[key] || '' });
-      if (isLong) input.value = profile[key] || '';
-      else input.value = profile[key] || '';
-      input.addEventListener('change', () => { profile[key] = input.value.trim(); saveNow('data'); });
-      if (key === 'need') {
-        input.placeholder = '写详细一点：要求什么、不能接受什么、想怎么约';
-        rows.append(h('div', { class: 'mp-group__label', text: label }),
-          h('div', { class: 'mp-st-hint', text: '长要求也行，会完整显示在你卡片的详情里' }), input);
-      } else {
-        rows.append(h('div', { class: 'mp-group__label', text: label }), input);
-      }
+    for (const [key, label, placeholder] of [['name', '昵称', userName() || '我'], ['age', '年龄', '23'], ['height', '身高', '170'], ['build', '体型', '匀称'], ['role', '职业', '学生']]) {
+      const input = h('input', { class: 'mp-input', type: 'text', placeholder });
+      input.value = me[key] || '';
+      input.addEventListener('change', () => { me[key] = input.value.trim(); saveNow('settings'); });
+      rows.append(h('div', { class: 'mp-group__label', text: label }), input);
     }
-    view.appendChild(rows);
-
-    const invites = data.invites || [];
-    if (invites.length) {
-      view.appendChild(h('div', { class: 'mp-group__label', text: '来约我的人（' + invites.length + '）' }));
-      for (const invite of invites) {
-        view.appendChild(h('div', { class: 'mp-dt__invite', onclick: () => {
-          const thread = ensureThread([invite.name]);
-          nav.go('chat', { threadId: thread.id });
-        } },
-          h('div', { class: 'mp-dt__line' },
-            h('span', { class: 'mp-dt__name', text: invite.name }),
-            h('span', { class: 'mp-dt__dist', text: '回 TA' })),
-          invite.desc ? h('div', { class: 'mp-dt__need', text: invite.desc }) : null,
-          invite.need ? h('div', { class: 'mp-dt__need', text: '需求：' + invite.need }) : null,
-          h('div', { class: 'mp-dt__invite-text', text: invite.text }),
-        ));
-      }
+    rows.appendChild(h('div', { class: 'mp-group__label', text: '想找' }));
+    rows.appendChild(h('div', { class: 'mp-dt__chips' }, ...INTENTS.map(value => h('button', {
+      type: 'button', class: 'mp-dt__chip' + (me.intent === value ? ' on' : ''), text: value,
+      onclick: () => { me.intent = value; saveNow('settings'); render(); },
+    }))));
+    for (const [key, label, placeholder] of [['desc', '自我描述', '平时做什么、性格、身体情况，随便写'], ['need', '我的需求', '要求什么、不能接受什么']]) {
+      const area = h('textarea', { class: 'mp-input', rows: '4', placeholder });
+      area.value = me[key] || '';
+      area.addEventListener('change', () => { me[key] = area.value.trim(); saveNow('settings'); });
+      rows.append(h('div', { class: 'mp-group__label', text: label }), area);
     }
-
-    view.appendChild(h('div', { class: 'mp-dt__publish' },
+    body.appendChild(rows);
+    body.appendChild(h('div', { class: 'mp-dt__publish' },
       h('button', {
         class: 'mp-btn primary small', type: 'button',
-        text: profile.published ? '已发布到广场' : '发布，让别人来约我',
+        text: me.published ? '已发布，等别人来约' : '发布，让别人来约我',
         onclick: () => {
-          profile.published = !profile.published;
-          profile.name = profile.name || userName() || '我';
-          const board = getData().dating.board;
-          if (profile.published) {
-            board.unshift({
-              id: 'me-' + Date.now().toString(36),
-              name: profile.name, age: Number(profile.age) || 0, height: Number(profile.height) || 0,
-              build: profile.build || '', role: profile.role || '', intent: profile.intent || INTENTS[0],
-              when: profile.when || '', note: profile.note || '', distance: '0.0', mine: true,
-            });
-          } else {
-            getData().dating.board = board.filter(item => !item.mine);
-          }
-          if (profile.published) {
-            // 发布后会有几个人来约你（本地生成，带他们自己的描述和需求）
-            const池 = seedBoard(profile).filter(item => item.name !== profile.name).slice(0, 3);
-            getData().dating.invites = 池.map((item, index) => ({
+          me.published = !me.published;
+          me.name = me.name || userName() || '我';
+          saveNow('settings');
+          if (me.published) {
+            const pool = seedBoard(data.group, me).filter(item => item.name !== me.name).slice(0, 3);
+            data.inbox = pool.map((item, index) => ({
               id: 'iv-' + Date.now().toString(36) + index,
               name: item.name,
               desc: item.desc,
               need: item.need,
-              text: ['看到你发的了，今晚有空吗？', '你的条件挺合适的，聊聊？', '我这边随时可以，你定时间。'][index % 3],
+              text: ['看到你发的了，今晚有空吗？', '你的条件挺合适的，直接说时间吧。', '我这边随时可以，你定。'][index % 3],
               at: Date.now(),
             }));
+            saveNow('data');
+            toast('已发布，收件箱里有 ' + data.inbox.length + ' 封');
+          } else {
+            data.inbox = [];
+            saveNow('data');
+            toast('已撤下');
           }
-          saveNow('data');
           render();
-          toast(profile.published ? '已发布，等别人来约' : '已从广场撤下');
         },
       }),
-      h('button', { class: 'mp-btn ghost small', type: 'button', text: '刷新附近的人', onclick: () => {
-        const data = store();
-        data.board = seedBoard(data.profile);
-        saveNow('data');
-        render();
-        toast('换了一批');
-      } }),
+      h('button', { class: 'mp-btn ghost small', type: 'button', text: '能接触到：「' + GROUPS[Math.min(powerTier(), 3)].name + '」', onclick: () => nav.go('heart') }),
     ));
-    body.appendChild(view);
   }
 
   render();
