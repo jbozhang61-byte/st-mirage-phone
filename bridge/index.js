@@ -1,7 +1,10 @@
-﻿/**
- * 骞婚暅鎵嬫満 路 閰掗妗ユ帴锛堢 3 姝ワ級
- * 浣滅敤锛氭妸銆屽綋鍓嶈鑹插崱 / 褰撳墠鑱婂ぉ / 鎵嬫満鏁版嵁 / 鏈€杩戞秷鎭€嶆帹缁欑嫭绔嬫闈㈢増銆? * 妗岄潰鐗堝紑 ws://127.0.0.1:17650锛岃繖涓彃浠朵綔涓哄鎴风杩炰笂鍘汇€? */
+/**
+ * 幻镜手机 · 酒馆桥接（第 3 步）
+ * 把「当前角色卡 / 当前聊天 / 手机数据 / 最近消息」推给独立桌面版。
+ * 桌面版开 ws://127.0.0.1:17650，这个插件作为客户端连上去。
+ */
 import { getContext } from '../../../extensions.js';
+
 const MODULE = 'mirage_phone';
 const PORT = 17650;
 let socket = null;
@@ -35,7 +38,7 @@ function connect() {
   try {
     socket = new WebSocket('ws://127.0.0.1:' + PORT);
     socket.addEventListener('open', () => {
-      console.info('[骞婚暅鎵嬫満妗ユ帴] 宸茶繛涓婃闈㈢増');
+      console.info('[幻镜手机桥接] 已连上桌面版');
       push();
     });
     socket.addEventListener('close', () => {
