@@ -32,20 +32,26 @@ jobs:
       - name: Prepare web assets
         run: node desktop/build-web.mjs
 
-      - name: Install Capacitor
+      - name: Create capacitor workspace
         run: |
-          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
-
-      - name: Add Android platform
-        run: |
-          if [ ! -d android ]; then
-            npx cap add android
-          fi
+          mkdir -p build-app
+          cd build-app
+          npm init -y >/dev/null
+          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 --no-audit --no-fund
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "com.mirage.phone",
+            "appName": "幻镜手机",
+            "webDir": "../desktop/www",
+            "server": { "androidScheme": "https" }
+          }
+          EOF
+          npx cap add android
           npx cap sync android
 
       - name: Build debug APK
         run: |
-          cd android
+          cd build-app/android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
@@ -53,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mirage-phone-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: build-app/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
       - name: Publish APK to Release
@@ -62,5 +68,5 @@ jobs:
           tag_name: apk-latest
           name: 幻镜手机 APK（最新）
           body: 自动构建的 debug APK，直接下载安装即可。
-          files: android/app/build/outputs/apk/debug/app-debug.apk
+          files: build-app/android/app/build/outputs/apk/debug/app-debug.apk
           make_latest: true
