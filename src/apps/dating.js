@@ -21,6 +21,13 @@ const NEEDS = [
   '凌晨有空，白天别找我。直接一点，别黏人。',
   '我不绕弯子。看得上就现在来，看不上别浪费我时间。',
 ];
+const DEMANDS = [
+  '身高 180 起，身材要有线条。时间短、磨叽的直接划走。',
+  '不要太瘦，能抱得动我。洗澡干净，别一身烟味。',
+  '尺寸和体力都得在线，做不到别来浪费我时间。',
+  '长相要过得去，会收拾自己。不接受一边跟我一边跟别人。',
+  '能开车来接。说话算数，别放我鸽子。',
+];
 const DESCS = [
   '在便利店上夜班，白天基本在睡。不太会讲话，但很直接。',
   '跑货运的，常年在路上。见面就见面，不拖。',
@@ -78,6 +85,7 @@ function seedBoard(groupId, me) {
     intent: pick(INTENTS, index + name.length),
     when: ['现在', '今晚', '周末', '下班后'][index % 4],
     need: pick(NEEDS, index + name.length),
+    demand: pick(DEMANDS, index + name.length + 1),
     desc: pick(DESCS, index + name.length),
     note: '别问太多，见面再说。',
     distance: (0.3 + index * 0.8).toFixed(1),
@@ -102,9 +110,9 @@ export function mountDating(host, { nav }) {
       const list = await generateDatingBoard({ group: group.name, tier: group.tier, count: 6 });
       data.board[data.group] = list.length ? list : seedBoard(data.group, profile());
       toast(list.length ? '来了 ' + list.length + ' 个人' : 'AI 没返回，先用本地的');
-    } catch {
+    } catch (error) {
       data.board[data.group] = seedBoard(data.group, profile());
-      toast('AI 没返回，先用本地的');
+      toast('AI 没返回：' + String(error?.message || '未知').slice(0, 30), 3200);
     } finally {
       busy = false;
       saveNow('data');
@@ -184,7 +192,8 @@ export function mountDating(host, { nav }) {
             h('div', { class: 'mp-dt__tags' },
               h('span', { class: 'mp-dt__tag', text: item.intent }),
               h('span', { class: 'mp-dt__tag', text: item.when })),
-            item.need ? h('div', { class: 'mp-dt__need', text: '需求：' + item.need }) : null,
+            item.need ? h('div', { class: 'mp-dt__need', text: '想要：' + item.need }) : null,
+            item.demand ? h('div', { class: 'mp-dt__need', text: '要求：' + item.demand }) : null,
             item.desc ? h('div', { class: 'mp-dt__meta', text: item.desc }) : null,
           )));
       }
@@ -202,7 +211,8 @@ export function mountDating(host, { nav }) {
             h('div', { class: 'mp-dt__meta', text: [item.age + ' 岁', item.height + 'cm', item.build, item.role].filter(Boolean).join(' · ') }),
             h('div', { class: 'mp-dt__meta', text: item.tierName || '' }))),
         item.desc ? h('div', { class: 'mp-dt__descbox' }, h('span', { class: 'mp-dt__needlabel', text: 'TA 的自我描述' }), h('div', { class: 'mp-me__bio', text: item.desc })) : null,
-        item.need ? h('div', { class: 'mp-dt__needbox' }, h('span', { class: 'mp-dt__needlabel', text: 'TA 的需求' }), h('div', { class: 'mp-me__bio', text: item.need })) : null,
+        item.need ? h('div', { class: 'mp-dt__needbox' }, h('span', { class: 'mp-dt__needlabel', text: 'TA 想要的' }), h('div', { class: 'mp-me__bio', text: item.need })) : null,
+        item.demand ? h('div', { class: 'mp-dt__needbox' }, h('span', { class: 'mp-dt__needlabel', text: 'TA 的要求' }), h('div', { class: 'mp-me__bio', text: item.demand })) : null,
       ),
       actions: h('div', { style: { display: 'flex', gap: '8px' } },
         h('button', { class: 'mp-btn small', type: 'button', text: '私聊',
@@ -326,7 +336,11 @@ export function mountDating(host, { nav }) {
       type: 'button', class: 'mp-dt__chip' + (me.intent === value ? ' on' : ''), text: value,
       onclick: () => { me.intent = value; saveNow('settings'); render(); },
     }))));
-    for (const [key, label, placeholder] of [['desc', '自我描述', '平时做什么、性格、身体情况，随便写'], ['need', '我的需求', '要求什么、不能接受什么']]) {
+    for (const [key, label, placeholder] of [
+      ['desc', '自我描述', '平时做什么、性格、身体情况，随便写'],
+      ['need', '我想要什么', '想要什么样的人、什么身材、什么体验'],
+      ['demand', '我的要求', '长相、身材、尺寸、时间、规矩，直接写'],
+    ]) {
       const area = h('textarea', { class: 'mp-input', rows: '4', placeholder });
       area.value = me[key] || '';
       area.addEventListener('change', () => { me[key] = area.value.trim(); saveNow('settings'); });
