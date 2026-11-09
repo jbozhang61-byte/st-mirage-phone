@@ -597,7 +597,7 @@ export async function summarizeMemory({ turns = 0 } = {}) {
 }
 
 /** 夜约：按圈子生成一批人（描述和需求都让模型写，不套模板）。 */
-export async function generateDatingBoard({ group = '附近的人', tier = 0, count = 6 } = {}) {
+export async function generateDatingBoard({ group = '附近的人', tier = 0, count = 6, self = null } = {}) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const people = getCast().map(person => person.name);
@@ -608,6 +608,20 @@ export async function generateDatingBoard({ group = '附近的人', tier = 0, co
                 '你在给一个成人交友软件「夜约」生成附近的人。',
                 world ? '世界：' + world : '',
                 people.length ? '这个世界的人：' + people.join('、') : '',
+                self && Object.keys(self).length
+                    ? '发帖的人（看帖的人就是 TA）：' + [
+                        self.name ? '名字 ' + self.name : '',
+                        self.looks ? '颜值 ' + self.looks : '',
+                        self.talk ? '谈吐 ' + self.talk : '',
+                        self.money ? '金钱 ' + self.money : '',
+                        self.family ? '家境 ' + self.family : '',
+                        self.power ? '攻略力 ' + self.power : '',
+                        self.intent ? '想找 ' + self.intent : '',
+                        self.need ? 'TA 想要：' + String(self.need).slice(0, 80) : '',
+                        self.demand ? 'TA 的要求：' + String(self.demand).slice(0, 80) : '',
+                    ].filter(Boolean).join('；')
+                    : '',
+                '生成的人要跟发帖人的条件对得上：条件越好，来约的人越优质；条件一般就都是普通圈的人。',
                 '每个人都要有：名字、年龄、身高、体型、职业、想找什么、一句自我描述、一条需求（need）、一条要求（demand）。',
                 'need = 她自己想要什么（想要什么人、什么身材、什么体验，100 字以内，直接说）。',
                 'demand = 她对别人的要求（长相、身材、尺寸、时间、规矩，100 字以内，直接说，别客气）。',

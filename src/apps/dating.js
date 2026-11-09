@@ -55,10 +55,14 @@ function state() {
   return data.dating;
 }
 
+/** 读「心」里的自画像：攻略力（没有就用四维折算）。 */
 function powerTier() {
   try {
     const self = getSelfProfile() || {};
-    const raw = Number(self.power) || 0;
+    let raw = Number(self.power) || 0;
+    if (!raw) {
+      raw = (Number(self.looks) || 0) + (Number(self.talk) || 0) + (Number(self.money) || 0) + (Number(self.family) || 0);
+    }
     if (raw >= 800) return 3;
     if (raw >= 300) return 2;
     if (raw >= 120) return 1;
@@ -107,7 +111,15 @@ export function mountDating(host, { nav }) {
     render();
     try {
       const group = groupOf(data.group);
-      const list = await generateDatingBoard({ group: group.name, tier: group.tier, count: 6 });
+      const me = profile();
+      const self = {
+        name: me.name || userName(),
+        ...(getSelfProfile() || {}),
+        intent: me.intent,
+        need: me.need,
+        demand: me.demand,
+      };
+      const list = await generateDatingBoard({ group: group.name, tier: group.tier, count: 6, self });
       data.board[data.group] = list.length ? list : seedBoard(data.group, profile());
       toast(list.length ? '来了 ' + list.length + ' 个人' : 'AI 没返回，先用本地的');
     } catch (error) {
