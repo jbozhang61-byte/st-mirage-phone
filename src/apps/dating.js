@@ -98,7 +98,55 @@ function heartIntro() {
   } catch { return ''; }
 }
 
-const groupOf = id => GROUPS.find(group => group.id === id) || GROUPS[0];
+/** 内置圈子 + 自己加的圈子。 */
+function customGroups() {
+  const settings = getSettings();
+  if (!settings.dating || typeof settings.dating !== 'object') settings.dating = {};
+  if (!Array.isArray(settings.dating.groups)) settings.dating.groups = [];
+  return settings.dating.groups;
+}
+
+function allGroups() {
+  return [...GROUPS, ...customGroups()];
+}
+
+const groupOf = id => allGroups().find(group => group.id === id) || GROUPS[0];
+
+/** 新建一个自定义圈子：名字 + 门槛档位。 */
+function addGroupSheet(onDone) {
+  const name = h('input', { class: 'mp-input', type: 'text', placeholder: '圈子名字，比如「富婆群」' });
+  const tiers = h('div', { class: 'mp-dt__chips' },
+    ...GROUPS.map((group, index) => h('button', {
+      type: 'button', class: 'mp-dt__chip' + (index === 0 ? ' on' : ''), text: '门槛 ' + group.name,
+      onclick: event => {
+        tiers.querySelectorAll('.mp-dt__chip').forEach(node => node.classList.remove('on'));
+        event.currentTarget.classList.add('on');
+        name.dataset.tier = String(index);
+      },
+    })));
+  name.dataset.tier = '0';
+  return sheet({
+    title: '新建圈子',
+    content: h('div', { class: 'mp-field-list' }, name, h('div', { class: 'mp-st-hint', text: '门槛越高，攻略力不够的人越看不到' }), tiers),
+    actions: h('button', {
+      class: 'mp-btn primary small', type: 'button', text: '创建',
+      onclick: () => {
+        const value = String(name.value || '').trim().slice(0, 12);
+        if (!value) { toast('先起个名字'); return; }
+        const list = customGroups();
+        list.push({
+          id: 'c-' + Date.now().toString(36),
+          name: value,
+          tier: Number(name.dataset.tier) || 0,
+          levels: ['圈里人', '刚进来的', '老手'],
+        });
+        saveNow('settings');
+        toast('圈子已创建');
+        onDone?.();
+      },
+    }),
+  });
+}
 
 function seedBoard(groupId, me) {
   const group = groupOf(groupId);
@@ -180,7 +228,7 @@ export function mountDating(host, { nav }) {
         type: 'button', class: 'mp-dt__tab' + (tab === id ? ' on' : ''), text: label,
         onclick: () => { tab = id; render(); },
       }))));
-    body.appendChild(h('div', { class: 'mp-dt__groups' }, ...GROUPS.map(group => h('button', {
+    body.appendChild(h('div', { class: 'mp-dt__groups' }, ...allGroups().map(group => h('button', {
       type: 'button',
       class: 'mp-dt__group' + (data.group === group.id ? ' on' : '') + (powerTier() < group.tier ? ' locked' : ''),
       text: group.name + (powerTier() < group.tier ? ' 🔒' : ''),
@@ -191,7 +239,10 @@ export function mountDating(host, { nav }) {
         saveNow('data');
         render();
       },
-    }))));
+    })), h('button', {
+      type: 'button', class: 'mp-dt__group', text: '＋',
+      onclick: () => addGroupSheet(() => render()),
+    })));
     if (tab === 'me') return renderMe(data);
     if (tab === 'mail') return renderMail(data);
     renderBrowse(data);
@@ -417,7 +468,7 @@ export function mountDating(host, { nav }) {
       }),
       h('button', {
         class: 'mp-btn ghost small', type: 'button',
-        text: '心：攻略力 ' + heartScore() + ' · ' + GROUPS[Math.min(powerTier(), 3)].name,
+        text: '心：攻略力 ' + heartScore() + ' · 当前 ' + groupOf(state().group).name,
         onclick: () => nav.go('heart'),
       }),
     ));
