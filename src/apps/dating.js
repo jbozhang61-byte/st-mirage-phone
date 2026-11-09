@@ -9,7 +9,7 @@ import { userName } from '../st.js';
 const INTENTS = ['随便聊聊', '一起喝酒', '缺个伴', '今晚有空', '长期'];
 const CARD_FIELDS = [
   ['age', '年龄', '23'],
-  ['need', '我的需求', '今晚就想找人，不聊虚的'],
+  ['desc', '自我描述', '平时做什么、性格、身体情况，随便写'],
   ['height', '身高', '170'],
   ['build', '体型', '匀称'],
   ['role', '职业', '学生'],
@@ -39,6 +39,13 @@ function seedBoard(profile) {
     role: ['学生', '店员', '自由职业', '上班族', '酒吧常客'][index % 5],
     intent: INTENTS[index % INTENTS.length],
     when: ['今晚', '周末', '随时', '下班后'][index % 4],
+    desc: [
+      '在便利店上夜班，白天基本在睡。不太会讲话，但很直接。',
+      '做设计的，一个人住，家里很干净。喜欢安静的人。',
+      '跑货运的，常年在路上。见面就见面，不拖。',
+      '刚毕业，租在旧城边上。有点怕生，但熟了很黏人。',
+      '开酒吧的，作息颠倒。想找个不用解释太多的人。',
+    ][index % 5],
     need: ['今晚就要，别聊太久', '想被抱着睡一觉', '找个固定的人，长期', '先喝酒，再看感觉', '凌晨也有空'][index % 5],
     now: index % 3 === 0,
     note: '别问太多，见面再说。',
@@ -115,6 +122,7 @@ export function mountDating(host, { nav }) {
           h('div', {}, h('div', { class: 'mp-dt__detail-name', text: item.name }),
             h('div', { class: 'mp-dt__meta', text: [item.age + ' 岁', item.height + 'cm', item.build, item.role].join(' · ') }))),
         h('div', { class: 'mp-st-hint', text: '想找：' + item.intent + '　时间：' + item.when + '　距离：' + item.distance + ' km' }),
+        item.desc ? h('div', { class: 'mp-dt__descbox' }, h('span', { class: 'mp-dt__needlabel', text: 'TA 的自我描述' }), h('div', { class: 'mp-me__bio', text: item.desc })) : null,
         item.need ? h('div', { class: 'mp-dt__needbox' }, h('span', { class: 'mp-dt__needlabel', text: 'TA 的需求' }), h('div', { class: 'mp-me__bio', text: item.need })) : null,
         h('div', { class: 'mp-me__bio', text: item.note || '' }),
       ),
@@ -201,6 +209,25 @@ export function mountDating(host, { nav }) {
       }
     }
     view.appendChild(rows);
+
+    const invites = data.invites || [];
+    if (invites.length) {
+      view.appendChild(h('div', { class: 'mp-group__label', text: '来约我的人（' + invites.length + '）' }));
+      for (const invite of invites) {
+        view.appendChild(h('div', { class: 'mp-dt__invite', onclick: () => {
+          const thread = ensureThread([invite.name]);
+          nav.go('chat', { threadId: thread.id });
+        } },
+          h('div', { class: 'mp-dt__line' },
+            h('span', { class: 'mp-dt__name', text: invite.name }),
+            h('span', { class: 'mp-dt__dist', text: '回 TA' })),
+          invite.desc ? h('div', { class: 'mp-dt__need', text: invite.desc }) : null,
+          invite.need ? h('div', { class: 'mp-dt__need', text: '需求：' + invite.need }) : null,
+          h('div', { class: 'mp-dt__invite-text', text: invite.text }),
+        ));
+      }
+    }
+
     view.appendChild(h('div', { class: 'mp-dt__publish' },
       h('button', {
         class: 'mp-btn primary small', type: 'button',
@@ -218,6 +245,18 @@ export function mountDating(host, { nav }) {
             });
           } else {
             getData().dating.board = board.filter(item => !item.mine);
+          }
+          if (profile.published) {
+            // 发布后会有几个人来约你（本地生成，带他们自己的描述和需求）
+            const池 = seedBoard(profile).filter(item => item.name !== profile.name).slice(0, 3);
+            getData().dating.invites = 池.map((item, index) => ({
+              id: 'iv-' + Date.now().toString(36) + index,
+              name: item.name,
+              desc: item.desc,
+              need: item.need,
+              text: ['看到你发的了，今晚有空吗？', '你的条件挺合适的，聊聊？', '我这边随时可以，你定时间。'][index % 3],
+              at: Date.now(),
+            }));
           }
           saveNow('data');
           render();
