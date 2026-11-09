@@ -34,18 +34,16 @@ jobs:
 
       - name: Create capacitor workspace
         run: |
-          mkdir -p build-app
+          set -x
+          rm -rf build-app
+          mkdir -p build-app/www
+          cp -r desktop/www/. build-app/www/
           cd build-app
           npm init -y >/dev/null
           npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 --no-audit --no-fund
-          cat > capacitor.config.json <<'EOF'
-          {
-            "appId": "com.mirage.phone",
-            "appName": "幻镜手机",
-            "webDir": "../desktop/www",
-            "server": { "androidScheme": "https" }
-          }
-          EOF
+          printf '%s' '{"appId":"com.mirage.phone","appName":"MiragePhone","webDir":"www","server":{"androidScheme":"https"}}' > capacitor.config.json
+          cat capacitor.config.json
+          ls -la
           npx cap add android
           npx cap sync android
 
