@@ -96,21 +96,50 @@ export function mountDiscord(host, { nav }) {
         rail.appendChild(h('div', { class: 'mp-dc__railadd', text: '+', onclick: () => addServer(data) }));
 
         const main = h('div', { class: 'mp-dc__main' });
+        const channelQuery = String(server._query || '');
         main.appendChild(h('div', { class: 'mp-dc__server' },
             h('span', { class: 'mp-dc__hash', text: '#', onclick: () => openDcGroup() }), h('span', { onclick: () => openDcGroup(), text: server.name }),
             h('button', { type: 'button', class: 'mp-dc__addch', text: '+ 频道', onclick: () => addChannel(data, server) }),
-            h('span', { class: 'mp-dc__members', text: (server.channels?.length || 0) + ' 个频道' + (server.style ? ' · ' + server.style : '') }),
+            h('span', { class: 'mp-dc__members', text: (server.memberList?.length || server.channels?.length || 0) + ' 位成员' + (server.style ? ' · ' + server.style : '') }),
         ));
         if (server.notice) {
             main.appendChild(h('div', { class: 'mp-conv__notice', onclick: () => openDcGroup() },
                 h('span', { class: 'mp-conv__notice-text', text: server.notice })));
         }
+        // 搜索框（只筛频道，不影响聊天内容）
+        const searchInput = h('input', {
+            class: 'mp-dc__search', type: 'text', placeholder: '搜索频道', value: channelQuery,
+            oninput: event => { server._query = event.target.value; view.render(data); },
+        });
+        main.appendChild(searchInput);
+
+        // 频道分组：跟真实 Discord 一样有分类标题和图标
+        const iconFor = name => {
+            const text = String(name || '');
+            if (/语音|voice|通话/.test(text)) return '🔊';
+            if (/公告|announce|通知/.test(text)) return '📢';
+            if (/规则|rule/.test(text)) return '📜';
+            if (/反馈|feedback|issue|建议/.test(text)) return '💬';
+            return '#';
+        };
+        const query = channelQuery.trim().toLowerCase();
+        let lastCategory = null;
         (server.channels || []).forEach((item, index) => {
+            if (query && !String(item.name || '').toLowerCase().includes(query)) return;
+            const category = item.category || 'CHATS';
+            if (category !== lastCategory) {
+                lastCategory = category;
+                main.appendChild(h('div', { class: 'mp-dc__cat' },
+                    h('span', { text: category.toUpperCase() }),
+                    h('span', { class: 'mp-dc__cat-caret', text: '⌄' })));
+            }
             main.appendChild(h('div', {
                 class: 'mp-dc__channel' + (index === channelIndex ? ' on' : ''),
-                text: '#' + item.name,
                 onclick: () => { channelIndex = index; view.render(data); },
-            }));
+            },
+                h('span', { class: 'mp-dc__chan-icon', text: iconFor(item.name) }),
+                h('span', { class: 'mp-dc__chan-name', text: item.name }),
+                item.unread ? h('span', { class: 'mp-dc__unread', text: String(item.unread) }) : null));
         });
         main.appendChild(h('div', { class: 'mp-dc__channel-title', text: '#' + channel.name }));
         main.appendChild(h('div', { class: 'mp-dc__actions' },
