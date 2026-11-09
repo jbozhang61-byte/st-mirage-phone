@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>幻镜手机 · 预览</title>
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="./preview.css">
+</head>
+<body>
+    <div class="stage">
+        <header class="stage__bar">
+            <span class="dot"></span>
+            <span class="stage__title">SillyTavern · 旧城的一个冬夜</span>
+            <span class="stage__right">Character · 夏之</span>
+        </header>
+        <main class="stage__chat">
+            <div class="bubble them">
+                <span class="who">夏之</span>
+                外面下雪了。你要是还没回，就先去我店里坐一会儿。
+                <em>（把门口的灯打开了）</em>
+            </div>
+            <div class="bubble me">在路上了，雪有点大。</div>
+            <div class="bubble them">
+                <span class="who">夏之</span>
+                门口给你留了灯。慢点走，别摔。
+            </div>
+            <div class="stage__hint">这里之后是一条条正文……右下角是小手机。</div>
+        </main>
+        <footer class="stage__input">
+            <span>输入消息…</span>
+            <b>发送</b>
+        </footer>
+    </div>
+    <div id="boot-error" style="position:fixed;left:12px;top:12px;z-index:99999;max-width:56vw;white-space:pre-wrap;font:12px/1.5 monospace;color:#ffb4b4;background:rgba(60,0,0,.85);padding:8px 12px;border-radius:8px"></div>
+    <script>
+        window.addEventListener('error', function (event) {
+            document.getElementById('boot-error').textContent += 'ERROR: ' + event.message + ' @ ' + (event.filename || '') + ':' + (event.lineno || '') + '\n';
+        });
+        window.addEventListener('unhandledrejection', function (event) {
+            document.getElementById('boot-error').textContent += 'REJECT: ' + (event.reason && (event.reason.stack || event.reason.message) || event.reason) + '\n';
+        });
+    </script>
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
