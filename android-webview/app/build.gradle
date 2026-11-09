@@ -1,0 +1,17 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.mirage.phone'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.mirage.phone'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.6.2'
+    }
+    buildTypes {
+        debug { }
+        release { minifyEnabled false }
+    }
+}

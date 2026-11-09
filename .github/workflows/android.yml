@@ -8,7 +8,7 @@ on:
       - 'src/**'
       - 'preview/**'
       - 'css/**'
-      - 'capacitor.config.json'
+      - 'android-webview/**'
       - '.github/workflows/android.yml'
 
 permissions:
@@ -20,54 +20,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Prepare web assets
-        run: node desktop/build-web.mjs
-
-      - name: Create capacitor workspace
         run: |
-          set -x
-          exec > >(tee -a cap-setup.log) 2>&1
-          rm -rf build-app
-          mkdir -p build-app/www
-          cp -r desktop/www/. build-app/www/
-          cd build-app
-          npm init -y >/dev/null
-          npm i @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 --no-audit --no-fund
-          printf '%s' '{"appId":"com.mirage.phone","appName":"MiragePhone","webDir":"www","server":{"androidScheme":"https"}}' > capacitor.config.json
-          cat capacitor.config.json
-          ls -la
-          npx cap add android
-          npx cap sync android
+          node desktop/build-web.mjs
+          mkdir -p android-webview/app/src/main/assets
+          rm -rf android-webview/app/src/main/assets/www
+          cp -r desktop/www android-webview/app/src/main/assets/www
+          ls android-webview/app/src/main/assets/www
 
-      - name: Save log on failure
-        if: failure()
+      - name: Setup Gradle
         run: |
-          git config user.email "ci@mirage.local"
-          git config user.name "mirage-ci"
-          git add -A
-          git commit -m "ci: capacitor setup failure log" || true
-          git push || true
+          cd /tmp
+          curl -sSL -o gradle.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q gradle.zip
+          echo "GRADLE=/tmp/gradle-8.7/bin/gradle" >> $GITHUB_ENV
 
-      - name: Build debug APK
+      - name: Build APK
         run: |
-          cd build-app/android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          cd android-webview
+          $GRADLE assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: mirage-phone-apk
-          path: build-app/android/app/build/outputs/apk/debug/app-debug.apk
+          path: android-webview/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
       - name: Publish APK to Release
@@ -76,5 +62,5 @@ jobs:
           tag_name: apk-latest
           name: 幻镜手机 APK（最新）
           body: 自动构建的 debug APK，直接下载安装即可。
-          files: build-app/android/app/build/outputs/apk/debug/app-debug.apk
+          files: android-webview/app/build/outputs/apk/debug/app-debug.apk
           make_latest: true
