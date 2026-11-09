@@ -381,8 +381,12 @@ export function mountDating(host, { nav }) {
     ));
     const list = h('div', { class: 'mp-dt__msgs' });
     for (const msg of chat.messages) {
+      const kind = msg.type === 'image' ? '图片' : msg.type === 'video' ? '视频' : '';
       list.appendChild(h('div', { class: 'mp-dt__msg' + (msg.from === 'me' ? ' mine' : '') },
-        h('div', { class: 'mp-dt__bubble', text: msg.text })));
+        h('div', { class: 'mp-dt__bubble' + (kind ? ' is-media' : '') },
+          kind ? h('div', { class: 'mp-dt__media-tag', text: (kind === '图片' ? '📷 ' : '📹 ') + kind }) : null,
+          msg.url ? h('div', { class: 'mp-dt__media-url', text: msg.url }) : null,
+          h('div', { class: 'mp-dt__media-desc', text: msg.text }))));
     }
     body.appendChild(list);
     const input = h('input', { class: 'mp-input', type: 'text', placeholder: '说点什么…' });
@@ -407,6 +411,40 @@ export function mountDating(host, { nav }) {
       saveNow('data');
       render();
     };
+    // 图片 / 视频 / 表情：可以自己描述
+    const mediaRow = h('div', { class: 'mp-tg__media' },
+      h('button', { type: 'button', class: 'mp-chip', text: '表情', onclick: () => {
+        const pick = ['🙂', '😏', '😍', '🥵', '😈', '💦', '🔥', '❤️'][Math.floor(Math.random() * 8)];
+        input.value += pick;
+        input.focus?.();
+      } }),
+      h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => sendMedia('image') }),
+      h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => sendMedia('video') }),
+    );
+    body.appendChild(mediaRow);
+
+    function sendMedia(kind) {
+      const label = kind === 'image' ? '图片' : '视频';
+      const desc = h('input', { class: 'mp-input', type: 'text', placeholder: '描述一下这张' + label + '（必填）' });
+      const url = h('input', { class: 'mp-input', type: 'text', placeholder: '链接（可留空）' });
+      const cap = h('input', { class: 'mp-input', type: 'text', placeholder: '配一句话（可选）' });
+      const box = sheet({
+        title: '发送' + label,
+        content: h('div', { class: 'mp-field-list' }, desc, url, cap),
+        actions: h('button', {
+          class: 'mp-btn primary small', type: 'button', text: '发送',
+          onclick: () => {
+            const text = [desc.value.trim(), cap.value.trim()].filter(Boolean).join(' · ') || '（' + label + '）';
+            box.close();
+            chat.messages.push({ from: 'me', type: kind, text, url: url.value.trim(), ts: Date.now() });
+            saveNow('data');
+            render();
+          },
+        }),
+      });
+      return box;
+    }
+
     body.appendChild(h('div', { class: 'mp-cm__composer' }, input,
       h('button', { type: 'button', class: 'mp-cm__send', onclick: send }, '发送')));
     requestAnimationFrame(() => { list.scrollTop = list.scrollHeight; });

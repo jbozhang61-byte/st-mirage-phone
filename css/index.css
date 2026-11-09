@@ -3112,6 +3112,10 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dt__msg.mine { justify-content: flex-end; }
 .mp-dt__bubble { max-width: 80%; padding: 8px 11px; border-radius: 14px; background: rgba(255,255,255,.08); font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; }
 .mp-dt__msg.mine .mp-dt__bubble { background: rgba(255,77,109,.22); }
+.mp-dt__bubble.is-media { min-width: 150px; }
+.mp-dt__media-tag { font-size: 10px; color: #ff8a9c; margin-bottom: 3px; }
+.mp-dt__media-url { font-size: 10.5px; color: #9fd0ff; word-break: break-all; margin-bottom: 3px; }
+.mp-dt__media-desc { font-size: 12.5px; }
 .mp-dt__card { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,.05); border-radius: 14px; padding: 10px 12px; cursor: pointer; }
 .mp-dt__main { flex: 1 1 auto; min-width: 0; }
 .mp-dt__line { display: flex; align-items: center; gap: 6px; }
