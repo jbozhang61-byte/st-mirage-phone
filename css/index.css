@@ -3267,6 +3267,38 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 /* 头像圆角与尺寸 */
 .mp-avatar img, .mp-avatar { border-radius: 50%; }
 
+/* ===== Telegram 原生观感 ===== */
+.mp-tg__msgs { gap: 10px !important; padding: 10px 10px 14px !important; }
+.mp-tg__bubble {
+    position: relative; max-width: 78% !important;
+    padding: 7px 11px 8px !important; border-radius: 16px !important;
+    font-size: 15px !important; line-height: 1.45 !important;
+    background: #212121 !important;
+}
+.mp-tg__bubble::after {
+    content: ''; position: absolute; bottom: 6px; left: -6px;
+    width: 12px; height: 12px; background: #212121;
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+.mp-tg__bubble.mine { background: #2b5278 !important; }
+.mp-tg__bubble.mine::after { left: auto; right: -6px; transform: scaleX(-1); background: #2b5278; }
+.mp-tg__bname { font-size: 12.5px !important; font-weight: 700; color: #6ab3f3 !important; margin-bottom: 1px; }
+.mp-tg-page__bar { height: 54px; padding: 0 8px; background: #17212b; border-bottom: 1px solid rgba(255,255,255,.06); }
+.mp-tg-page__title { font-size: 16px; font-weight: 700; }
+.mp-tg__media { gap: 6px; padding: 6px 10px 0; }
+.mp-tg__media .mp-chip { background: #232e3c; border-radius: 18px; font-size: 13px; padding: 7px 14px; }
+.mp-cm__composer { background: #17212b; }
+
+/* ===== Discord 消息与输入区 ===== */
+.mp-dc__main { padding-bottom: 6px; }
+.mp-dc__channel-title { padding: 12px 14px 6px !important; }
+.mp-dc__msg { padding-left: 16px !important; padding-right: 16px !important; }
+.mp-dc__composer { padding: 6px 12px 14px !important; }
+
+/* ===== 设置行：右箭头、开关间距 ===== */
+.mp-row { border-bottom: 1px solid rgba(127,127,127,.12); }
+.mp-row:last-child { border-bottom: none; }
+
 /* APK 里：真机自己的状态栏/灵动岛已经在，隐藏我们自绘的那一套，内容占满整屏 */
 html.mp-native .mp-status,
 html.mp-native .mp-island { display: none !important; }
