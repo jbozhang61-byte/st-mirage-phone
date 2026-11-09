@@ -3225,6 +3225,21 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dc__send::after { content: '➤'; font-size: 14px; }
 .mp-dc__reply { background: transparent !important; border: none !important; color: #949ba4 !important; }
 
+/* APK 里：真机自己的状态栏/灵动岛已经在，隐藏我们自绘的那一套，内容占满整屏 */
+html.mp-native .mp-status,
+html.mp-native .mp-island { display: none !important; }
+html.mp-native .mp-device { padding: 0 !important; border-radius: 0 !important; }
+html.mp-native .mp-shell,
+html.mp-native .mp-shell.is-full {
+    position: fixed !important; inset: 0 !important;
+    width: 100vw !important; height: 100vh !important;
+    transform: none !important; background: transparent !important;
+}
+html.mp-native .mp-device { width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important; }
+html.mp-native .mp-screen { height: 100vh !important; border-radius: 0 !important; }
+html.mp-native .mp-conv__head, html.mp-native .mp-nav { padding-top: max(6px, env(safe-area-inset-top)) !important; }
+html.mp-native .mp-home__dock, html.mp-native .mp-cm__composer { padding-bottom: max(6px, env(safe-area-inset-bottom)) !important; }
+
 /* 真机上用系统字体栈：iOS 的 SF / 安卓的 Roboto，观感更像原生 App */
 html.mp-narrow .mp-root {
     --mp-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",

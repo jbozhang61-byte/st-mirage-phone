@@ -4,6 +4,13 @@
  */
 export const MODULE = 'mirage_phone';
 
+// 在 APK 里（WebView）时给 <html> 打个标记：隐藏自绘状态栏和灵动岛，让真机的显示区域全给内容
+try {
+    if (String(globalThis.navigator?.userAgent || '').includes('MiragePhone')) {
+        globalThis.document?.documentElement?.classList.add('mp-native');
+    }
+} catch { /* ignore */ }
+
 /** 取得酒馆 context（预览环境下由 preview/stub.js 提供同名对象）。 */
 export function ctx() {
     try {
