@@ -263,15 +263,14 @@ function writeBackup(data) {
         const key = chatKeyOf();
         if (!key || isEmptyData(data)) return;
         const payload = JSON.stringify({ at: Date.now(), data: slimData(data) });
+        // 只按聊天 ID 存：同一张卡的不同聊天必须隔离，绝不共用角色级备份
         globalThis.localStorage?.setItem(BACKUP_PREFIX + key, payload);
-        // 再按角色存一份：换新聊天（chat key 变了）也照样能救回来
-        const character = characterKeyOf();
-        if (character) globalThis.localStorage?.setItem(BACKUP_PREFIX + 'char:' + character, payload);
     } catch { /* 容量满了就算了 */ }
 }
 
 export function readBackup(key) {
     try {
+        // 只读当前聊天的备份；旧的 char: 备份一律忽略（会造成同卡不同聊天串数据）
         const raw = globalThis.localStorage?.getItem(BACKUP_PREFIX + (key || chatKeyOf()));
         if (!raw) return null;
         const parsed = JSON.parse(raw);
