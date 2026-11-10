@@ -22,6 +22,17 @@ export function applyBridgeState(state) {
   if (c.chatMetadata && state.phoneData) {
     c.chatMetadata['mirage_phone'] = state.phoneData;
   }
+  // 关键：把桥接来的手机数据真正灌进 store，夜约/通讯录才能读到当前角色卡和世界
+  try {
+    if (state.phoneData && c.chatMetadata) {
+      c.chatMetadata['mirage_phone'] = state.phoneData;
+    }
+  } catch { /* ignore */ }
+  import('./store.js').then(store => {
+    try { store.initStore(); } catch { /* ignore */ }
+    try { globalThis.MiragePhone?.refresh?.(); } catch { /* ignore */ }
+  }).catch(() => {});
+
   globalThis.__mpBridgeState = state;
   globalThis.__mpBridgeAt = Date.now();
   try {
