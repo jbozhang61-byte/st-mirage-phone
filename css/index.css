@@ -3130,6 +3130,57 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dt__media-url { font-size: 10.5px; color: #9fd0ff; word-break: break-all; margin-bottom: 3px; }
 .mp-dt__media-desc { font-size: 12.5px; }
 
+/* ===== Discord：按真实版配色与尺寸重做 ===== */
+:root {
+    --dc-rail: #1e1f22;
+    --dc-side: #2b2d31;
+    --dc-chat: #313338;
+    --dc-input: #383a40;
+    --dc-line: #3f4147;
+    --dc-text: #dbdee1;
+    --dc-muted: #949ba4;
+    --dc-brand: #5865f2;
+    --dc-green: #23a55a;
+}
+.mp-dc { background: var(--dc-chat) !important; }
+.mp-dc__rail { background: var(--dc-rail) !important; width: 60px !important; padding: 8px 0 !important; gap: 6px !important; }
+.mp-dc__server { width: 44px !important; height: 44px !important; border-radius: 16px !important; font-size: 15px !important; font-weight: 700; }
+.mp-dc__server.on { border-radius: 12px !important; }
+.mp-dc__side { background: var(--dc-side) !important; width: 132px !important; }
+.mp-dc__head { background: var(--dc-side) !important; height: 48px !important; padding: 0 12px !important; box-shadow: 0 1px 0 rgba(0,0,0,.24); }
+.mp-dc__head b { font-size: 15.5px !important; color: #f2f3f5 !important; font-weight: 700; }
+.mp-dc__head small { font-size: 11px !important; color: var(--dc-muted) !important; }
+.mp-dc__main { background: var(--dc-chat) !important; }
+.mp-dc__bar { background: var(--dc-chat) !important; height: 48px !important; padding: 0 12px !important; box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.mp-dc__title { font-size: 15.5px !important; color: #f2f3f5 !important; font-weight: 700; }
+.mp-dc__cat { font-size: 11px !important; letter-spacing: .02em; text-transform: uppercase; color: var(--dc-muted) !important; padding: 14px 8px 4px !important; font-weight: 700; }
+.mp-dc__chan { height: 34px !important; border-radius: 4px !important; padding: 0 8px !important; margin: 1px 6px !important; font-size: 14.5px !important; color: var(--dc-muted) !important; }
+.mp-dc__chan.on { background: #404249 !important; color: #f2f3f5 !important; }
+.mp-dc__chan:hover { background: #35373c !important; color: #dbdee1 !important; }
+.mp-dc__msg { padding: 2px 16px 12px !important; }
+.mp-dc__msg + .mp-dc__msg { margin-top: 6px; }
+.mp-dc__line { font-size: 15px !important; line-height: 1.42 !important; color: var(--dc-text) !important; }
+.mp-dc__line b { font-size: 15px !important; color: #f2f3f5 !important; font-weight: 600; }
+.mp-dc__line time { font-size: 11px !important; color: var(--dc-muted) !important; }
+.mp-dc__msg .mp-avatar, .mp-dc__msg img { width: 40px !important; height: 40px !important; border-radius: 50% !important; }
+.mp-dc__actions { padding: 2px 16px 8px !important; }
+.mp-dc__composer { background: var(--dc-chat) !important; padding: 0 16px 12px !important; }
+.mp-dc__input {
+    background: var(--dc-input) !important; border: none !important;
+    border-radius: 8px !important; min-height: 44px !important;
+    font-size: 15px !important; color: var(--dc-text) !important;
+    padding: 12px 14px !important;
+}
+.mp-dc__send {
+    background: var(--dc-brand) !important; color: #fff !important;
+    border-radius: 8px !important; height: 44px !important;
+    padding: 0 16px !important; font-size: 14px !important; font-weight: 600;
+    border: none !important;
+}
+.mp-dc__search { background: var(--dc-rail) !important; border-radius: 4px !important; font-size: 13px !important; height: 30px !important; }
+.mp-dc__badge { background: #f23f43 !important; font-size: 11px !important; font-weight: 700; }
+.mp-dc__sep { background: var(--dc-line) !important; }
+
 /* Discord 细节对齐真实版 */
 .mp-dc__server { position: sticky; top: 0; z-index: 3; backdrop-filter: blur(6px); }
 .mp-dc__msg { align-items: start; padding-top: 8px !important; padding-bottom: 8px !important; }
