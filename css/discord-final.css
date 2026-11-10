@@ -1,0 +1,170 @@
+/* ============================================================
+   Discord 最终版：浅色、圆润、高级感
+   ============================================================ */
+.mp-dc,
+.mp-dc * { box-sizing: border-box; }
+
+.mp-dc {
+    background: #f6f7f9 !important;
+    padding-top: 34px !important;
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif !important;
+}
+
+/* 服务器栏 */
+.mp-dc__rail {
+    background: #eceef1 !important;
+    width: 78px !important;
+    padding: 12px 0 !important;
+    gap: 12px !important;
+    align-items: center !important;
+}
+.mp-dc__server {
+    width: 54px !important; height: 54px !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    color: #1a1b1e !important;
+    font-size: 21px !important; font-weight: 700 !important;
+    box-shadow: 0 2px 10px rgba(20,22,28,.08) !important;
+    transition: border-radius .18s ease, transform .18s ease;
+}
+.mp-dc__server.on {
+    border-radius: 14px !important;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #5b6cff !important;
+}
+.mp-dc__railadd {
+    width: 54px !important; height: 54px !important;
+    border-radius: 18px !important;
+    background: #ffffff !important; color: #5b6cff !important;
+    box-shadow: 0 2px 10px rgba(20,22,28,.06) !important;
+}
+
+/* 列表区 */
+.mp-dc__main,
+.mp-dc__side { background: #f6f7f9 !important; }
+.mp-dc__search {
+    background: #ffffff !important;
+    color: #1a1b1e !important;
+    height: 46px !important;
+    border-radius: 14px !important;
+    border: 1px solid #e7e9ee !important;
+    box-shadow: 0 1px 3px rgba(20,22,28,.04) !important;
+    font-size: 15.5px !important;
+    margin: 10px 14px 6px !important;
+    width: calc(100% - 28px) !important;
+    padding: 0 16px !important;
+}
+.mp-dc__search::placeholder { color: #9aa0ab !important; }
+
+.mp-dc__cat {
+    color: #9aa0ab !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: .04em !important;
+    text-transform: uppercase !important;
+    padding: 18px 20px 8px !important;
+}
+
+.mp-dc__channel {
+    height: 52px !important;
+    margin: 0 12px 4px !important;
+    padding: 0 14px !important;
+    border-radius: 14px !important;
+    background: transparent !important;
+    color: #3b3f47 !important;
+    font-size: 17px !important;
+    gap: 10px !important;
+}
+.mp-dc__channel.on {
+    background: #ffffff !important;
+    color: #12131a !important;
+    box-shadow: 0 2px 10px rgba(20,22,28,.07) !important;
+}
+.mp-dc__chan-icon { font-size: 18px !important; width: 26px !important; text-align: center !important; opacity: .92; }
+.mp-dc__chan-name { font-size: 17px !important; font-weight: 600 !important; }
+.mp-dc__unread {
+    background: #f2453d !important; color: #fff !important;
+    font-size: 12.5px !important; font-weight: 800 !important;
+    padding: 3px 9px !important; border-radius: 11px !important;
+    box-shadow: 0 2px 6px rgba(242,69,61,.35) !important;
+}
+
+/* 聊天顶栏 */
+.mp-dc__bar {
+    height: 58px !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #eef0f4 !important;
+    box-shadow: 0 1px 0 rgba(20,22,28,.03) !important;
+    padding: 0 14px !important;
+}
+.mp-dc__title { font-size: 19px !important; font-weight: 800 !important; color: #12131a !important; letter-spacing: -.01em; }
+.mp-dc__hash2 { color: #9aa0ab !important; font-size: 21px !important; }
+.mp-dc__back { color: #12131a !important; font-size: 26px !important; }
+.mp-dc__iconbtn {
+    width: 38px !important; height: 38px !important;
+    border-radius: 12px !important;
+    color: #4b505a !important; font-size: 17px !important;
+    background: transparent !important;
+}
+.mp-dc__iconbtn:active { background: #f0f2f6 !important; }
+
+/* 消息 */
+.mp-dc__msg { padding: 4px 18px 14px !important; }
+.mp-dc__line { font-size: 15.5px !important; color: #2c2f36 !important; line-height: 1.5 !important; }
+.mp-dc__line b { color: #12131a !important; font-size: 15.5px !important; font-weight: 700 !important; }
+.mp-dc__line time { color: #a2a7b1 !important; font-size: 11.5px !important; margin-left: 6px; }
+.mp-dc__msg .mp-avatar, .mp-dc__msg img {
+    width: 44px !important; height: 44px !important; border-radius: 16px !important;
+}
+.mp-dc__empty { color: #9aa0ab !important; font-size: 14px !important; padding: 22px !important; }
+
+/* 输入区 */
+.mp-dc__composer {
+    background: #ffffff !important;
+    padding: 10px 14px 18px !important;
+    border-top: 1px solid #eef0f4 !important;
+}
+.mp-dc__input {
+    background: #f2f4f7 !important;
+    color: #12131a !important;
+    border: 1px solid #e7e9ee !important;
+    border-radius: 24px !important;
+    min-height: 48px !important;
+    font-size: 16px !important;
+    padding: 13px 18px !important;
+}
+.mp-dc__input::placeholder { color: #9aa0ab !important; }
+.mp-dc__plus {
+    width: 44px !important; height: 44px !important;
+    border-radius: 50% !important;
+    background: #f2f4f7 !important;
+    color: #5b6cff !important;
+    font-size: 24px !important; font-weight: 300 !important;
+    box-shadow: inset 0 0 0 1px #e7e9ee !important;
+    margin-right: 8px !important;
+}
+.mp-dc__send {
+    width: 48px !important; height: 48px !important; min-width: 48px !important;
+    border-radius: 50% !important;
+    background: linear-gradient(160deg, #6a7bff, #4a5bf0) !important;
+    color: #ffffff !important;
+    font-size: 0 !important;
+    box-shadow: 0 4px 14px rgba(74,91,240,.35) !important;
+    border: none !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    margin-left: 8px !important;
+}
+.mp-dc__send::after { content: '➤'; font-size: 19px; }
+
+/* 底部用户条 */
+.mp-dc__panel {
+    background: #ffffff !important;
+    border-top: 1px solid #eef0f4 !important;
+    padding: 10px 16px !important;
+}
+.mp-dc__pname { color: #12131a !important; font-size: 15px !important; font-weight: 700 !important; }
+.mp-dc__pstatus { color: #23a55a !important; font-size: 12px !important; }
+.mp-dc__panel img { border-radius: 14px !important; }
+
+/* 顶部的 App 标题不要再压住状态栏 */
+.mp-dc__main > h2,
+.mp-dc__main > .mp-app__title { display: none !important; }
