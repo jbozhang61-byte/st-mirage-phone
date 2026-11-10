@@ -6,6 +6,7 @@ import { getData, getCast, saveNow, getSettings, getSelfProfile } from '../store
 import { userName } from '../st.js';
 import { replyInChat, generateDatingBoard } from '../ai.js';
 import { powerOf } from '../power.js';
+import { storeImage } from '../images.js';
 
 const GROUPS = [
   { id: 'nearby', name: '附近的人', tier: 0, levels: ['学生', '店员', '自由职业', '上班族', '送货的'] },
@@ -384,8 +385,14 @@ export function mountDating(host, { nav }) {
       const kind = msg.type === 'image' ? '图片' : msg.type === 'video' ? '视频' : '';
       list.appendChild(h('div', { class: 'mp-dt__msg' + (msg.from === 'me' ? ' mine' : '') },
         h('div', { class: 'mp-dt__bubble' + (kind ? ' is-media' : '') },
+          msg.type === 'image' && msg.url
+            ? h('img', { class: 'mp-dt__photo', src: msg.url, alt: '' })
+            : null,
+          msg.type === 'video' && msg.url
+            ? h('video', { class: 'mp-dt__video', src: msg.url, controls: 'true', playsinline: 'true' })
+            : null,
           kind ? h('div', { class: 'mp-dt__media-tag', text: (kind === '图片' ? '📷 ' : '📹 ') + kind }) : null,
-          msg.url ? h('div', { class: 'mp-dt__media-url', text: msg.url }) : null,
+          (!msg.url && msg.url_text) ? h('div', { class: 'mp-dt__media-url', text: msg.url_text }) : null,
           h('div', { class: 'mp-dt__media-desc', text: msg.text }))));
     }
     body.appendChild(list);
@@ -425,18 +432,55 @@ export function mountDating(host, { nav }) {
 
     function sendMedia(kind) {
       const label = kind === 'image' ? '图片' : '视频';
-      const desc = h('input', { class: 'mp-input', type: 'text', placeholder: '描述一下这张' + label + '（必填）' });
-      const url = h('input', { class: 'mp-input', type: 'text', placeholder: '链接（可留空）' });
-      const cap = h('input', { class: 'mp-input', type: 'text', placeholder: '配一句话（可选）' });
+      const file = h('input', {
+        type: 'file', accept: kind === 'image' ? 'image/*' : 'video/*',
+        style: { display: 'none' },
+      });
+      const pick = h('button', { class: 'mp-btn', type: 'button', text: '从手机相册选' + label });
+      const preview = h('div', { class: 'mp-photo-preview' });
+      const desc = h('input', { class: 'mp-input', type: 'text', placeholder: '配一句话（可选）' });
+      let mediaUrl = '';
+      pick.addEventListener('click', () => file.click());
+      file.addEventListener('change', async () => {
+        const picked = file.files && file.files[0];
+        if (!picked) return;
+        try {
+          if (kind === 'image') {
+            const stored = await storeImage(picked);
+            mediaUrl = stored.url;
+          } else {
+            mediaUrl = await new Promise((resolve, reject) => {
+              if (picked.size > 12 * 1024 * 1024) {
+                reject(new Error('视频太大（限 12MB），先用相册压缩一下'));
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result || ''));
+              reader.onerror = () => reject(new Error('读取失败'));
+              reader.readAsDataURL(picked);
+            });
+          }
+          preview.innerHTML = '';
+          preview.appendChild(kind === 'image'
+            ? h('img', { src: mediaUrl, alt: '' })
+            : h('video', { src: mediaUrl, controls: 'true', playsinline: 'true' }));
+          toast(label + '已准备好');
+        } catch (error) {
+          toast('读不到这个' + label + '：' + error.message);
+        }
+      });
       const box = sheet({
         title: '发送' + label,
-        content: h('div', { class: 'mp-field-list' }, desc, url, cap),
+        content: h('div', { class: 'mp-field-list' }, preview, pick, file, desc),
         actions: h('button', {
           class: 'mp-btn primary small', type: 'button', text: '发送',
           onclick: () => {
-            const text = [desc.value.trim(), cap.value.trim()].filter(Boolean).join(' · ') || '（' + label + '）';
+            const text = desc.value.trim() || '（' + label + '）';
             box.close();
-            chat.messages.push({ from: 'me', type: kind, text, url: url.value.trim(), ts: Date.now() });
+            chat.messages.push({
+              from: 'me', type: kind, text,
+              url: mediaUrl, ts: Date.now(),
+            });
             saveNow('data');
             render();
           },

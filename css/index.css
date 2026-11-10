@@ -3104,6 +3104,8 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dt__bubble { font-size: 14px !important; line-height: 1.55 !important; background: rgba(255,255,255,.12) !important; color: #f6f2f7 !important; }
 .mp-dt__msg.mine .mp-dt__bubble { background: rgba(255,92,140,.45) !important; color: #fff !important; }
 .mp-dt__media-tag { color: #ffd3dc !important; font-size: 11.5px; }
+.mp-dt__photo { width: 100%; max-width: 210px; border-radius: 12px; margin: 2px 0 6px; display: block; }
+.mp-dt__video { width: 100%; max-width: 210px; border-radius: 12px; margin: 2px 0 6px; display: block; background: #000; }
 .mp-dt__media-desc { font-size: 13px !important; }
 .mp-dt__body { flex: 1 1 auto; overflow-y: auto; padding: 10px 14px 28px; }
 .mp-dt__tabs { display: flex; gap: 8px; margin-bottom: 10px; }
