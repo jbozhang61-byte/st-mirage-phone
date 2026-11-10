@@ -3615,3 +3615,13 @@ html body .mp-dc__composer > .mp-chip,
 html body .mp-dc__composer > .mp-dc__chips { display: none !important; }
 /* 顶部大标题不要压住灵动岛 */
 html body .mp-dc > .mp-dc__rail { padding-top: 34px !important; }
+
+
+/* ===== Discord：去掉黑色标题栏，列表页不显示聊天框 ===== */
+.mp-extra--dc .mp-extra__head { display: none !important; }
+.mp-extra--dc .mp-extra__body { padding: 0 !important; height: 100% !important; overflow: hidden !important; }
+.mp-extra--dc .mp-dc { height: 100% !important; }
+body.dc-list .mp-dc__composer,
+body.dc-list .mp-dc__actions,
+body.dc-list .mp-dc__panel { display: none !important; }
+.mp-extra--dc .mp-dc__main { padding-bottom: 0 !important; }

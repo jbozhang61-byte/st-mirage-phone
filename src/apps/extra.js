@@ -72,6 +72,7 @@ function loader(id, render) {
 export function mountDiscord(host, { nav }) {
     nav.setChrome?.('dark');
     const { el, body, refresh } = shell('Discord', 'is-dark', profileSheet);
+    el.classList.add('mp-extra--dc');   // 隐藏自带黑色标题栏，内容顶到屏幕最上
     host.appendChild(el);
     let serverIndex = 0;
     let channelIndex = 0;
@@ -181,6 +182,7 @@ export function mountDiscord(host, { nav }) {
             }),
         ));
         main.classList.toggle('in-chat', !!server._inChat);
+        body.classList.toggle('dc-list', !server._inChat);   // 列表页不显示输入框和底部用户栏
         main.appendChild(h('div', { class: 'mp-dc__actions' },
             h('button', { type: 'button', text: '重新生成', onclick: () => moreChannel(data, server, channel, 'replace') }),
             h('button', { type: 'button', text: '追加', onclick: () => moreChannel(data, server, channel, 'append') }),
