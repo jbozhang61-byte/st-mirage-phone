@@ -92,7 +92,22 @@ public class MainActivity extends Activity {
                     startService(intent);
                     btn.setText("已启动");
                 } catch (Throwable error) {
-                    btn.setText("请在 Termux 里开 allow-external-apps");
+                    // 兜底：把命令放进剪贴板，并直接打开 Termux，粘贴回车即可
+                    try {
+                        android.content.ClipboardManager clipboard =
+                            (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("mp", "bash ~/mp.sh"));
+                    } catch (Throwable ignored) { }
+                    boolean opened = false;
+                    try {
+                        Intent termux = getPackageManager().getLaunchIntentForPackage("com.termux");
+                        if (termux != null) {
+                            termux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(termux);
+                            opened = true;
+                        }
+                    } catch (Throwable ignored) { }
+                    btn.setText(opened ? "命令已复制，粘贴回车" : "请手动打开 Termux");
                 }
             });
             root.addView(btn);
