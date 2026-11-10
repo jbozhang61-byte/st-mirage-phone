@@ -3712,3 +3712,43 @@ body.dc-chat .mp-dc__panel { display: none !important; }
 body.dc-chat .mp-dc__composer { bottom: 12px !important; }
 body.dc-chat .mp-tg__media { bottom: 82px !important; }
 .mp-extra--dc .mp-dc__main { -webkit-overflow-scrolling: touch; }
+
+
+/* ===== Discord：修正类名 + 列表页显示服务器头 ===== */
+/* 侧栏图标真实类名是 mp-dc__railicon */
+html body .mp-dc__railicon {
+    width: 54px !important;
+    height: 54px !important;
+    border-radius: 18px !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    color: #12131a !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(18,19,26,.10) !important;
+    border: none !important;
+}
+html body .mp-dc__railicon.on {
+    border-radius: 16px !important;
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #5865f2 !important;
+}
+html body .mp-dc__railhome {
+    width: 54px !important; height: 54px !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    color: #4b505a !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(18,19,26,.10) !important;
+    margin: 0 auto !important;
+}
+/* 列表页保留服务器信息块（之前被隐藏了） */
+html body .mp-dc__main:not(.in-chat) .mp-dc__server {
+    display: flex !important;
+}
+/* 频道图标与文字间距 */
+html body .mp-dc__chan-icon { opacity: 1 !important; color: #8b909b !important; }
+/* 列表页搜索条上方留白 */
+html body .mp-dc__main:not(.in-chat) .mp-dc__search { margin-top: 4px !important; }
