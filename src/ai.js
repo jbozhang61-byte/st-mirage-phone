@@ -290,24 +290,97 @@ export function recentOtherChats() {
 }
 
 /** 从夜约私聊里识别"约在哪里做什么"，让正文能接上这件事。 */
+/** 解析「几点」：21:30 / 九点半 / 晚上10点 → 分钟数，用于排序 */
+function parseTime(text) {
+    const src = String(text || '');
+    let h = null, m = 0;
+    const hm = src.match(/(\d{1,2})[:：](\d{2})/);
+    if (hm) { h = Number(hm[1]); m = Number(hm[2]); }
+    if (h === null) {
+        const cn = src.match(/([一二三四五六七八九十两]{1,3}|\d{1,2})\s*(?:点|时)(半|\d{1,2})?/);
+        if (cn) {
+            const table = { 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+            const raw = cn[1];
+            if (/^\d+$/.test(raw)) h = Number(raw);
+            else if (raw === '十一') h = 11;
+            else if (raw === '十二') h = 12;
+            else if (raw.startsWith('十')) h = 10 + (table[raw[1]] || 0);
+            else if (raw.endsWith('十')) h = (table[raw[0]] || 0) * 10;
+            else h = table[raw] ?? null;
+            if (cn[2] === '半') m = 30;
+            else if (/^\d+/.test(cn[2] || '')) m = Number((cn[2] || '').match(/\d+/)[0]);
+        }
+    }
+    if (h === null) return null;
+    if (/下午|晚上|傍晚|夜|pm/i.test(src) && h < 12) h += 12;
+    if (h >= 0 && h <= 23 && m >= 0 && m <= 59) return h * 60 + m;
+    return null;
+}
+
+/** 从夜约私聊识别「谁 / 在哪 / 几点 / 几号房」，按时间排序后交给正文。 */
 export function datingAppointments(data) {
     const chats = data?.dating?.chats || {};
-    const placeRe = /([一-龥A-Za-z0-9]{2,10}(?:酒店|宾馆|旅馆|公寓|民宿|会所|酒吧|房间|号房))/g;
-    const lines = [];
+    const placeRe = /([\u4e00-\u9fa5A-Za-z0-9]{2,10}(?:酒店|宾馆|旅馆|公寓|民宿|会所|酒吧|房间|号房))/g;
+    const roomRe = /([0-9一二三四五六七八九十百]{1,4})\s*号房|([0-9]{2,4})\s*房/;
+    const found = [];
     for (const [name, chat] of Object.entries(chats)) {
-        const messages = Array.isArray(chat?.messages) ? chat.messages.slice(-12) : [];
+        const messages = Array.isArray(chat?.messages) ? chat.messages.slice(-16) : [];
         if (!messages.length) continue;
-        let place = '';
+        let place = '', when = null, room = '';
         for (const message of messages) {
-            const hits = String(message.text || '').match(placeRe);
+            const text = String(message.text || '');
+            const hits = text.match(placeRe);
             if (hits && hits.length) place = hits[hits.length - 1];
+            const t = parseTime(text);
+            if (t !== null) when = t;
+            const rm = text.match(roomRe);
+            if (rm) room = (rm[1] || rm[2] || '') + '号房';
         }
         if (!place) continue;
-        const last = messages[messages.length - 1];
-        const who = last?.from === 'me' ? name : name;
-        lines.push('· 夜约私聊：你和「' + who + '」约在 ' + place + '（私聊里已经说定，正文走到这个地方/房间时，应当认作是去赴这个约，与 ' + who + ' 碰面）。');
+        found.push({ who: name, place, when, room });
     }
-    return lines.slice(0, 4);
+    found.sort((a, b) => (a.when === null ? 9999 : a.when) - (b.when === null ? 9999 : b.when));
+    return found.slice(0, 4).map(item => {
+        const clock = item.when === null
+            ? '时间未定'
+            : String(Math.floor(item.when / 60)).padStart(2, '0') + ':' + String(item.when % 60).padStart(2, '0');
+        const where = item.place + (item.room ? ' ' + item.room : '');
+        return '· ' + clock + ' 与「' + item.who + '」约在 ' + where
+            + '（私聊已说定；正文写到这个地点或时间时，应认作是去赴约并见到 ' + item.who + '）。';
+    });
+}
+
+/** 双向：正文出现约定地点时，把赴约写回夜约私聊。 */
+export function syncStoryToDating(data, storyLines = []) {
+    const chats = data?.dating?.chats || {};
+    const places = [];
+    for (const [name, chat] of Object.entries(chats)) {
+        for (const message of (chat.messages || []).slice(-16)) {
+            const hits = String(message.text || '').match(/([\u4e00-\u9fa5A-Za-z0-9]{2,10}(?:酒店|宾馆|旅馆|公寓|民宿|会所|酒吧))/g);
+            if (hits) places.push({ name, place: hits[hits.length - 1] });
+        }
+    }
+    if (!places.length || !storyLines.length) return 0;
+    const storyText = storyLines.map(line => String(line.text || '')).join('\n');
+    let touched = 0;
+    const seen = new Set();
+    for (const item of places) {
+        if (seen.has(item.name) || storyText.indexOf(item.place) === -1) continue;
+        seen.add(item.name);
+        const chat = chats[item.name];
+        if (!chat || !Array.isArray(chat.messages)) continue;
+        const last = chat.messages[chat.messages.length - 1];
+        if (last && last.storyEcho && last.place === item.place) continue;
+        chat.messages.push({
+            from: item.name,
+            text: '（正文里你去了 ' + item.place + '，我在这等你。）',
+            ts: Date.now(),
+            storyEcho: true,
+            place: item.place,
+        });
+        touched += 1;
+    }
+    return touched;
 }
 
 export function refreshInjection() {
