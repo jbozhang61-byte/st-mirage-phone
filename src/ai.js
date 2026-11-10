@@ -728,7 +728,7 @@ export async function summarizeMemory({ turns = 0 } = {}) {
 }
 
 /** 夜约：按圈子生成一批人（描述和需求都让模型写，不套模板）。 */
-export async function generateDatingBoard({ group = '附近的人', tier = 0, count = 10, self = null } = {}) {
+export async function generateDatingBoard({ group = '附近的人', tier = 0, count = 10, self = null, query = '' } = {}) {
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
     const cast = getCast();
@@ -743,6 +743,7 @@ export async function generateDatingBoard({ group = '附近的人', tier = 0, co
             system: [
                 '你在给一个成人交友软件「夜约」生成附近的人。',
                 '这里的人都是主动挂资料来约的：他们知道自己在约炮软件上，也都知道自己要找什么（一夜、长期炮友、包养、见面再说），资料和需求要写得很直白，不要写成相亲或纯恋爱。',
+                query ? '用户正在搜索「' + String(query).slice(0, 40) + '」，请严格按这个检索词生成符合描述的人（身份、气质都要对上）。' : '',
                 world ? '世界：' + world : '',
                 cardText ? '当前角色卡：\n' + cardText : '',
                 worldBook ? '世界观设定（人物身份必须符合它，比如修真世界就该是圣女、宗门长老、剑修这类）：\n' + worldBook : '',

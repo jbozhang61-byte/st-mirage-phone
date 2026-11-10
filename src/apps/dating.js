@@ -116,6 +116,24 @@ const groupOf = id => allGroups().find(group => group.id === id) || GROUPS[0];
 /** 新建一个自定义圈子：名字 + 门槛档位。 */
 function addGroupSheet(onDone) {
   const name = h('input', { class: 'mp-input', type: 'text', placeholder: '圈子名字，比如「富婆群」' });
+  const intro = h('input', { class: 'mp-input', type: 'text', placeholder: '一句话简介（可选）' });
+  const owned = customGroups();
+  const manage = h('div', { class: 'mp-field-list' },
+    ...(owned.length
+      ? owned.map(group => h('div', { class: 'mp-row' },
+        h('div', { class: 'mp-row__label', text: group.name + (group.intro ? ' · ' + group.intro : '') }),
+        h('button', {
+          class: 'mp-btn ghost small', type: 'button', text: '删除',
+          onclick: () => {
+            const settings = getSettings();
+            settings.dating.groups = (settings.dating.groups || []).filter(item => item.id !== group.id);
+            saveNow('settings');
+            toast('已删除「' + group.name + '」');
+            onDone?.();
+          },
+        })))
+      : [h('div', { class: 'mp-st-hint', text: '还没有自定义圈子' })])
+  );
   const tiers = h('div', { class: 'mp-dt__chips' },
     ...GROUPS.map((group, index) => h('button', {
       type: 'button', class: 'mp-dt__chip' + (index === 0 ? ' on' : ''), text: '门槛 ' + group.name,
@@ -128,7 +146,9 @@ function addGroupSheet(onDone) {
   name.dataset.tier = '0';
   return sheet({
     title: '新建圈子',
-    content: h('div', { class: 'mp-field-list' }, name, h('div', { class: 'mp-st-hint', text: '门槛越高，攻略力不够的人越看不到' }), tiers),
+    content: h('div', { class: 'mp-field-list' }, name, intro,
+      h('div', { class: 'mp-st-hint', text: '门槛越高，攻略力不够的人越看不到' }), tiers,
+      h('div', { class: 'mp-group__label', text: '我的圈子' }), manage),
     actions: h('button', {
       class: 'mp-btn primary small', type: 'button', text: '创建',
       onclick: () => {
@@ -138,6 +158,7 @@ function addGroupSheet(onDone) {
         list.push({
           id: 'c-' + Date.now().toString(36),
           name: value,
+          intro: String(intro.value || '').trim().slice(0, 40),
           tier: Number(name.dataset.tier) || 0,
           levels: ['圈里人', '刚进来的', '老手'],
         });
@@ -272,8 +293,35 @@ export function mountDating(host, { nav }) {
   }
 
   function renderBrowse(data) {
-    const input = h('input', { class: 'mp-input', type: 'text', placeholder: '搜名字 / 职业 / 想找什么', value: filter,
-      oninput: event => { filter = event.target.value.trim(); renderList(); } });
+    const input = h('input', { class: 'mp-input', type: 'text', placeholder: '搜名字 / 职业 / 想找什么（回车按描述找人）', value: filter,
+      oninput: event => { filter = event.target.value.trim(); renderList(); },
+      onkeydown: event => { if (event.key === 'Enter') searchPeople(); } });
+    async function searchPeople() {
+      const query = String(input.value || '').trim();
+      if (!query) { toast('先写要搜什么样的人'); return; }
+      if (typeof busy !== 'undefined') busy = true;
+      toast('正在按「' + query + '」找人…');
+      try {
+        const found = await generateDatingBoard({
+          group: groupOf(data.group).name, tier: groupOf(data.group).tier, count: 6, self: profile(), query,
+        });
+        const board = data.board[data.group] || [];
+        const names = new Set(board.map(item => item.name));
+        let added = 0;
+        for (const person of found) {
+          if (!person?.name || names.has(person.name)) continue;
+          board.push(person);
+          names.add(person.name);
+          added += 1;
+        }
+        data.board[data.group] = board.slice(0, 40);
+        saveNow('data');
+        render();
+        toast(added ? '找到 ' + added + ' 个' : '没找到合适的，换个说法');
+      } catch (error) {
+        toast('找人失败：' + error.message);
+      }
+    }
     body.appendChild(h('div', { class: 'mp-dt__search' }, icon('search'), input));
     const list = h('div', { class: 'mp-dt__list' });
     body.appendChild(list);
@@ -292,7 +340,15 @@ export function mountDating(host, { nav }) {
       list.innerHTML = '';
       const board = data.board[data.group]?.length ? data.board[data.group] : (data.board[data.group] = seedBoard(data.group, profile()));
       const shown = filter ? board.filter(item => [item.name, item.role, item.intent].join(' ').includes(filter)) : board;
-      if (!shown.length) list.appendChild(h('div', { class: 'mp-st-hint', text: '没搜到人，换个词试试。' }));
+      if (!shown.length) {
+        list.appendChild(h('div', { class: 'mp-st-hint', text: '附近没有匹配的人。' }));
+        if (filter) {
+          list.appendChild(h('button', {
+            class: 'mp-btn small', type: 'button', text: '按「' + filter.slice(0, 12) + '」找人',
+            onclick: () => searchPeople(),
+          }));
+        }
+      }
       for (const item of shown) {
         list.appendChild(h('div', { class: 'mp-dt__card', onclick: () => openDetail(item) },
           avatar({ name: item.name, size: 46, link: false }),
