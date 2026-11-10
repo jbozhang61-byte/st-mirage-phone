@@ -429,16 +429,16 @@ export function mountDating(host, { nav }) {
       h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => sendMedia('video') }),
       h('button', {
         type: 'button', class: 'mp-chip',
-        text: '字数 ' + (Number(getSettings()?.dating?.replyLen) || 40),
+        text: '长度 ' + (Number(getSettings()?.dating?.replyTokens) || 160) + 't',
         onclick: () => {
           const settings = getSettings();
           if (!settings.dating || typeof settings.dating !== 'object') settings.dating = {};
-          const steps = [20, 40, 80, 140];
-          const current = Number(settings.dating.replyLen) || 40;
-          const next = steps[(steps.indexOf(current) + 1) % steps.length] || 40;
-          settings.dating.replyLen = next;
+          const steps = [80, 160, 320, 600];
+          const current = Number(settings.dating.replyTokens) || 160;
+          const next = steps[(steps.indexOf(current) + 1) % steps.length] || 160;
+          settings.dating.replyTokens = next;
           saveNow('settings');
-          toast('TA 每次回你约 ' + next + ' 字');
+          toast('TA 每次回你约 ' + next + ' token（约 ' + Math.round(next * 1.6) + ' 字）');
           render();
         },
       }),

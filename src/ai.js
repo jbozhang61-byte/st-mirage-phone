@@ -581,6 +581,13 @@ export async function planDate(match) {
 }
 
 /** 轻量聊天页（Telegram / Signal / Discord 私聊）里，让对方回一句。 */
+/** 夜约的回复 token 数：设置里可调，默认 160。 */
+export function datingTokens() {
+    const raw = Number(getSettings()?.dating?.replyTokens);
+    if (!Number.isFinite(raw) || raw <= 0) return 160;
+    return Math.max(60, Math.min(1200, Math.round(raw)));
+}
+
 export async function replyInChat({ app = 'Chat', chat = {}, messages = [] } = {}) {
     const user = userName();
     const current = currentCharacter();
@@ -606,15 +613,16 @@ export async function replyInChat({ app = 'Chat', chat = {}, messages = [] } = {
         '你（角色）也是主动挂资料来找约的，清楚自己在干嘛：可以直说想不想、什么时候、去哪、什么条件。',
         '说话自然、带点挑逗和目的性，别装正经、别假装偶遇，也别突然聊人生理想。',
         '不要在回复里解释"这是约炮软件"这种设定，直接用符合场景的语气说话。',
-        '回复长度控制在 ' + (Number(getSettings()?.dating?.replyLen) || 40) + ' 字左右，像真人发消息，不要长篇大论。',
+        '回复长度：约 ' + datingTokens() + ' token（大概 ' + Math.round(datingTokens() * 1.6) + ' 个汉字），像真人发消息，别长篇大论。',
     ].join('') : '',
-                '只回一句话，40 字以内，像真人发消息，不要旁白、不要加引号。',
+                app === '夜约' ? '像真人发消息，不要旁白、不要加引号。' : '只回一句话，40 字以内，像真人发消息，不要旁白、不要加引号。',
             ].filter(Boolean).join('\n'),
             prompt: '聊天记录：\n' + recent + '\n\n现在你是『' + (chat.name || '对方') + '』，回一条。',
-            length: 160,
+            length: app === '夜约' ? datingTokens() : 160,
         });
         const text = String(raw || '').split('\n').map(line => line.trim()).filter(Boolean).pop() || '';
-        if (text) return text.replace(/^["「]|["」]$/g, '').slice(0, 60);
+        const maxChars = app === '夜约' ? Math.round(datingTokens() * 1.8) : 60;
+        if (text) return text.replace(/^["「]|["」]$/g, '').slice(0, maxChars);
     } catch { /* 用兜底 */ }
     const fallback = ['嗯，在的。', '刚看到，等下回你。', '好，我知道了。', '你说。'];
     return fallback[Math.floor(Math.random() * fallback.length)];
