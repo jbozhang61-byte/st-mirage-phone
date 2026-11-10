@@ -2,7 +2,12 @@ package com.mirage.phone;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
 import android.view.Gravity;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
