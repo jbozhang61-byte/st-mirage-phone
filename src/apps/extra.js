@@ -184,6 +184,34 @@ export function mountDiscord(host, { nav }) {
         ));
         main.classList.toggle('in-chat', !!server._inChat);
         body.classList.toggle('dc-list', !server._inChat);   // 列表页不显示输入框和底部用户栏
+        body.classList.toggle('dc-chat', !!server._inChat);  // 聊天页隐藏底部用户栏
+
+        // 侧滑返回：从屏幕左边缘往右滑 -> 回到频道列表
+        (() => {
+            let startX = 0, startY = 0, tracking = false;
+            const onStart = event => {
+                const touch = event.touches && event.touches[0];
+                if (!touch) return;
+                if (touch.clientX > 42) { tracking = false; return; }
+                tracking = true;
+                startX = touch.clientX;
+                startY = touch.clientY;
+            };
+            const onEnd = event => {
+                if (!tracking) return;
+                tracking = false;
+                const touch = event.changedTouches && event.changedTouches[0];
+                if (!touch) return;
+                const dx = touch.clientX - startX;
+                const dy = Math.abs(touch.clientY - startY);
+                if (dx > 60 && dy < 80 && server._inChat) {
+                    server._inChat = false;
+                    view.render(data);
+                }
+            };
+            main.addEventListener('touchstart', onStart, { passive: true });
+            main.addEventListener('touchend', onEnd, { passive: true });
+        })();
         main.appendChild(h('div', { class: 'mp-dc__actions' },
             h('button', { type: 'button', text: '重新生成', onclick: () => moreChannel(data, server, channel, 'replace') }),
             h('button', { type: 'button', text: '追加', onclick: () => moreChannel(data, server, channel, 'append') }),

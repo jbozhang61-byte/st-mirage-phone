@@ -3705,3 +3705,10 @@ body.dc-list .mp-dc__panel { display: none !important; }
     background: #f2f3f5 !important;
 }
 .mp-extra--dc .mp-dc__msg img:not(.mp-avatar) { border-radius: 12px !important; }
+
+
+/* ===== Discord：聊天页隐藏底部用户栏；媒体按钮不被浮岛遮挡 ===== */
+body.dc-chat .mp-dc__panel { display: none !important; }
+body.dc-chat .mp-dc__composer { bottom: 12px !important; }
+body.dc-chat .mp-tg__media { bottom: 82px !important; }
+.mp-extra--dc .mp-dc__main { -webkit-overflow-scrolling: touch; }
