@@ -3752,3 +3752,17 @@ html body .mp-dc__main:not(.in-chat) .mp-dc__server {
 html body .mp-dc__chan-icon { opacity: 1 !important; color: #8b909b !important; }
 /* 列表页搜索条上方留白 */
 html body .mp-dc__main:not(.in-chat) .mp-dc__search { margin-top: 4px !important; }
+
+
+/* ===== 修正：状态挂在 .mp-extra__body 上，不是 document.body ===== */
+.mp-extra__body.dc-chat .mp-dc__panel { display: none !important; }
+.mp-extra__body.dc-chat .mp-dc__composer { bottom: 12px !important; }
+.mp-extra__body.dc-chat .mp-tg__media { bottom: 82px !important; }
+.mp-extra__body.dc-list .mp-dc__composer,
+.mp-extra__body.dc-list .mp-dc__actions,
+.mp-extra__body.dc-list .mp-dc__panel,
+.mp-extra__body.dc-list .mp-tg__media { display: none !important; }
+/* 列表页才显示用户浮岛 */
+.mp-extra__body:not(.dc-chat) .mp-dc__panel { display: flex !important; }
+/* 媒体胶囊不要压住输入条 */
+.mp-extra--dc .mp-tg__media { z-index: 18 !important; }
