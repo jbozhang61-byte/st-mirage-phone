@@ -3766,3 +3766,42 @@ html body .mp-dc__main:not(.in-chat) .mp-dc__search { margin-top: 4px !important
 .mp-extra__body:not(.dc-chat) .mp-dc__panel { display: flex !important; }
 /* 媒体胶囊不要压住输入条 */
 .mp-extra--dc .mp-tg__media { z-index: 18 !important; }
+
+
+/* ===== 聊天页顶部只保留频道栏，其他全藏 ===== */
+.mp-extra--dc .mp-dc__main.in-chat .mp-dc__server,
+.mp-extra--dc .mp-dc__main.in-chat .mp-dc__search,
+.mp-extra--dc .mp-dc__main.in-chat .mp-dc__cat,
+.mp-extra--dc .mp-dc__main.in-chat .mp-dc__channel { display: none !important; }
+.mp-extra--dc .mp-dc__members { white-space: nowrap !important; flex: none !important; }
+.mp-extra--dc .mp-dc__server > span { white-space: nowrap !important; }
+.mp-extra--dc .mp-dc__bar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 12 !important;
+    background: #ffffff !important;
+    padding-top: 26px !important;
+    height: auto !important;
+    min-height: 54px !important;
+    box-sizing: border-box !important;
+}
+.mp-extra--dc .mp-dc__composer {
+    bottom: 12px !important;
+    left: 10px !important; right: 10px !important;
+    height: 60px !important;
+}
+.mp-extra--dc .mp-tg__media {
+    bottom: 84px !important;
+    left: auto !important;
+    right: 10px !important;
+    width: auto !important;
+    background: transparent !important;
+}
+.mp-extra--dc .mp-dc__actions {
+    padding: 6px 16px 0 !important;
+    justify-content: flex-start !important;
+}
+.mp-extra--dc .mp-dc__actions button {
+    background: #f2f3f5 !important; color: #4b505a !important;
+    font-size: 12.5px !important; padding: 6px 12px !important; border-radius: 8px !important;
+}
