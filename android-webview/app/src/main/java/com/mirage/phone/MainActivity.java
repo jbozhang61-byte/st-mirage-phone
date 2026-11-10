@@ -72,8 +72,22 @@ public class MainActivity extends Activity {
         } catch (Throwable ignored) { }
 
         // 内置中继：ws://127.0.0.1:17650，不需要 Python
+        final WebView[] webRef = new WebView[]{web};
         try {
             LocalRelay.start();
+            LocalRelay.onState = () -> {
+                final String state = LocalRelay.lastState;
+                final WebView target = webRef[0];
+                if (state == null || target == null) return;
+                runOnUiThread(() -> {
+                    try {
+                        target.evaluateJavascript(
+                            "(function(){try{window.__mpBridgeState=" + state + ";"
+                            + "window.dispatchEvent(new CustomEvent('mp-bridge',{detail:window.__mpBridgeState}));}catch(e){}})()",
+                            null);
+                    } catch (Throwable ignored) { }
+                });
+            };
             TextView status = new TextView(this);
             status.setTextSize(10f);
             status.setTextColor(0x99FFFFFF);

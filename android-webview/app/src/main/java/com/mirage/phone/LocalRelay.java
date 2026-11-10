@@ -44,6 +44,9 @@ public class LocalRelay {
         }, "local-relay").start();
     }
 
+    public static volatile String lastState = null;
+    public static volatile Runnable onState = null;
+
     public static boolean isRunning() { return running; }
     public static int clientCount() { return CLIENTS.size(); }
 
@@ -125,7 +128,13 @@ public class LocalRelay {
                     if (opcode == 8) break;
                     if (opcode == 9) { sendFrame(payload, 10); continue; }
                     if (opcode == 1 || opcode == 2) {
-                        broadcast(new String(payload, StandardCharsets.UTF_8), this);
+                        String text = new String(payload, StandardCharsets.UTF_8);
+                        broadcast(text, this);
+                        if (text.contains("\"type\":\"state\"") || text.contains("\"type\": \"state\"")) {
+                            lastState = text;
+                            Runnable callback = onState;
+                            if (callback != null) callback.run();
+                        }
                     }
                 }
             } catch (Throwable ignored) { }
