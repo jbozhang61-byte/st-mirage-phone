@@ -3559,3 +3559,59 @@ html.mp-narrow .mp-root {
     box-shadow: 0 1px 3px rgba(20,22,28,.05) !important;
 }
 .mp-dc__addch:active { background: #f0f2f6 !important; }
+
+
+/* ===== Discord：最高优先级（html body 前缀，压过其他样式表） ===== */
+html body .mp-dc { background: #ffffff !important; padding-top: 30px !important; }
+html body .mp-dc__rail { background: #e9ebef !important; width: 82px !important; padding: 14px 0 !important; gap: 12px !important; }
+html body .mp-dc__server {
+    width: 54px !important; height: 54px !important; border-radius: 18px !important;
+    background: #ffffff !important; color: #12131a !important; font-size: 20px !important; font-weight: 800 !important;
+    box-shadow: 0 2px 8px rgba(18,19,26,.10) !important;
+}
+html body .mp-dc__server.on { border-radius: 16px !important; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #5865f2 !important; }
+html body .mp-dc__railadd { width: 54px !important; height: 54px !important; border-radius: 18px !important; background: #ffffff !important; color: #5865f2 !important; }
+html body .mp-dc__main, html body .mp-dc__side { background: #ffffff !important; }
+html body .mp-dc__server-block, html body .mp-dc__head { background: #ffffff !important; }
+html body .mp-dc__search {
+    background: #f2f3f5 !important; color: #12131a !important;
+    height: 46px !important; border-radius: 14px !important; border: none !important;
+    font-size: 15.5px !important; margin: 8px 14px !important; width: calc(100% - 28px) !important; padding: 0 16px !important;
+}
+html body .mp-dc__cat { color: #8b909b !important; font-size: 12.5px !important; font-weight: 800 !important; padding: 18px 20px 8px !important; text-transform: uppercase !important; }
+html body .mp-dc__channel {
+    height: 52px !important; margin: 0 12px 4px !important; border-radius: 14px !important;
+    background: transparent !important; color: #4b505a !important; font-size: 17px !important;
+}
+html body .mp-dc__channel.on { background: #ffffff !important; color: #12131a !important; box-shadow: 0 2px 10px rgba(18,19,26,.08) !important; }
+html body .mp-dc__chan-name { font-size: 17px !important; font-weight: 600 !important; }
+html body .mp-dc__composer { background: #ffffff !important; border-top: 1px solid #eef0f4 !important; padding: 10px 14px 16px !important; }
+html body .mp-dc__input { background: #f2f3f5 !important; color: #12131a !important; border: none !important; border-radius: 24px !important; min-height: 48px !important; font-size: 16px !important; }
+html body .mp-dc__plus { background: #f2f3f5 !important; color: #5865f2 !important; width: 44px !important; height: 44px !important; border-radius: 50% !important; }
+html body .mp-dc__send {
+    width: 48px !important; height: 48px !important; min-width: 48px !important;
+    border-radius: 50% !important; background: #5865f2 !important; background-image: none !important;
+    color: #fff !important; font-size: 0 !important; box-shadow: 0 4px 12px rgba(88,101,242,.30) !important;
+}
+html body .mp-dc__send::after { content: '➤'; font-size: 18px !important; }
+/* 底部用户栏：像灵动岛一样的圆润浮岛 */
+html body .mp-dc__panel {
+    position: fixed !important; left: 14px !important; right: 14px !important; bottom: 12px !important;
+    height: 62px !important; border-radius: 31px !important;
+    background: rgba(255,255,255,.96) !important;
+    box-shadow: 0 8px 28px rgba(18,19,26,.16), 0 0 0 1px rgba(18,19,26,.04) !important;
+    backdrop-filter: blur(14px) !important;
+    padding: 0 16px !important; display: flex !important; align-items: center !important; gap: 10px !important;
+    border: none !important; z-index: 30 !important;
+}
+html body .mp-dc__panel img { width: 40px !important; height: 40px !important; border-radius: 50% !important; }
+html body .mp-dc__pname { color: #12131a !important; font-size: 15px !important; font-weight: 700 !important; }
+html body .mp-dc__pstatus { color: #23a55a !important; font-size: 12px !important; }
+html body .mp-dc__pmic { color: #8b909b !important; }
+/* 聊天区给浮岛留出空间 */
+html body .mp-dc__main.in-chat { padding-bottom: 88px !important; }
+/* 隐藏自造的三个胶囊，真实版没有 */
+html body .mp-dc__composer > .mp-chip,
+html body .mp-dc__composer > .mp-dc__chips { display: none !important; }
+/* 顶部大标题不要压住灵动岛 */
+html body .mp-dc > .mp-dc__rail { padding-top: 34px !important; }
