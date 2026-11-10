@@ -2,7 +2,7 @@
  * AI 编排：手机里的回复、朋友圈、评论、主动来信、正文注入。
  * 全部走酒馆当前连接，用 generateRaw 在后台生成，不写进正文。
  */
-import { generateText, storyContext, importantStoryContext, memoryContext, userName, findCharacter, setPhonePrompt, currentCharacter } from './st.js';
+import { generateText, storyContext, importantStoryContext, memoryContext, userName, findCharacter, worldBookText, setPhonePrompt, currentCharacter } from './st.js';
 import {
     getSettings, getData, findThread, appendMessages, ensureThread, addMoment, addNote, saveNow,
     getCast, setCast, findPerson, setFeed, getFeed, getSelfProfile,
@@ -391,6 +391,8 @@ export function refreshInjection() {
         people: (data.world?.cast || []).map(person => person.name),
     });
     const base = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: getSelfProfile(), worldProfile: data.worldInfo || null, extras: recentOtherChats(), power: powerRoster({ selfProfile: getSelfProfile() }) });
+    // 双向同步：正文里出现了约定地点，就写回夜约私聊
+    try { syncStoryToDating(data, storyContext(14, 220)); } catch { /* ignore */ }
     const appointments = datingAppointments(data);
     const withDates = appointments.length
         ? base + '\n\n【夜约私聊里说定的约会】\n' + appointments.join('\n')
@@ -719,6 +721,7 @@ export async function generateDatingBoard({ group = '附近的人', tier = 0, co
     const people = cast.map(person => person.name);
     const castLines = cast.slice(0, 8).map(person => person.name + (person.role ? '（' + person.role + '）' : '') + (person.desc ? '：' + String(person.desc).slice(0, 60) : '')).join('\n');
     const cardText = String(current?.description || current?.persona || '').slice(0, 400);
+    const worldBook = worldBookText(1200);
     const story = storyContext(40, 240).map(line => (line.isUser ? userName() : line.name) + '：' + line.text).join('\n');
     const levels = ['普通圈（学生、店员、上班族）', '夜生活圈（调酒师、模特、驻唱）', '名媛圈（千金、影后、画廊主人）', '贵族圈（伯爵夫人、世家继承人、公主）'];
     try {
@@ -727,6 +730,7 @@ export async function generateDatingBoard({ group = '附近的人', tier = 0, co
                 '你在给一个成人交友软件「夜约」生成附近的人。',
                 world ? '世界：' + world : '',
                 cardText ? '当前角色卡：\n' + cardText : '',
+                worldBook ? '世界观设定（人物身份必须符合它，比如修真世界就该是圣女、宗门长老、剑修这类）：\n' + worldBook : '',
                 castLines ? '这个世界已有的人（优先用他们，身份/描述要跟设定一致）：\n' + castLines : '',
                 story ? '最近的剧情：\n' + story.slice(-700) : '',
                 self && Object.keys(self).length

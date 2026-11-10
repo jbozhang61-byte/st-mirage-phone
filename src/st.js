@@ -440,6 +440,25 @@ export async function generateText({ system = '', prompt = '', length = 320, jso
     }
 }
 
+/** 当前聊天绑定的世界书（设定集）文本，给 AI 用。 */
+export function worldBookText(limit = 1400) {
+    try {
+        const c = ctx();
+        const fromContext = String(c?.worldInfoString || '').trim();
+        if (fromContext) return fromContext.slice(0, limit);
+        const character = c?.characters?.[c?.characterId];
+        const entries = character?.data?.character_book?.entries || [];
+        const text = entries
+            .map(entry => String(entry?.content || '').trim())
+            .filter(Boolean)
+            .join('\n')
+            .slice(0, limit);
+        return text;
+    } catch {
+        return '';
+    }
+}
+
 /** 手机里点「带进剧情」时，把一段话交给下一次正文。 */
 const oneShotKey = 'mirage_phone_oneshot';
 export function setOneShot(text) {
