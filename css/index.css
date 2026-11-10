@@ -3130,6 +3130,36 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dt__media-url { font-size: 10.5px; color: #9fd0ff; word-break: break-all; margin-bottom: 3px; }
 .mp-dt__media-desc { font-size: 12.5px; }
 
+/* ===== Discord 两屏结构 ===== */
+.mp-dc__main:not(.in-chat) .mp-dc__bar,
+.mp-dc__main:not(.in-chat) .mp-dc__actions,
+.mp-dc__main:not(.in-chat) .mp-dc__msg,
+.mp-dc__main:not(.in-chat) .mp-dc__empty,
+.mp-dc__main:not(.in-chat) .mp-dc__composer { display: none !important; }
+.mp-dc__main:not(.in-chat) .mp-dc__server { display: none !important; }
+.mp-dc__main.in-chat .mp-dc__search,
+.mp-dc__main.in-chat .mp-dc__cat,
+.mp-dc__main.in-chat .mp-dc__channel { display: none !important; }
+.mp-dc__bar {
+    display: flex; align-items: center; gap: 6px;
+    height: 48px; padding: 0 10px; background: #313338;
+    box-shadow: 0 1px 0 rgba(0,0,0,.2); flex: none;
+}
+.mp-dc__back { font-size: 24px; line-height: 1; color: #dbdee1; padding: 0 6px 2px; cursor: pointer; }
+.mp-dc__hash2 { color: #949ba4; font-size: 20px; font-weight: 500; }
+.mp-dc__title { font-size: 15.5px; font-weight: 700; color: #f2f3f5; }
+.mp-dc__grow { flex: 1; }
+.mp-dc__iconbtn {
+    width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #b5bac1; border-radius: 4px; cursor: pointer;
+}
+.mp-dc__iconbtn:active { background: #404249; }
+.mp-dc__plus {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
+    background: #4e5058; color: #f2f3f5; font-size: 20px; font-weight: 300;
+    display: flex; align-items: center; justify-content: center; margin-right: 2px; cursor: pointer;
+}
+
 /* ===== Discord：按真实版配色与尺寸重做 ===== */
 :root {
     --dc-rail: #1e1f22;

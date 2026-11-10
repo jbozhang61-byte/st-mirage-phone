@@ -135,13 +135,38 @@ export function mountDiscord(host, { nav }) {
             }
             main.appendChild(h('div', {
                 class: 'mp-dc__channel' + (index === channelIndex ? ' on' : ''),
-                onclick: () => { channelIndex = index; view.render(data); },
+                onclick: () => { channelIndex = index; server._inChat = true; view.render(data); },
             },
                 h('span', { class: 'mp-dc__chan-icon', text: iconFor(item.name) }),
                 h('span', { class: 'mp-dc__chan-name', text: item.name }),
                 item.unread ? h('span', { class: 'mp-dc__unread', text: String(item.unread) }) : null));
         });
-        main.appendChild(h('div', { class: 'mp-dc__channel-title', text: '#' + channel.name }));
+        // 真实版顶栏：# 频道名 + 返回 + 搜索/成员/更多
+        main.appendChild(h('div', { class: 'mp-dc__bar' },
+            h('span', {
+                class: 'mp-dc__back', text: '‹',
+                onclick: () => { server._inChat = false; view.render(data); },
+            }),
+            h('span', { class: 'mp-dc__hash2', text: '#' }),
+            h('span', { class: 'mp-dc__title', text: channel.name }),
+            h('span', { class: 'mp-dc__grow' }),
+            h('span', {
+                class: 'mp-dc__iconbtn', text: '⌕',
+                onclick: () => { server._query = channelQuery ? '' : '#'; view.render(data); },
+            }),
+            h('span', {
+                class: 'mp-dc__iconbtn', text: '☺',
+                onclick: () => {
+                    const cast = getCast().map(person => person.name).filter(Boolean);
+                    toast('在线成员：' + (cast.slice(0, 4).join('、') || '暂无'));
+                },
+            }),
+            h('span', {
+                class: 'mp-dc__iconbtn', text: '⋯',
+                onclick: () => openDcGroup(),
+            }),
+        ));
+        main.classList.toggle('in-chat', !!server._inChat);
         main.appendChild(h('div', { class: 'mp-dc__actions' },
             h('button', { type: 'button', text: '重新生成', onclick: () => moreChannel(data, server, channel, 'replace') }),
             h('button', { type: 'button', text: '追加', onclick: () => moreChannel(data, server, channel, 'append') }),
@@ -192,6 +217,10 @@ export function mountDiscord(host, { nav }) {
         panel.addEventListener('click', profileSheet);
         const composerInput = h('input', { class: 'mp-dc__input', type: 'text', placeholder: '发消息到 #' + channel.name });
         const composer = h('div', { class: 'mp-dc__composer' },
+            h('span', {
+                class: 'mp-dc__plus', text: '+',
+                onclick: () => { try { dcMediaSheet(data, server, channel); } catch { toast('先输入文字再发媒体'); } },
+            }),
             composerInput,
             h('button', {
                 type: 'button', class: 'mp-dc__send',
