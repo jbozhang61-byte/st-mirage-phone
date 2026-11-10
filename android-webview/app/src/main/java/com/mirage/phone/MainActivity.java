@@ -130,13 +130,51 @@ public class MainActivity extends Activity {
             status.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    statusRef.setText("中继 " + (LocalRelay.isRunning() ? "已开" : "未开") + " · " + LocalRelay.clientCount() + " 连接");
-                    statusRef.postDelayed(this, 3000);
+                    boolean tavern = tavernAlive();
+                    int linked = LocalRelay.clientCount();
+                    String text = "中继 " + (LocalRelay.isRunning() ? "开" : "关")
+                            + " · 酒馆 " + (tavern ? "已连" : "未开")
+                            + " · " + linked + " 连接";
+                    statusRef.setText(text);
+                    // 酒馆没开时自动尝试拉起一次（装过 Termux 才做）
+                    if (!tavern && !autoLaunchTried) {
+                        autoLaunchTried = true;
+                        fireTermuxLaunch();
+                    }
+                    statusRef.postDelayed(this, 4000);
                 }
-            }, 1000);
+            }, 1200);
         } catch (Throwable ignored) { }
 
         setContentView(root);
+    }
+
+    private boolean autoLaunchTried = false;
+
+    private boolean tavernAlive() {
+        java.net.Socket socket = new java.net.Socket();
+        try {
+            socket.connect(new java.net.InetSocketAddress("127.0.0.1", 8000), 300);
+            return true;
+        } catch (Throwable error) {
+            return false;
+        } finally {
+            try { socket.close(); } catch (Throwable ignored) { }
+        }
+    }
+
+    private void fireTermuxLaunch() {
+        try {
+            getPackageManager().getPackageInfo("com.termux", 0);
+            Intent intent = new Intent();
+            intent.setClassName("com.termux", "com.termux.app.RunCommandService");
+            intent.setAction("com.termux.RUN_COMMAND");
+            intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
+            intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"/data/data/com.termux/files/home/mp.sh"});
+            intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
+            intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
+            startService(intent);
+        } catch (Throwable ignored) { }
     }
 
     @Override
