@@ -33,8 +33,21 @@ export function applyBridgeState(state) {
 /** 启动监听：只在桌面壳里执行（preload 会注入 window.mpDesktop）。 */
 export function initDesktopBridge() {
   if (started) return false;
+
+  // APK 版：原生层把中继收到的 state 注入成 window.__mpBridgeState 并派发 mp-bridge
+  try {
+    if (globalThis.__mpBridgeState) applyBridgeState(globalThis.__mpBridgeState);
+    globalThis.addEventListener?.('mp-bridge', event => {
+      const state = event?.detail || globalThis.__mpBridgeState;
+      if (!state) return;
+      applyBridgeState(state);
+      try { globalThis.MiragePhone?.refresh?.(); } catch { /* ignore */ }
+    });
+    if (String(globalThis.navigator?.userAgent || '').includes('MiragePhone')) started = true;
+  } catch { /* ignore */ }
+
   const api = globalThis.mpDesktop;
-  if (!api?.onBridgeState) return false;
+  if (!api?.onBridgeState) return started;
   started = true;
   api.onBridgeState(state => { applyBridgeState(state); });
   try { api.requestBridgeState?.(); } catch { /* ignore */ }
