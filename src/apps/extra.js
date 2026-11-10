@@ -157,8 +157,22 @@ export function mountDiscord(host, { nav }) {
             h('span', {
                 class: 'mp-dc__iconbtn', text: '☺',
                 onclick: () => {
-                    const cast = getCast().map(person => person.name).filter(Boolean);
-                    toast('在线成员：' + (cast.slice(0, 4).join('、') || '暂无'));
+                    const cast = getCast();
+                    const online = cast.slice(0, Math.max(1, Math.ceil(cast.length / 2)));
+                    const offline = cast.slice(online.length);
+                    const rows = list => (list.length
+                        ? list.map(person => h('div', { class: 'mp-dc__member' },
+                            avatar({ name: person.name, size: 30, link: false }),
+                            h('div', {},
+                                h('div', { class: 'mp-dc__mname', text: person.name }),
+                                person.role ? h('div', { class: 'mp-dc__mrole', text: String(person.role).slice(0, 20) }) : null)))
+                        : [h('div', { class: 'mp-dc__mempty', text: '暂时没人' })]);
+                    sheet({
+                        title: '成员 · ' + server.name,
+                        content: h('div', { class: 'mp-dc__members-panel' },
+                            h('div', { class: 'mp-dc__mgroup', text: '在线 — ' + online.length }), ...rows(online),
+                            h('div', { class: 'mp-dc__mgroup', text: '离线 — ' + offline.length }), ...rows(offline)),
+                    });
                 },
             }),
             h('span', {
@@ -171,13 +185,34 @@ export function mountDiscord(host, { nav }) {
             h('button', { type: 'button', text: '重新生成', onclick: () => moreChannel(data, server, channel, 'replace') }),
             h('button', { type: 'button', text: '追加', onclick: () => moreChannel(data, server, channel, 'append') }),
         ));
+        // 日期分隔线：今天 / 昨天 / 更早
+        const dayLabel = ts => {
+            const value = Number(ts) || 0;
+            if (!value) return '';
+            const date = new Date(value);
+            const today = new Date();
+            const startOf = d => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+            const diff = Math.round((startOf(today) - startOf(date)) / 86400000);
+            if (diff <= 0) return '今天';
+            if (diff === 1) return '昨天';
+            return (date.getMonth() + 1) + '月' + date.getDate() + '日';
+        };
+        let lastDay = '';
         for (const message of channel.messages || []) {
+            const day = dayLabel(message.ts);
+            if (day && day !== lastDay) {
+                lastDay = day;
+                main.appendChild(h('div', { class: 'mp-dc__day' },
+                    h('span', { class: 'mp-dc__day-line' }),
+                    h('span', { class: 'mp-dc__day-text', text: day }),
+                    h('span', { class: 'mp-dc__day-line' })));
+            }
             main.appendChild(h('div', { class: 'mp-dc__msg' },
                 avatar({ name: message.author, size: 28 }),
                 h('div', {},
                     h('div', { class: 'mp-dc__line' }, h('b', { text: message.author }), h('span', { text: message.time }),
-                        h('button', {
-                            type: 'button', class: 'mp-dc__reply', text: '↩ 回复',
+                        h('span', {
+                            class: 'mp-dc__reply', text: '↩',
                             onclick: event => { event.stopPropagation(); replyTo(message); },
                         })),
                     h('div', { class: 'mp-dc__text', text: message.text }),
