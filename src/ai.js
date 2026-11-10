@@ -289,6 +289,27 @@ export function recentOtherChats() {
     return lines.slice(0, 20);
 }
 
+/** 从夜约私聊里识别"约在哪里做什么"，让正文能接上这件事。 */
+export function datingAppointments(data) {
+    const chats = data?.dating?.chats || {};
+    const placeRe = /([一-龥A-Za-z0-9]{2,10}(?:酒店|宾馆|旅馆|公寓|民宿|会所|酒吧|房间|号房))/g;
+    const lines = [];
+    for (const [name, chat] of Object.entries(chats)) {
+        const messages = Array.isArray(chat?.messages) ? chat.messages.slice(-12) : [];
+        if (!messages.length) continue;
+        let place = '';
+        for (const message of messages) {
+            const hits = String(message.text || '').match(placeRe);
+            if (hits && hits.length) place = hits[hits.length - 1];
+        }
+        if (!place) continue;
+        const last = messages[messages.length - 1];
+        const who = last?.from === 'me' ? name : name;
+        lines.push('· 夜约私聊：你和「' + who + '」约在 ' + place + '（私聊里已经说定，正文走到这个地方/房间时，应当认作是去赴这个约，与 ' + who + ' 碰面）。');
+    }
+    return lines.slice(0, 4);
+}
+
 export function refreshInjection() {
     const settings = getSettings();
     const data = getData();
@@ -297,7 +318,11 @@ export function refreshInjection() {
         people: (data.world?.cast || []).map(person => person.name),
     });
     const base = phoneStateSummary({ threads: data.threads, user: userName(), hearts: relevantHearts(data), selfProfile: getSelfProfile(), worldProfile: data.worldInfo || null, extras: recentOtherChats(), power: powerRoster({ selfProfile: getSelfProfile() }) });
-    const text = memoryText ? (base + '\n\n' + memoryText) : base;
+    const appointments = datingAppointments(data);
+    const withDates = appointments.length
+        ? base + '\n\n【夜约私聊里说定的约会】\n' + appointments.join('\n')
+        : base;
+    const text = memoryText ? (withDates + '\n\n' + memoryText) : withDates;
     setPhonePrompt(text, { depth: settings.inject.depth, enabled: settings.inject.enabled && !!text });
     return text;
 }
