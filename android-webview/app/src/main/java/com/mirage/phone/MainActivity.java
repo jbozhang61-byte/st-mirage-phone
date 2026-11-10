@@ -86,7 +86,8 @@ public class MainActivity extends Activity {
                     intent.setClassName("com.termux", "com.termux.app.RunCommandService");
                     intent.setAction("com.termux.RUN_COMMAND");
                     intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
-                    intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"/data/data/com.termux/files/home/mp.sh"});
+                    intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{
+                            "/data/data/com.termux/files/home/st-mirage-phone/termux/mp.sh"});
                     intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
                     intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
                     startService(intent);
@@ -185,7 +186,8 @@ public class MainActivity extends Activity {
             intent.setClassName("com.termux", "com.termux.app.RunCommandService");
             intent.setAction("com.termux.RUN_COMMAND");
             intent.putExtra("com.termux.RUN_COMMAND_PATH", "/data/data/com.termux/files/usr/bin/bash");
-            intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{"/data/data/com.termux/files/home/mp.sh"});
+            intent.putExtra("com.termux.RUN_COMMAND_ARGUMENTS", new String[]{
+                            "/data/data/com.termux/files/home/st-mirage-phone/termux/mp.sh"});
             intent.putExtra("com.termux.RUN_COMMAND_WORKDIR", "/data/data/com.termux/files/home");
             intent.putExtra("com.termux.RUN_COMMAND_BACKGROUND", true);
             startService(intent);
