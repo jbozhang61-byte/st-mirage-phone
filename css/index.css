@@ -1,3 +1,4 @@
+@import url('./discord-final.css');
 @import url('./apps.css');
 @import url('./feeds.css');
 @import url('./tools.css');
@@ -3131,8 +3132,6 @@ html.mp-narrow .mp-device { font-size: 14.5px; }
 .mp-dt__media-tag { font-size: 10px; color: #ff8a9c; margin-bottom: 3px; }
 .mp-dt__media-url { font-size: 10.5px; color: #9fd0ff; word-break: break-all; margin-bottom: 3px; }
 .mp-dt__media-desc { font-size: 12.5px; }
-
-@import url('./discord-final.css');
 
 /* ===== Discord 浅色版（照用户提供的真实截图复刻） ===== */
 .mp-dc {
