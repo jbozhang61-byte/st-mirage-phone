@@ -3511,3 +3511,51 @@ html.mp-narrow .mp-root {
     transform: translateX(1px);
 }
 .mp-dc__send:active { transform: scale(.96); }
+
+
+/* ===== Discord 列表顶部：服务器信息块（名字 + 成员数 + 齿轮） ===== */
+.mp-dc__server {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 14px 18px 10px !important;
+    background: #f6f7f9 !important;
+    box-shadow: none !important;
+    height: auto !important;
+}
+.mp-dc__server .mp-dc__hash {
+    display: none !important;
+}
+.mp-dc__server > span:not(.mp-dc__hash):not(.mp-dc__members) {
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    color: #12131a !important;
+    letter-spacing: -.02em !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+.mp-dc__members {
+    order: 9 !important;
+    flex: 0 0 100% !important;
+    margin-top: -4px !important;
+    font-size: 13px !important;
+    color: #8b909b !important;
+    text-align: left !important;
+}
+.mp-dc__addch {
+    order: 3 !important;
+    flex: none !important;
+    height: 34px !important;
+    padding: 0 12px !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    color: #4b505a !important;
+    border: 1px solid #e7e9ee !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 3px rgba(20,22,28,.05) !important;
+}
+.mp-dc__addch:active { background: #f0f2f6 !important; }
