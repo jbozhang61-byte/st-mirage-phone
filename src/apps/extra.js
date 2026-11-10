@@ -2,6 +2,7 @@
 import { h, icon, avatar, sheet, toast } from '../render.js';
 import { createMusicPlayer } from '../audio.js';
 import { getData, getCast, getFeed, setFeed, saveNow } from '../store.js';
+import { storeImage } from '../images.js';
 import { generateExtra, friendlyError, replyInChat } from '../ai.js';
 import { groupSheet } from './group-sheet.js';
 import { EXTRA } from '../extra.js';
@@ -217,7 +218,13 @@ export function mountDiscord(host, { nav }) {
                             class: 'mp-dc__reply', text: '↩',
                             onclick: event => { event.stopPropagation(); replyTo(message); },
                         })),
-                    h('div', { class: 'mp-dc__text', text: message.text }),
+                    message.type === 'image' && message.url
+                        ? h('img', { class: 'mp-dc__photo', src: message.url, alt: '' })
+                        : null,
+                    message.type === 'video' && message.url
+                        ? h('video', { class: 'mp-dc__video', src: message.url, controls: 'true', playsinline: 'true' })
+                        : null,
+                    message.text ? h('div', { class: 'mp-dc__text', text: message.text }) : null,
                 ),
             ));
         }
@@ -283,18 +290,58 @@ export function mountDiscord(host, { nav }) {
 
         /** Discord 的图片 / 视频：可以自己填链接或描述 + 配文。 */
         function dcMediaSheet(kind) {
-            const url = h('input', { class: 'mp-input', type: 'text', placeholder: kind === '图片' ? '图片链接 / 描述（可留空）' : '视频链接 / 描述（可留空）' });
+            const file = h('input', {
+                type: 'file', accept: kind === '图片' ? 'image/*' : 'video/*',
+                style: { display: 'none' },
+            });
+            const pick = h('button', { class: 'mp-btn', type: 'button', text: '从手机相册选' + kind });
+            const preview = h('div', { class: 'mp-photo-preview' });
             const cap = h('input', { class: 'mp-input', type: 'text', placeholder: '配一句话（可选）' });
+            let mediaUrl = '';
+            pick.addEventListener('click', () => file.click());
+            file.addEventListener('change', async () => {
+                const picked = file.files && file.files[0];
+                if (!picked) return;
+                try {
+                    if (kind === '图片') {
+                        const stored = await storeImage(picked);
+                        mediaUrl = stored.url;
+                        preview.innerHTML = '';
+                        preview.appendChild(h('img', { src: mediaUrl, alt: '' }));
+                    } else {
+                        if (picked.size > 12 * 1024 * 1024) { toast('视频太大（限 12MB）'); return; }
+                        mediaUrl = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(String(reader.result || ''));
+                            reader.onerror = () => reject(new Error('读取失败'));
+                            reader.readAsDataURL(picked);
+                        });
+                        preview.innerHTML = '';
+                        preview.appendChild(h('video', { src: mediaUrl, controls: 'true', playsinline: 'true' }));
+                    }
+                    toast(kind + '已准备好');
+                } catch (error) {
+                    toast('读不到：' + error.message);
+                }
+            });
             const box = sheet({
                 title: '发' + kind,
-                content: h('div', { class: 'mp-field-list' }, url, cap),
+                content: h('div', { class: 'mp-field-list' }, preview, pick, file, cap),
                 actions: h('button', {
                     class: 'mp-btn primary small', type: 'button', text: '发送',
                     onclick: () => {
-                        const head = kind === '图片' ? '📷 [图片] ' : '📹 [视频] ';
-                        const body = url.value.trim() || (kind === '图片' ? '一张随手拍的照片' : '一段 15 秒的视频');
+                        const caption = cap.value.trim();
+                        const type = kind === '图片' ? 'image' : 'video';
                         box.close();
-                        sendMedia(head + body + (cap.value.trim() ? '\n' + cap.value.trim() : ''));
+                        channel.messages = channel.messages || [];
+                        channel.messages.push({
+                            author: userName() || '我',
+                            text: caption || (kind === '图片' ? '' : ''),
+                            type, url: mediaUrl, time: '刚刚', ts: Date.now(),
+                        });
+                        save(data);
+                        view.render(data);
+                        toast('已发送');
                     },
                 }),
             });
