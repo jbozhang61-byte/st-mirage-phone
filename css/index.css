@@ -3481,3 +3481,33 @@ html.mp-narrow .mp-root {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 }
+
+
+/* ===== Discord 发送键：圆润的圆形（最终覆盖） ===== */
+.mp-dc__composer { display: flex !important; align-items: center !important; }
+.mp-dc__send {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    border-radius: 50% !important;
+    background: #5865f2 !important;
+    background-image: none !important;
+    color: #ffffff !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-left: 8px !important;
+    box-shadow: 0 4px 12px rgba(88,101,242,.28) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.mp-dc__send::after {
+    content: '➤';
+    font-size: 18px !important;
+    line-height: 1 !important;
+    transform: translateX(1px);
+}
+.mp-dc__send:active { transform: scale(.96); }
