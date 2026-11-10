@@ -30,6 +30,20 @@ function snapshot() {
     character: { name: character.name || '', description: String(character.description || '').slice(0, 1200) },
     chatId: c.chatId || '',
     messages,
+    cast: (() => {
+      try {
+        const list = Array.isArray(c.characters) ? c.characters : [];
+        const people = list.map(ch => ({
+          name: String(ch?.name || '').slice(0, 24),
+          role: String(ch?.data?.role || ch?.tags?.[0] || '').slice(0, 20),
+          desc: String(ch?.description || ch?.data?.description || '').slice(0, 160),
+        })).filter(person => person.name);
+        if (!people.length && character.name) {
+          people.push({ name: character.name, role: '', desc: String(character.description || '').slice(0, 160) });
+        }
+        return people.slice(0, 16);
+      } catch { return []; }
+    })(),
     phoneData: c.chatMetadata ? (c.chatMetadata[MODULE] || null) : null,
   };
 }

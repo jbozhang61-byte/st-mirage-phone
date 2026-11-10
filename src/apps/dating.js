@@ -427,6 +427,21 @@ export function mountDating(host, { nav }) {
       } }),
       h('button', { type: 'button', class: 'mp-chip', text: '图片', onclick: () => sendMedia('image') }),
       h('button', { type: 'button', class: 'mp-chip', text: '视频', onclick: () => sendMedia('video') }),
+      h('button', {
+        type: 'button', class: 'mp-chip',
+        text: '字数 ' + (Number(getSettings()?.dating?.replyLen) || 40),
+        onclick: () => {
+          const settings = getSettings();
+          if (!settings.dating || typeof settings.dating !== 'object') settings.dating = {};
+          const steps = [20, 40, 80, 140];
+          const current = Number(settings.dating.replyLen) || 40;
+          const next = steps[(steps.indexOf(current) + 1) % steps.length] || 40;
+          settings.dating.replyLen = next;
+          saveNow('settings');
+          toast('TA 每次回你约 ' + next + ' 字');
+          render();
+        },
+      }),
     );
     body.appendChild(mediaRow);
 

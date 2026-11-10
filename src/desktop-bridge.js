@@ -29,6 +29,11 @@ export function applyBridgeState(state) {
     }
   } catch { /* ignore */ }
   import('./store.js').then(store => {
+    try {
+      if (Array.isArray(state.cast) && state.cast.length && typeof store.setCast === 'function') {
+        store.setCast(state.cast);
+      }
+    } catch { /* ignore */ }
     try { store.initStore(); } catch { /* ignore */ }
     try { globalThis.MiragePhone?.refresh?.(); } catch { /* ignore */ }
   }).catch(() => {});
