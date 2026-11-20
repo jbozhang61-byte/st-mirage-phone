@@ -114,6 +114,13 @@ public class MainActivity extends Activity {
             root.addView(btn);
         } catch (Throwable ignored) { }
 
+        // 常驻中继服务：切后台也保持 ws://127.0.0.1:17650
+        try {
+            Intent relayIntent = new Intent(this, RelayService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(relayIntent);
+            else startService(relayIntent);
+        } catch (Throwable ignored) { }
+
         // 内置中继：ws://127.0.0.1:17650，不需要 Python
         final WebView[] webRef = new WebView[]{web};
         try {
