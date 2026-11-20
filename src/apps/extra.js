@@ -102,7 +102,7 @@ export function mountDiscord(host, { nav }) {
         main.appendChild(h('div', { class: 'mp-dc__server' },
             h('span', { class: 'mp-dc__hash', text: '#', onclick: () => openDcGroup() }), h('span', { onclick: () => openDcGroup(), text: server.name }),
             h('button', { type: 'button', class: 'mp-dc__addch', text: '+ 频道', onclick: () => addChannel(data, server) }),
-            h('span', { class: 'mp-dc__members', text: (server.memberList?.length || server.channels?.length || 0) + ' 位成员' + (server.style ? ' · ' + server.style : '') }),
+            h('span', { class: 'mp-dc__members', text: (server.memberCount || server.memberList?.length || server.channels?.length || 0).toLocaleString('en-US') + ' 位成员' + (server.style ? ' · ' + server.style : '') }),
         ));
         if (server.notice) {
             main.appendChild(h('div', { class: 'mp-conv__notice', onclick: () => openDcGroup() },
@@ -179,7 +179,7 @@ export function mountDiscord(host, { nav }) {
             }),
             h('span', {
                 class: 'mp-dc__iconbtn', text: '⋯',
-                onclick: () => openDcGroup(),
+                onclick: () => memberSheet(),
             }),
         ));
         main.classList.toggle('in-chat', !!server._inChat);
@@ -257,6 +257,44 @@ export function mountDiscord(host, { nav }) {
             ));
         }
         if (!(channel.messages || []).length) main.appendChild(h('div', { class: 'mp-dc__empty', text: '这个频道还很安静。' }));
+
+        /** 成员总数：显示 500 / 1000 / 几十万，并自动补齐成员列表。 */
+        function memberSheet() {
+            const input = h('input', {
+                class: 'mp-input', type: 'number', min: '2', max: '999999',
+                placeholder: '成员总数，比如 500 或 1000',
+                value: String(server.memberCount || server.memberList?.length || 0),
+            });
+            return sheet({
+                title: '成员 · ' + server.name,
+                content: h('div', { class: 'mp-field-list' }, input,
+                    h('div', { class: 'mp-st-hint', text: '填多少，频道顶部就显示多少人（会自动补足成员列表）。' })),
+                actions: h('div', {},
+                    h('button', {
+                        class: 'mp-btn primary small', type: 'button', text: '保存',
+                        onclick: () => {
+                            const value = Math.max(2, Math.min(999999, Number(input.value) || 0));
+                            server.memberCount = value;
+                            const cast = getCast().map(person => person.name).filter(Boolean);
+                            const extraNames = ['阿澈', '小叙', '宁姐', '沈七', '唐棠', '老K', '林间', '程一', '白露', '闻舟'];
+                            const list = Array.isArray(server.memberList) ? [...server.memberList] : [];
+                            while (list.length < Math.min(value, 60)) {
+                                const base = cast.length ? cast[list.length % cast.length] : extraNames[list.length % extraNames.length];
+                                const suffix = list.length >= (cast.length || extraNames.length) ? '·' + (list.length + 1) : '';
+                                list.push(base + suffix);
+                            }
+                            server.memberList = list;
+                            save(data);
+                            view.render(data);
+                            toast('成员总数已设为 ' + value);
+                        },
+                    }),
+                    h('button', {
+                        class: 'mp-btn ghost small', type: 'button', text: '服务器设置',
+                        onclick: () => { openDcGroup(); },
+                    })),
+            });
+        }
 
         /** Discord 服务器设置：服务器名 / 公告 / 成员。 */
         function openDcGroup() {

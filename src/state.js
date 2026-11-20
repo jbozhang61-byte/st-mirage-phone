@@ -286,11 +286,10 @@ export function rememberSnapshotFor(key, data) {
     if (!key || !isObject(data)) return;
     snapshots.set(key, { data, at: Date.now() });
     clearTimeout(backupTimer);
-    backupTimer = setTimeout(() => {
-        try {
-            globalThis.localStorage?.setItem(BACKUP_PREFIX + key, JSON.stringify({ at: Date.now(), data: slimData(data) }));
-        } catch { /* ignore */ }
-    }, 1500);
+    // 立即落盘：切角色卡/关页面都不会丢（写失败就算了，不影响主流程）
+    try {
+        globalThis.localStorage?.setItem(BACKUP_PREFIX + key, JSON.stringify({ at: Date.now(), data: slimData(data) }));
+    } catch { /* 容量满 */ }
 }
 
 export function rememberSnapshot(data) {
