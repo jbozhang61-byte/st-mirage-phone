@@ -402,12 +402,13 @@ export function mountDiscord(host, { nav }) {
                         channel.messages = channel.messages || [];
                         channel.messages.push({
                             author: userName() || '我',
-                            text: caption || (kind === '图片' ? '' : ''),
+                            text: caption || '',
                             type, url: mediaUrl, time: '刚刚', ts: Date.now(),
                         });
                         save(data);
                         view.render(data);
                         toast('已发送');
+                        queueReply();
                     },
                 }),
             });
@@ -415,10 +416,12 @@ export function mountDiscord(host, { nav }) {
         }
 
         /** 发一条消息：先插入"正在输入"的占位回复，保证有人接，再换成真话。 */
-        async function postMessage(text) {
+        const SMALL_TALK = ['在。', '看到了。', '嗯，继续说。', '刚看到，怎么了？', '这个我不太懂，你讲讲。', '行，听你的。'];
+
+        /** 任何一条自己发的消息（文字/图片/视频）都排队触发一次回复。 */
+        async function queueReply() {
+            const pending = { author: '某人', text: '…', time: '刚刚', pending: true };
             channel.messages = channel.messages || [];
-            channel.messages.push({ author: userName() || '我', text, time: '刚刚' });
-            const pending = { author: '某人', text: '…', time: '刚刚' };
             channel.messages.push(pending);
             save(data);
             view.render(data);
@@ -426,16 +429,25 @@ export function mountDiscord(host, { nav }) {
                 const reply = await replyInChat({
                     app: 'Discord',
                     chat: { name: server.name + ' / #' + channel.name, style: server.style || '' },
-                    messages: channel.messages.filter(item => item !== pending),
+                    messages: channel.messages.filter(item => !item.pending),
                 });
                 const cast = getCast().map(person => person.name).filter(Boolean);
                 pending.author = cast.length ? cast[Math.floor(Math.random() * cast.length)] : '网友';
-                pending.text = reply || '……';
+                pending.text = String(reply || '').trim() || SMALL_TALK[Math.floor(Math.random() * SMALL_TALK.length)];
             } catch {
-                pending.text = '……';
+                pending.text = SMALL_TALK[Math.floor(Math.random() * SMALL_TALK.length)];
             }
+            delete pending.pending;
             save(data);
             view.render(data);
+        }
+
+        async function postMessage(text) {
+            channel.messages = channel.messages || [];
+            channel.messages.push({ author: userName() || '我', text, time: '刚刚', ts: Date.now() });
+            save(data);
+            view.render(data);
+            await queueReply();
         }
         body.append(h('div', { class: 'mp-dc' }, rail, h('div', { class: 'mp-dc__wrap' }, main, mediaRow, composer, panel)));
 
