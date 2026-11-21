@@ -525,7 +525,34 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
     const user = userName();
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
-    const people = getCast().map(person => person.name);
+    const castList = getCast().filter(person => person?.name);
+    const people = castList.map(person => person.name);
+    // 用户点名了角色卡里已有的人：直接把这个人做出来，不用等"遇见"
+    const asked = String(description || '').trim();
+    const named = asked
+        ? castList.find(person => asked.includes(person.name)) || null
+        : null;
+    if (named) {
+        const namedCandidate = {
+            id: 'c' + Date.now().toString(36) + 'n',
+            name: named.name,
+            age: '',
+            job: String(named.role || '').slice(0, 40),
+            tags: [named.role, ...(Array.isArray(named.tags) ? named.tags : [])]
+                .map(tag => String(tag || '').trim()).filter(Boolean).slice(0, 10),
+            bio: String(named.desc || named.role || '你在角色卡里见过的这个人。').slice(0, 400),
+            appearance: '',
+            background: '',
+            boundaries: '',
+            must: [named.name],
+            opening: '你在找我？',
+            tone: 'mystery',
+            known: true,
+        };
+        // 其他人继续交给模型生成，名单里保留这个名字
+        const rest = await findMatchesWithCastExcluded({ description: asked, vibes, exclude: [named.name], castList });
+        return [namedCandidate, ...rest].slice(0, 4);
+    }
     let raw = '';
     try {
         raw = await generateText({
@@ -560,6 +587,41 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
             ? Math.max(0, Math.min(100, Math.round(Number(item.difficulty))))
             : undefined,
     }));
+}
+
+/** 相遇的辅助：点名某个人之后，用模型补齐剩下几个候选人。 */
+async function findMatchesWithCastExcluded({ description = '', vibes = [], exclude = [] } = {}) {
+    try {
+        const current = currentCharacter();
+        const world = current?.group ? current.name : (current?.name || '');
+        const people = getCast().map(person => person.name).filter(name => !exclude.includes(name));
+        const raw = await generateText({
+            system: sparkSystemPrompt({ world, people, user: userName() })
+                .replace('三个候选人', '候选人')
+                + '\n这次的候选人里不要出现：' + exclude.join('、'),
+            prompt: sparkUserPrompt({ description, vibes }),
+            length: 1000,
+            json: true,
+        });
+        const json = extractJson(raw);
+        const list = Array.isArray(json?.candidates) ? json.candidates : [];
+        return list.slice(0, 3).map((item, index) => ({
+            id: 'c' + Date.now().toString(36) + 'x' + index,
+            name: String(item.name || '某人').slice(0, 24),
+            age: String(item.age || '').slice(0, 8),
+            job: String(item.job || '').slice(0, 40),
+            tags: (Array.isArray(item.tags) ? item.tags : []).map(String).slice(0, 10),
+            bio: String(item.bio || '').slice(0, 400),
+            appearance: String(item.appearance || '').slice(0, 200),
+            background: String(item.background || '').slice(0, 200),
+            boundaries: String(item.boundaries || '').slice(0, 200),
+            must: (Array.isArray(item.must) ? item.must : []).map(String).slice(0, 5),
+            opening: String(item.opening || '').slice(0, 200),
+            tone: ['warm', 'danger', 'young', 'mature', 'mystery'].includes(item.tone) ? item.tone : 'warm',
+        }));
+    } catch {
+        return [];
+    }
 }
 
 /** 相遇：安排一次约会。 */
