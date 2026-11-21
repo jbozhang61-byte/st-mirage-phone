@@ -613,6 +613,15 @@ export async function replyInChat({ app = 'Chat', chat = {}, messages = [] } = {
                 '你在扮演故事世界里的聊天对象，用中文回一条消息。',
                 world ? '世界：' + world : '',
                 persona ? '你（' + (chat.name || '对方') + '）的设定：' + persona : '',
+                person ? '性格锚点（必须始终成立，不会因为熟悉、好感、亲密而改变）：' +
+                    [
+                        person.role ? '身份「' + person.role + '」决定的基本姿态' : '',
+                        (person.tags || []).length ? '核心特质：' + (person.tags || []).slice(0, 6).join('、') : '',
+                        person.boundaries ? '底线：' + person.boundaries : '',
+                        '高冷的人从头到尾都高冷：可以话多一点、可以默许亲近，但不会突然变得黏人、撒娇、热情似火。',
+                        '不要因为好感度或已经发生过的亲密关系，就改变说话节奏、用词和气场。',
+                        '性格稳定优先于讨好用户：宁可冷淡地答应，也不要突然热情。',
+                    ].filter(Boolean).join('；') : '',
                 style ? '说话风格：' + style : '',
                 story ? '正文里最近发生的事（你们都知道）：\n' + story.slice(-1200) : '',
                 app === '夜约' ? [
