@@ -545,8 +545,15 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
         name: String(item.name || '某人').slice(0, 24),
         age: String(item.age || '').slice(0, 8),
         job: String(item.job || '').slice(0, 40),
-        tags: (Array.isArray(item.tags) ? item.tags : []).slice(0, 5).map(String),
-        bio: String(item.bio || '').slice(0, 300),
+        tags: (Array.isArray(item.tags) ? item.tags : [])
+            .map(tag => String(tag || '').trim().slice(0, 12))
+            .filter(Boolean)
+            .slice(0, 10),
+        bio: String(item.bio || '').slice(0, 400),
+        appearance: String(item.appearance || '').slice(0, 200),
+        background: String(item.background || '').slice(0, 200),
+        boundaries: String(item.boundaries || '').slice(0, 200),
+        must: (Array.isArray(item.must) ? item.must : []).map(String).slice(0, 5),
         opening: String(item.opening || '').slice(0, 200),
         tone: ['warm', 'danger', 'young', 'mature', 'mystery'].includes(item.tone) ? item.tone : 'warm',
         difficulty: Number.isFinite(Number(item.difficulty))
