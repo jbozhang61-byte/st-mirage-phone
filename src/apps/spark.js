@@ -129,8 +129,11 @@ export function mountSpark(host, { nav }) {
                         h('span', { class: 'mp-power__need', text: '需要 ' + verdict.need }),
                     );
                 })(),
-                h('div', { class: 'mp-sp__tags' }, (person.tags || []).map(tag => h('span', { class: 'mp-sp__tag', text: tag }))),
+                h('div', { class: 'mp-sp__tags' }, (person.tags || []).slice(0, 10).map(tag => h('span', { class: 'mp-sp__tag', text: tag }))),
                 h('div', { class: 'mp-sp__bio', text: person.bio }),
+                person.appearance ? h('div', { class: 'mp-sp__bio', text: '外貌：' + person.appearance }) : null,
+                person.background ? h('div', { class: 'mp-sp__bio', text: '来历：' + person.background }) : null,
+                person.boundaries ? h('div', { class: 'mp-sp__bio', text: '雷点：' + person.boundaries }) : null,
                 person.opening ? h('div', { class: 'mp-sp__opening' },
                     h('span', { class: 'mp-sp__opening-label', text: 'TA 可能会先说' }),
                     h('span', { text: '「' + person.opening + '」' }),
