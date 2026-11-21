@@ -2,7 +2,7 @@
  * AI 编排：手机里的回复、朋友圈、评论、主动来信、正文注入。
  * 全部走酒馆当前连接，用 generateRaw 在后台生成，不写进正文。
  */
-import { generateText, storyContext, importantStoryContext, memoryContext, userName, findCharacter, worldBookText, setPhonePrompt, currentCharacter } from './st.js';
+import { generateText, storyContext, importantStoryContext, memoryContext, userName, findCharacter, worldBookText, setPhonePrompt, currentCharacter, allCharacters } from './st.js';
 import {
     getSettings, getData, findThread, appendMessages, ensureThread, addMoment, addNote, saveNow,
     getCast, setCast, findPerson, setFeed, getFeed, getSelfProfile,
@@ -529,9 +529,22 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
     const people = castList.map(person => person.name);
     // 用户点名了角色卡里已有的人：直接把这个人做出来，不用等"遇见"
     const asked = String(description || '').trim();
-    const named = asked
-        ? castList.find(person => asked.includes(person.name)) || null
-        : null;
+    // 先按名字在 cast 里找，找不到就去所有角色卡里找（哪怕她还没出现在当前剧情里）
+    const nameHit = (list, person) => asked && person?.name && asked.includes(person.name);
+    let named = castList.find(person => nameHit(castList, person)) || null;
+    if (!named && asked) {
+        try {
+            const cards = allCharacters() || [];
+            const hit = cards.find(card => card?.name && asked.includes(card.name));
+            if (hit) {
+                named = {
+                    name: hit.name,
+                    role: String(hit.personality || '').slice(0, 20),
+                    desc: String(hit.description || '').slice(0, 400),
+                };
+            }
+        } catch { /* ignore */ }
+    }
     if (named) {
         const namedCandidate = {
             id: 'c' + Date.now().toString(36) + 'n',
