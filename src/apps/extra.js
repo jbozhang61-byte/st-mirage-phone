@@ -662,14 +662,15 @@ export function mountTelegram(host, { nav }) {
             draw();
             saveChat();
             // 8 秒还没等到模型，就先把占位换成一句能看的，别留个空气泡
+            const TG_TALK = ['在的。', '看到消息了。', '嗯，你说。', '刚在忙，现在回了。', '这个我得想想。', '好，听你的。'];
             const guard = setTimeout(() => {
-                if (pending.text === '…') { pending.text = '……'; draw(); }
+                if (pending.text === '…') { pending.text = TG_TALK[Math.floor(Math.random() * TG_TALK.length)]; draw(); }
             }, 8000);
             try {
                 const reply = await replyInChat({ app: 'Telegram', chat, messages });
-                pending.text = reply || '……';
+                pending.text = String(reply || '').trim() || TG_TALK[Math.floor(Math.random() * TG_TALK.length)];
             } catch {
-                pending.text = '在的。';
+                pending.text = TG_TALK[Math.floor(Math.random() * TG_TALK.length)];
             } finally {
                 clearTimeout(guard);
             }
