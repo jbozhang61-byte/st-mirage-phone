@@ -31,7 +31,7 @@ export function sparkSystemPrompt({ world, people, user }) {
         'difficulty 是攻略难度，0-100 的整数，越大越难追（看性格、边界、生活状态）。',
         '三个人要拉开差距：一个 80 以上，一个 55 左右，一个 35 以下。',
         '只输出 JSON：',
-        '{"candidates":[{"name":"名字","age":"27","job":"职业","tags":["性格","气质","生活方式","职业特征","爱好","边界","说话习惯","外在细节"],"bio":"介绍","appearance":"外貌","background":"来历","boundaries":"雷点","must":["关键标签"],"opening":"TA 会主动发来的第一句话","tone":"warm|danger|young|mature|mystery","difficulty":62}]}',g|mature|mystery","difficulty":72}]}',
+        '{"candidates":[{"name":"名字","age":"27","job":"职业","tags":["性格","气质","生活方式","职业特征","爱好","边界","说话习惯","外在细节"],"bio":"介绍","appearance":"外貌","background":"来历","boundaries":"雷点","must":["关键标签"],"opening":"TA 会主动发来的第一句话","tone":"warm|danger|young|mature|mystery","difficulty":62}]}',
     ].filter(Boolean).join('\n');
 }
 
