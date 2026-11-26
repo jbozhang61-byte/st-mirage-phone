@@ -74,6 +74,50 @@ export function mountPatreon(host, { nav }) {
         return list;
     }
 
+    /** 点开一条帖子：全文 + 点赞 + 评论。 */
+    function openPost(person, post, locked, tier, refresh) {
+        const fullText = String(post.text || '');
+        const comments = Array.isArray(post.comments) ? post.comments : [];
+        const rows = comments.length
+            ? comments.map(item => h('div', { class: 'mp-pt__comment' },
+                avatar({ name: item.by || '读者', size: 26, link: false }),
+                h('div', {},
+                    h('div', { class: 'mp-pt__comment-head', text: (item.by || '读者') + ' · ' + (item.at || '刚刚') }),
+                    h('div', { class: 'mp-pt__comment-text', text: item.text }))))
+            : [h('div', { class: 'mp-st-hint', text: '还没有人评论。' })];
+        const likeLine = h('button', {
+            type: 'button', class: 'mp-btn ghost small', text: '♥ ' + (post.likes || 0),
+            onclick: event => {
+                post.likes = Number(post.likes || 0) + 1;
+                saveNow('data');
+                event.currentTarget.textContent = '♥ ' + post.likes;
+                refresh?.();
+            },
+        });
+        sheet({
+            title: post.title || '帖子',
+            content: h('div', { class: 'mp-field-list' },
+                h('div', { class: 'mp-pt__post-top' },
+                    h('span', { class: 'mp-pt__post-tag', text: locked ? '🔒 会员限定' : '公开' }),
+                    h('span', { class: 'mp-pt__post-time', text: post.at || '' })),
+                h('div', { class: 'mp-pt__detail', text: locked ? '订阅 ' + tier.name + '（' + tier.price + ' / 月）后可见全文。' : fullText }),
+                locked
+                    ? h('button', {
+                        class: 'mp-btn primary small', type: 'button', text: '订阅 ' + tier.price + ' / 月',
+                        onclick: () => {
+                            data.patreon.subs[person.name] = { tier: tier.name, price: tier.price, ts: Date.now() };
+                            saveNow('data');
+                            toast('订阅成功');
+                            refresh?.();
+                        },
+                    })
+                    : null,
+                h('div', { class: 'mp-group__label', text: '评论（' + comments.length + '）' }),
+                ...rows),
+            actions: likeLine,
+        });
+    }
+
     /** 打开某个创作者的主页：能看到他发过什么，订阅后才解锁会员帖。 */
     function open(person) {
         const tier = TIERS[person.tier];
@@ -92,7 +136,10 @@ export function mountPatreon(host, { nav }) {
             ));
             for (const post of list) {
                 const locked = post.locked && !sub;
-                body.appendChild(h('div', { class: 'mp-pt__post' + (locked ? ' is-locked' : '') },
+                body.appendChild(h('div', {
+                    class: 'mp-pt__post' + (locked ? ' is-locked' : ''),
+                    onclick: () => openPost(person, post, locked, tier, () => { draw(); render(); }),
+                },
                     h('div', { class: 'mp-pt__post-top' },
                         h('span', { class: 'mp-pt__post-tag', text: locked ? '🔒 会员限定' : '公开' }),
                         h('span', { class: 'mp-pt__post-time', text: post.at })),
