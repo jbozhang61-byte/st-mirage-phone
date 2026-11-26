@@ -3805,3 +3805,24 @@ html body .mp-dc__main:not(.in-chat) .mp-dc__search { margin-top: 4px !important
     background: #f2f3f5 !important; color: #4b505a !important;
     font-size: 12.5px !important; padding: 6px 12px !important; border-radius: 8px !important;
 }
+
+
+/* ===== Patreon 帖子详情 ===== */
+.mp-pt__detail {
+    font-size: 14.5px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    color: var(--mp-text, #e8e8ec);
+    padding: 10px 2px 14px;
+}
+.mp-pt__comment {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 2px;
+    border-top: 1px solid rgba(127,127,127,.14);
+}
+.mp-pt__comment-head { font-size: 12px; opacity: .66; margin-bottom: 3px; }
+.mp-pt__comment-text { font-size: 13.5px; line-height: 1.5; }
+.mp-pt__post { cursor: pointer; }
+.mp-pt__post:active { transform: scale(.995); }
