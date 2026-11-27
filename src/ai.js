@@ -522,6 +522,8 @@ export async function advancePlot(toneId) {
 
 /** 相遇：按描述找几个候选人。 */
 let sparkFallbackCursor = 0;
+/** 最近一次匹配的结果来源与错误，给界面显示用 */
+export const sparkDebug = { source: '', error: '' };
 
 export async function findMatches({ description = '', vibes = [] } = {}) {
     const user = userName();
@@ -626,7 +628,9 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
         }
     } catch (error) {
         // 模型没回：也要按用户点的名字给出这个人，不能拿默认名单糊弄
-        console.warn('[相遇] 生成失败，使用兜底名单：', error?.message || error);
+        sparkDebug.source = 'fallback';
+        sparkDebug.error = String(error?.message || error || '');
+        console.warn('[相遇] 生成失败，使用兜底名单：', sparkDebug.error);
         const forced = named?.name || '';
         sparkFallbackCursor += 1;
         const pool = sparkFallback({ description, vibes, offset: sparkFallbackCursor * 3 }).candidates;
@@ -650,6 +654,8 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
     }
     const json = extractJson(raw);
     const list = Array.isArray(json?.candidates) ? json.candidates : [];
+    sparkDebug.source = list.length ? 'ai' : 'empty';
+    sparkDebug.error = list.length ? '' : String(raw || '').slice(0, 120);
     if (!list.length) {
         sparkFallbackCursor += 1;
         return sparkFallback({ description, vibes, offset: sparkFallbackCursor * 3 }).candidates;

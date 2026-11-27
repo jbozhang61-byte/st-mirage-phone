@@ -3,7 +3,7 @@
  */
 import { h, icon, avatar, sheet, confirmSheet, toast } from '../render.js';
 import { getData, saveNow, upsertPerson, ensureThread, findPerson, appendMessages, getSelfProfile } from '../store.js';
-import { findMatches } from '../ai.js';
+import { findMatches, sparkDebug } from '../ai.js';
 import { MAX_DATES, STAGES, VIBES } from '../spark.js';
 import { setOneShot, sendAsUserAndGenerate, subscribe, userName } from '../st.js';
 import { difficultyOf, sortByDifficulty, canTake } from '../difficulty.js';
@@ -159,7 +159,8 @@ export function mountSpark(host, { nav }) {
             data.spark.candidates = candidates;
             index = 0;
             saveNow('data');
-            toast('找到了 ' + candidates.length + ' 个人');
+            const src = sparkDebug.source === 'ai' ? '模型生成' : '兜底名单';
+            toast('找到了 ' + candidates.length + ' 个人（' + src + '）' + (sparkDebug.error ? ' · ' + sparkDebug.error.slice(0, 40) : ''), 4000);
         } catch (error) {
             toast('没匹配上，再试一次', 3000);
         } finally {
