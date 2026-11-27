@@ -607,12 +607,23 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
 
     let raw = '';
     try {
-        raw = await generateText({
-            system: sparkSystemPrompt({ world, people, user }) + (named ? '\n候选人名字必须用：' + named.name : ''),
-            prompt: sparkUserPrompt({ description, vibes }),
-            length: 1200,
-            json: true,
-        });
+        try {
+            raw = await generateText({
+                system: sparkSystemPrompt({ world, people, user }) + (named ? '\n候选人名字必须用：' + named.name : ''),
+                prompt: sparkUserPrompt({ description, vibes }),
+                length: 1600,
+                json: true,
+            });
+        } catch (jsonModeError) {
+            // 有些后端不支持 JSON 模式：退回普通生成，再自己抠 JSON
+            console.warn('[相遇] JSON 模式失败，改用普通生成：', jsonModeError?.message || jsonModeError);
+            raw = await generateText({
+                system: sparkSystemPrompt({ world, people, user }) + (named ? '\n候选人名字必须用：' + named.name : ''),
+                prompt: sparkUserPrompt({ description, vibes }),
+                length: 1600,
+                json: false,
+            });
+        }
     } catch (error) {
         // 模型没回：也要按用户点的名字给出这个人，不能拿默认名单糊弄
         console.warn('[相遇] 生成失败，使用兜底名单：', error?.message || error);
