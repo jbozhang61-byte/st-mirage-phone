@@ -525,7 +525,18 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
     const user = userName();
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
-    const castList = (() => { try { return getCast().filter(person => person?.name); } catch { return []; } })();
+    const castList = (() => {
+        const list = [];
+        try { list.push(...getCast().filter(person => person?.name)); } catch { /* ignore */ }
+        try {
+            const fromData = (getData()?.world?.cast || []).filter(person => person?.name)
+                .map(person => ({ name: person.name, role: person.role || '', desc: person.desc || '', tags: person.tags || [] }));
+            for (const person of fromData) {
+                if (!list.some(item => item.name === person.name)) list.push(person);
+            }
+        } catch { /* ignore */ }
+        return list;
+    })();
     const people = castList.map(person => person.name);
     // 用户点名了角色卡里已有的人：直接把这个人做出来，不用等"遇见"
     const asked = String(description || '').trim();
@@ -546,12 +557,17 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
     if (!named && asked) {
         try {
             const cards = allCharacters() || [];
-            const hit = cards.find(card => card?.name && asked.includes(card.name));
+            const normCard = text => String(text || '').replace(/[\s·・.、,，。!！?？"'“”「」『』【】()（）]/g, '').toLowerCase();
+            const hit = cards.find(card => {
+                const name = normCard(card?.name);
+                return name && (askedNorm.includes(name) || name.includes(askedNorm) && askedNorm.length >= 2);
+            });
             if (hit) {
                 named = {
                     name: hit.name,
                     role: String(hit.personality || '').slice(0, 20),
-                    desc: String(hit.description || '').slice(0, 400),
+                    desc: [hit.description, hit.scenario].filter(Boolean).join('\n').slice(0, 400),
+                    tags: String(hit.personality || '').split(/[、,，\s]+/).filter(Boolean).slice(0, 10),
                 };
             }
         } catch { /* ignore */ }
@@ -581,10 +597,16 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
             console.warn('[相遇] 点名生成失败，回退到普通生成：', error);
         }
     }
+    // 没在任何卡里找到，但输入像个人名：强制用这个名字生成
+    const looksLikeName = asked && asked.length <= 10 && !/[，。,.!？?\s]/.test(asked) && !/想|找|要|一个|那种|类型/.test(asked);
+    if (!named && looksLikeName) {
+        named = { name: asked, role: '', desc: '用户点名想要这个人。', tags: [] };
+    }
+
     let raw = '';
     try {
         raw = await generateText({
-            system: sparkSystemPrompt({ world, people, user }),
+            system: sparkSystemPrompt({ world, people, user }) + (named ? '\n候选人名字必须用：' + named.name : ''),
             prompt: sparkUserPrompt({ description, vibes }),
             length: 1200,
             json: true,
