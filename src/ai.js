@@ -525,7 +525,7 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
     const user = userName();
     const current = currentCharacter();
     const world = current?.group ? current.name : (current?.name || '');
-    const castList = getCast().filter(person => person?.name);
+    const castList = (() => { try { return getCast().filter(person => person?.name); } catch { return []; } })();
     const people = castList.map(person => person.name);
     // 用户点名了角色卡里已有的人：直接把这个人做出来，不用等"遇见"
     const asked = String(description || '').trim();
@@ -546,6 +546,7 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
         } catch { /* ignore */ }
     }
     if (named) {
+        try {
         const namedCandidate = {
             id: 'c' + Date.now().toString(36) + 'n',
             name: named.name,
@@ -565,6 +566,9 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
         // 其他人继续交给模型生成，名单里保留这个名字
         const rest = await findMatchesWithCastExcluded({ description: asked, vibes, exclude: [named.name], castList });
         return [namedCandidate, ...rest].slice(0, 4);
+        } catch (error) {
+            console.warn('[相遇] 点名生成失败，回退到普通生成：', error);
+        }
     }
     let raw = '';
     try {
