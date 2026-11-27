@@ -612,11 +612,32 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
             json: true,
         });
     } catch (error) {
-        return sparkFallback({ description, vibes }).candidates;
+        // 模型没回：也要按用户点的名字给出这个人，不能拿默认名单糊弄
+        const forced = named?.name || (looksLikeName ? asked : '');
+        const pool = sparkFallback({ description, vibes }).candidates;
+        if (!forced) return pool;
+        const local = {
+            id: 'c' + Date.now().toString(36) + 'f',
+            name: forced,
+            age: '',
+            job: named?.role || '你点名想遇见的人',
+            tags: (named?.tags || []).length ? named.tags.slice(0, 10) : ['神秘', '不好接近'],
+            bio: named?.desc || ('你输入的是「' + asked + '」，模型暂时没连上，先按这个名字建了个人。'),
+            appearance: '',
+            background: '',
+            boundaries: '',
+            must: [forced],
+            opening: '你就是一直在找我的那个人？',
+            tone: 'mystery',
+            known: true,
+        };
+        return [local, ...pool.filter(item => item.name !== forced)].slice(0, 4);
     }
     const json = extractJson(raw);
     const list = Array.isArray(json?.candidates) ? json.candidates : [];
     if (!list.length) return sparkFallback({ description, vibes }).candidates;
+    // 用户点了名字：第一个候选人必须叫这个名字
+    if (named?.name && list[0]) list[0].name = named.name;
     return list.slice(0, 4).map((item, index) => ({
         id: 'c' + Date.now().toString(36) + index,
         name: String(item.name || '某人').slice(0, 24),
