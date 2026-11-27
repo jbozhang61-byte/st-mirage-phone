@@ -530,7 +530,18 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
     // 用户点名了角色卡里已有的人：直接把这个人做出来，不用等"遇见"
     const asked = String(description || '').trim();
     // 先按名字在 cast 里找，找不到就去所有角色卡里找（哪怕她还没出现在当前剧情里）
-    const nameHit = (list, person) => asked && person?.name && asked.includes(person.name);
+    const norm = text => String(text || '').replace(/[\s·・.、,，。!！?？"'“”「」『』【】()（）]/g, '').toLowerCase();
+    const askedNorm = norm(asked);
+    const nameHit = (list, person) => {
+        const name = norm(person?.name);
+        if (!askedNorm || !name) return false;
+        if (askedNorm.includes(name)) return true;
+        // 名字被截短/加后缀也认（比如 绘梨衣酱 / 绘梨衣同学）
+        if (name.length >= 2 && name.includes(askedNorm) && askedNorm.length >= 2) return true;
+        // 去姓：只留最后 2-3 个字再比一次
+        const tail = name.slice(-2);
+        return tail.length === 2 && askedNorm.includes(tail) && name.length >= 2;
+    };
     let named = castList.find(person => nameHit(castList, person)) || null;
     if (!named && asked) {
         try {
@@ -617,7 +628,7 @@ async function findMatchesWithCastExcluded({ description = '', vibes = [], exclu
                 .replace('三个候选人', '候选人')
                 + '\n这次的候选人里不要出现：' + exclude.join('、'),
             prompt: sparkUserPrompt({ description, vibes }),
-            length: 1000,
+            length: 1600,
             json: true,
         });
         const json = extractJson(raw);
