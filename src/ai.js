@@ -521,6 +521,8 @@ export async function advancePlot(toneId) {
 }
 
 /** 相遇：按描述找几个候选人。 */
+let sparkFallbackCursor = 0;
+
 export async function findMatches({ description = '', vibes = [] } = {}) {
     const user = userName();
     const current = currentCharacter();
@@ -597,8 +599,8 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
             console.warn('[相遇] 点名生成失败，回退到普通生成：', error);
         }
     }
-    // 没在任何卡里找到，但输入像个人名：强制用这个名字生成
-    const looksLikeName = asked && asked.length <= 10 && !/[，。,.!？?\s]/.test(asked) && !/想|找|要|一个|那种|类型/.test(asked);
+    // 只有真的在卡/名单里找到人名才算"点名"；「贵族」「皇女」这类是描述不是名字
+    const looksLikeName = false;
     if (!named && looksLikeName) {
         named = { name: asked, role: '', desc: '用户点名想要这个人。', tags: [] };
     }
@@ -613,8 +615,10 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
         });
     } catch (error) {
         // 模型没回：也要按用户点的名字给出这个人，不能拿默认名单糊弄
-        const forced = named?.name || (looksLikeName ? asked : '');
-        const pool = sparkFallback({ description, vibes }).candidates;
+        console.warn('[相遇] 生成失败，使用兜底名单：', error?.message || error);
+        const forced = named?.name || '';
+        sparkFallbackCursor += 1;
+        const pool = sparkFallback({ description, vibes, offset: sparkFallbackCursor * 3 }).candidates;
         if (!forced) return pool;
         const local = {
             id: 'c' + Date.now().toString(36) + 'f',
@@ -635,7 +639,10 @@ export async function findMatches({ description = '', vibes = [] } = {}) {
     }
     const json = extractJson(raw);
     const list = Array.isArray(json?.candidates) ? json.candidates : [];
-    if (!list.length) return sparkFallback({ description, vibes }).candidates;
+    if (!list.length) {
+        sparkFallbackCursor += 1;
+        return sparkFallback({ description, vibes, offset: sparkFallbackCursor * 3 }).candidates;
+    }
     // 用户点了名字：第一个候选人必须叫这个名字
     if (named?.name && list[0]) list[0].name = named.name;
     return list.slice(0, 4).map((item, index) => ({
